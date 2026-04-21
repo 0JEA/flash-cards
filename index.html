@@ -560,42 +560,39 @@
 
       const oldIdx = idx;
       idx = Math.max(0, Math.min(quizQuestions.length - 1, idx + dir));
+      if (idx === oldIdx) { isAnimating = false; return; }
 
-      if (idx === oldIdx) {
-        isAnimating = false;
-        return;
+      const DIST = 420;
+      const outX = dir > 0 ? -DIST : DIST;
+      const inX  = dir > 0 ?  DIST : -DIST;
+
+      const card = document.getElementById('qcard');
+      const opts = document.getElementById('opts');
+
+      // Clone outgoing elements as fixed overlays so real DOM can update immediately
+      function fixedClone(el) {
+        const r = el.getBoundingClientRect();
+        const c = el.cloneNode(true);
+        Object.assign(c.style, {
+          position: 'fixed', top: r.top + 'px', left: r.left + 'px',
+          width: r.width + 'px', height: r.height + 'px',
+          zIndex: '200', pointerEvents: 'none', margin: '0',
+        });
+        document.body.appendChild(c);
+        return c;
       }
 
-      const outPct = dir > 0 ? -115 : 115;
-      const inPct  = dir > 0 ?  115 : -115;
+      const oldCard = fixedClone(card);
+      const oldOpts = fixedClone(opts);
 
-      // Capture OLD element references now, before DOM changes
-      const oldContent = document.querySelector('.card-content');
-      const oldButtons = [...document.querySelectorAll('.opt-btn')];
+      // Swap real content and position off-screen — all in same frame, no flash
+      renderContent(quizQuestions[idx]);
+      gsap.set([card, opts], { x: inX, opacity: 0 });
 
-      // Phase 1: slide old content out
-      const outTl = gsap.timeline({
-        onComplete() {
-          // Swap DOM
-          renderContent(quizQuestions[idx]);
-
-          // Capture NEW element references after renderContent
-          const newContent = document.querySelector('.card-content');
-          const newButtons = [...document.querySelectorAll('.opt-btn')];
-
-          // Position new content off-screen
-          gsap.set(newContent, { xPercent: inPct, opacity: 1 });
-          gsap.set(newButtons, { xPercent: inPct * 0.9, opacity: 0 });
-
-          // Phase 2: slide new content in
-          gsap.timeline({ onComplete: () => { isAnimating = false; } })
-            .to(newContent, { xPercent: 0, duration: 0.28, ease: 'power2.out' })
-            .to(newButtons, { xPercent: 0, opacity: 1, duration: 0.22, stagger: 0.04, ease: 'power2.out' }, '<0.05');
-        }
-      });
-
-      outTl.to(oldContent, { xPercent: outPct, opacity: 0, duration: 0.22, ease: 'power2.in' }, 0);
-      outTl.to(oldButtons, { xPercent: outPct * 0.9, opacity: 0, duration: 0.18, stagger: 0.03, ease: 'power2.in' }, 0.03);
+      // Slide old clones out and new real elements in simultaneously
+      gsap.timeline({ onComplete: () => { oldCard.remove(); oldOpts.remove(); isAnimating = false; }})
+        .to([oldCard, oldOpts], { x: outX, opacity: 0, duration: 0.3, ease: 'power2.inOut' }, 0)
+        .to([card, opts],       { x: 0,    opacity: 1, duration: 0.3, ease: 'power2.out'   }, 0.04);
     }
 
     function render() {

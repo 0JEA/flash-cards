@@ -140,7 +140,6 @@
       height: 100%;
       background: var(--accent-gold);
       width: 0%;
-      transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     /* Question card */
@@ -154,7 +153,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: height 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      overflow: hidden;
     }
 
     .card::before {
@@ -366,33 +365,13 @@
       border-color: var(--accent-gold);
     }
 
-    /* Initial state for GSAP */
-    h1, .subtitle {
-      opacity: 0;
-      transform: translateY(-12px);
-    }
-
-    .stat {
-      opacity: 0;
-      transform: translateY(8px);
-    }
+    /* Initial states set via gsap.set() in JS — not CSS — so dynamically created elements don't inherit them */
 
     .progress-track {
       transform-origin: left;
-      transform: scaleX(0);
     }
 
-    .card {
-      opacity: 0;
-      transform: translateY(16px);
-    }
-
-    .opt-btn {
-      opacity: 0;
-      transform: translateY(8px);
-    }
-
-    .nav button {
+    .done-overlay {
       opacity: 0;
     }
 
@@ -554,14 +533,22 @@
     }
 
     function introAnimation() {
+      // Set initial hidden states here, not in CSS, so dynamically created elements don't inherit them
+      gsap.set(['h1', '.subtitle'], { opacity: 0, y: -12 });
+      gsap.set('.stat', { opacity: 0, y: 8 });
+      gsap.set('.progress-track', { scaleX: 0 });
+      gsap.set('.card', { opacity: 0, y: 16 });
+      gsap.set('.opt-btn', { opacity: 0, y: 8 });
+      gsap.set('.nav button', { opacity: 0 });
+
       const tl = gsap.timeline();
 
-      tl.to(['h1', '.subtitle'], { opacity: 1, y: 0, duration: 0.4, ease: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' }, 0)
-        .to('.stat', { opacity: 1, y: 0, duration: 0.4, stagger: 0.08, ease: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' }, 0.15)
+      tl.to(['h1', '.subtitle'], { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }, 0)
+        .to('.stat', { opacity: 1, y: 0, duration: 0.4, stagger: 0.08, ease: 'power2.out' }, 0.15)
         .to('.progress-track', { scaleX: 1, duration: 0.5, ease: 'power2.inOut' }, 0.3)
-        .to('.card', { opacity: 1, y: 0, duration: 0.4, ease: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' }, 0.4)
-        .to('.opt-btn', { opacity: 1, y: 0, duration: 0.3, stagger: 0.05, ease: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' }, 0.55)
-        .to('.nav button', { opacity: 1, duration: 0.3, ease: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' }, 0.7);
+        .to('.card', { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }, 0.4)
+        .to('.opt-btn', { opacity: 1, y: 0, duration: 0.3, stagger: 0.05, ease: 'power2.out' }, 0.55)
+        .to('.nav button', { opacity: 1, duration: 0.3, ease: 'power2.out' }, 0.7);
 
       return tl;
     }
@@ -628,67 +615,64 @@
       answered[idx] = opt;
       const isCorrect = opt === q.correct;
 
+      if (isCorrect) correct++;
+      else wrong++;
+
+      // Update stats immediately
+      updateStats();
+
+      const total = correct + wrong;
+      const pct = Math.round((total / quizQuestions.length) * 100);
+      const grade = Math.round((correct / total) * 100);
+
       const tl = gsap.timeline();
+      const buttons = document.querySelectorAll('.opt-btn');
+
+      buttons.forEach((btn) => btn.disabled = true);
 
       if (isCorrect) {
-        correct++;
-
-        // Winning button pulses
-        const buttons = document.querySelectorAll('.opt-btn');
+        // Winning button pulses, others dim
         buttons.forEach((btn) => {
           if (btn.textContent === opt) {
-            tl.to(btn, { scale: 1.02, duration: 0.15, ease: 'back.out' }, 0);
-            tl.to(btn, { scale: 1, duration: 0.15, ease: 'back.in' }, 0.15);
+            btn.classList.add('correct');
+            tl.to(btn, { scale: 1.02, duration: 0.12, ease: 'back.out' }, 0);
+            tl.to(btn, { scale: 1, duration: 0.12, ease: 'back.in' }, 0.12);
           } else {
-            tl.to(btn, { opacity: 0.4, duration: 0.2 }, 0);
+            tl.to(btn, { opacity: 0.35, duration: 0.2 }, 0);
           }
         });
 
-        // Progress bar fills with elastic ease
-        const totalAnswered = correct + wrong;
-        const pct = Math.round((totalAnswered / quizQuestions.length) * 100);
+        // Progress bar elastic fill
         tl.to('#progress', { width: pct + '%', duration: 0.6, ease: 'elastic.out(1, 0.5)' }, 0.1);
 
-        // Grade counter counts up if applicable
-        if (wrong === 0 || total > 0) {
-          const total = correct + wrong;
-          const grade = Math.round((correct / total) * 100);
-          tl.to({ val: 0 }, { val: grade, duration: 0.5, onUpdate: function() {
-            document.getElementById('current-grade').textContent = Math.round(this.targets()[0].val) + '%';
-          }, ease: 'power2.out' }, 0.1);
-        }
+        // Grade counts up to new value
+        const prevGrade = total > 1 ? Math.round(((correct - 1) / (total - 1)) * 100) : 0;
+        tl.to({ val: prevGrade }, { val: grade, duration: 0.5, ease: 'power2.out', onUpdate: function() {
+          document.getElementById('current-grade').textContent = Math.round(this.targets()[0].val) + '%';
+        }}, 0.1);
       } else {
-        wrong++;
-
-        // Wrong button shakes
-        const buttons = document.querySelectorAll('.opt-btn');
+        // Wrong button shakes, then correct is revealed
         buttons.forEach((btn) => {
           if (btn.textContent === opt) {
-            tl.to(btn, { x: 4, duration: 0.05, repeat: 5, yoyo: true, ease: 'power2.inOut' }, 0);
+            btn.classList.add('wrong');
+            tl.to(btn, { x: 5, duration: 0.05, repeat: 5, yoyo: true, ease: 'power2.inOut' }, 0);
+          } else if (btn.textContent === q.correct) {
+            btn.classList.add('correct');
+            tl.fromTo(btn, { opacity: 0.2 }, { opacity: 1, duration: 0.4, ease: 'power2.out' }, 0.2);
+          } else {
+            tl.to(btn, { opacity: 0.35, duration: 0.2 }, 0);
           }
         });
 
-        // Correct button fades in and highlights
-        tl.call(() => {
-          buttons.forEach((btn) => {
-            if (btn.textContent === q.correct) {
-              btn.classList.add('correct');
-              gsap.fromTo(btn, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: 'power2.out' });
-            } else if (btn.textContent !== opt) {
-              gsap.to(btn, { opacity: 0.4, duration: 0.2 });
-            }
-          });
-        }, null, 0);
-
         // Screen shake
-        tl.to('#app', { x: 4, duration: 0.06, repeat: 4, yoyo: true, ease: 'power2.inOut' }, 0);
+        tl.to('#app', { x: 5, duration: 0.05, repeat: 5, yoyo: true, ease: 'power2.inOut' }, 0);
       }
 
+      // Update nav state without rebuilding buttons
       tl.call(() => {
-        renderContent(q);
-        if (idx === quizQuestions.length - 1) {
-          setTimeout(showDone, 600);
-        }
+        document.getElementById('prevBtn').disabled = idx === 0;
+        document.getElementById('nextBtn').textContent = idx === quizQuestions.length - 1 ? 'Finish' : 'Next →';
+        if (idx === quizQuestions.length - 1) setTimeout(showDone, 700);
       });
     }
 
@@ -764,6 +748,12 @@
       tl.to(elements[4], { opacity: 1, y: 0, duration: 0.3, ease: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' }, 0.75);
       tl.to(elements[5], { opacity: 1, scale: 1, duration: 0.3, ease: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' }, 0.85);
     }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') move(1);
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') move(-1);
+    });
 
     // Initialize
     render();

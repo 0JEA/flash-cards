@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ethics Flashcards</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Press Start 2P', cursive;
+      background: linear-gradient(135deg, #0a0e27 0%, #1a1033 50%, #0d0a1f 100%);
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 1.5rem;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    canvas#bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      display: block;
+    }
+
+    #app {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 650px;
+      margin-top: 1rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-size: 1.2rem;
+      letter-spacing: 2px;
+      color: #ffd700;
+      text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+    }
+
+    .header-stats {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 1rem 0;
+      font-size: 0.7rem;
+      color: #aaa;
+    }
+
+    .hearts {
+      letter-spacing: 3px;
+    }
+
+    .heart {
+      display: inline-block;
+      color: #ff4444;
+      margin: 0 2px;
+      text-shadow: 0 0 8px rgba(255, 68, 68, 0.8);
+    }
+
+    .progress-bar {
+      height: 6px;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid #ffd700;
+      border-radius: 2px;
+      margin: 1rem 0;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ff00ff, #00ffff);
+      box-shadow: 0 0 10px rgba(255, 0, 255, 0.8);
+      transition: width 0.3s;
+    }
+
+    .card {
+      background: rgba(50, 30, 80, 0.8);
+      border: 2px solid #8b7355;
+      border-radius: 4px;
+      padding: 1.5rem;
+      min-height: 120px;
+      margin-bottom: 1.5rem;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.7), 0 0 20px rgba(100, 50, 150, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background:
+        repeating-linear-gradient(
+          0deg,
+          rgba(255, 255, 255, 0.03) 0px,
+          rgba(255, 255, 255, 0.03) 1px,
+          transparent 1px,
+          transparent 2px
+        );
+      pointer-events: none;
+      animation: scanlines 8s linear infinite;
+    }
+
+    @keyframes scanlines {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(10px); }
+    }
+
+    .card-inner {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      font-size: 0.8rem;
+      line-height: 1.6;
+      color: #e0e0e0;
+    }
+
+    .card-label {
+      font-size: 0.5rem;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 0.8rem;
+      display: block;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 1.5rem;
+    }
+
+    .opt-btn {
+      background: rgba(40, 20, 60, 0.8);
+      border: 1px solid #6b4a8a;
+      border-radius: 2px;
+      padding: 0.8rem 1rem;
+      font-size: 0.65rem;
+      font-family: 'Press Start 2P', cursive;
+      color: #e0e0e0;
+      cursor: pointer;
+      text-align: left;
+      line-height: 1.4;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+
+    .opt-btn:hover:not(:disabled) {
+      background: rgba(60, 30, 90, 0.9);
+      border-color: #a070d0;
+      box-shadow: 0 0 15px rgba(160, 112, 208, 0.6);
+      transform: translateY(-2px);
+    }
+
+    .opt-btn.correct {
+      background: rgba(76, 175, 80, 0.6);
+      border-color: #4caf50;
+      color: #90ee90;
+      box-shadow: 0 0 20px rgba(76, 175, 80, 0.8);
+    }
+
+    .opt-btn.wrong {
+      background: rgba(244, 67, 54, 0.6);
+      border-color: #f44336;
+      color: #ff8888;
+      box-shadow: 0 0 20px rgba(244, 67, 54, 0.8);
+    }
+
+    .opt-btn:disabled {
+      cursor: default;
+    }
+
+    .feedback {
+      background: rgba(30, 30, 50, 0.9);
+      border: 1px solid #6b4a8a;
+      border-radius: 4px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      font-size: 0.7rem;
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: #e0e0e0;
+      line-height: 1.6;
+      box-shadow: 0 0 15px rgba(100, 50, 150, 0.3);
+    }
+
+    .feedback.correct-msg {
+      color: #90ee90;
+      border-color: #4caf50;
+    }
+
+    .feedback.wrong-msg {
+      color: #ff8888;
+      border-color: #f44336;
+    }
+
+    .nav {
+      display: flex;
+      gap: 10px;
+    }
+
+    .nav button {
+      flex: 1;
+      background: rgba(40, 20, 60, 0.8);
+      border: 1px solid #6b4a8a;
+      border-radius: 2px;
+      padding: 0.8rem;
+      font-size: 0.65rem;
+      font-family: 'Press Start 2P', cursive;
+      color: #e0e0e0;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+
+    .nav button:hover:not(:disabled) {
+      background: rgba(60, 30, 90, 0.9);
+      border-color: #a070d0;
+      box-shadow: 0 0 15px rgba(160, 112, 208, 0.6);
+      transform: translateY(-2px);
+    }
+
+    .nav button:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+
+    .done-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .done-card {
+      text-align: center;
+      background: rgba(50, 30, 80, 0.9);
+      border: 2px solid #8b7355;
+      border-radius: 4px;
+      padding: 3rem 2rem;
+      max-width: 500px;
+      box-shadow: 0 0 40px rgba(100, 50, 150, 0.6);
+    }
+
+    .done-card h2 {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      color: #ffd700;
+      text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+    }
+
+    .done-card p {
+      font-size: 0.8rem;
+      color: #e0e0e0;
+      margin-bottom: 2rem;
+      line-height: 1.8;
+    }
+
+    .done-card button {
+      background: rgba(40, 20, 60, 0.8);
+      border: 1px solid #6b4a8a;
+      border-radius: 2px;
+      padding: 1rem 2rem;
+      font-size: 0.7rem;
+      font-family: 'Press Start 2P', cursive;
+      color: #e0e0e0;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      transition: all 0.2s;
+    }
+
+    .done-card button:hover {
+      background: rgba(60, 30, 90, 0.9);
+      border-color: #a070d0;
+      box-shadow: 0 0 20px rgba(160, 112, 208, 0.6);
+    }
+
+    .xp-pop {
+      position: fixed;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #ffd700;
+      text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+      pointer-events: none;
+      z-index: 50;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bg"></canvas>
+
+  <div id="app">
+    <header>
+      ✦ ETHICS QUEST ✦
+      <div class="header-stats">
+        <div class="hearts" id="hearts"></div>
+        <div id="score">Q <span id="q-num">1</span>/<span id="q-total">0</span></div>
+        <div id="xp-display" style="color: #ffd700;">XP: <span id="xp-count">0</span></div>
+      </div>
+    </header>
+
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress"></div>
+    </div>
+
+    <div class="card" id="qcard">
+      <div class="card-inner">
+        <span class="card-label" id="q-label">Question</span>
+        <div id="qtext"></div>
+      </div>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <div class="options" id="opts"></div>
+
+    <div class="nav">
+      <button id="prevBtn" onclick="move(-1)">← PREV</button>
+      <button id="nextBtn" onclick="move(1)">NEXT →</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import questions from './questions.js';
+
+    // ─────────────────────────────────────────────────
+    // PARTICLE SYSTEM
+    // ─────────────────────────────────────────────────
+    class Particle {
+      constructor(x, y, vx, vy, life, color, size = 2) {
+        this.x = x;
+        this.y = y;
+        this.vx = vx;
+        this.vy = vy;
+        this.life = life;
+        this.maxLife = life;
+        this.color = color;
+        this.size = size;
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy += 0.1; // gravity
+        this.vx *= 0.98; // friction
+        this.life--;
+      }
+
+      draw(ctx) {
+        const alpha = Math.max(0, this.life / this.maxLife);
+        ctx.fillStyle = this.color.replace(')', `, ${alpha})`).replace('rgb(', 'rgba(');
+        ctx.fillRect(this.x, this.y, this.size, this.size);
+      }
+    }
+
+    // ─────────────────────────────────────────────────
+    // CANVAS & ATMOSPHERE
+    // ─────────────────────────────────────────────────
+    const canvas = document.getElementById('bg');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let particles = [];
+    let time = 0;
+    let mood = 'normal'; // 'normal', 'storm', 'magic'
+    let moodTimer = 0;
+    let nextMoodChange = 120 * 30; // ~30s at 120fps
+
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+
+    function spawnDust() {
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * canvas.height;
+      const vx = (Math.random() - 0.5) * 0.5;
+      const vy = (Math.random() - 0.5) * 0.3;
+      particles.push(new Particle(x, y, vx, vy, 180, 'rgb(100, 80, 120)', 1));
+    }
+
+    function spawnTorchFlame(x, y) {
+      const vx = (Math.random() - 0.5) * 1;
+      const vy = -Math.random() * 1.5;
+      const colors = ['rgb(255, 150, 0)', 'rgb(255, 100, 0)', 'rgb(200, 80, 20)'];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      particles.push(new Particle(x, y, vx, vy, 60, color, 3));
+    }
+
+    function updateMood() {
+      moodTimer++;
+      if (moodTimer > nextMoodChange) {
+        const moods = ['normal', 'storm', 'magic'];
+        mood = moods[Math.floor(Math.random() * moods.length)];
+        moodTimer = 0;
+        nextMoodChange = 120 * (25 + Math.random() * 20); // 25-45s
+      }
+    }
+
+    function drawTorches() {
+      const h = canvas.height;
+      const flicker = Math.sin(time * 0.1) * 0.3 + 0.7;
+      const torchSize = 40;
+
+      // Left torch
+      ctx.fillStyle = `rgba(255, 180, 50, ${0.6 * flicker})`;
+      ctx.fillRect(40, h - 200, 20, 150);
+      ctx.fillStyle = `rgba(255, 150, 0, ${0.8 * flicker})`;
+      ctx.beginPath();
+      ctx.arc(50, h - 220, torchSize * flicker, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Right torch
+      ctx.fillStyle = `rgba(255, 180, 50, ${0.6 * flicker})`;
+      ctx.fillRect(canvas.width - 60, h - 200, 20, 150);
+      ctx.fillStyle = `rgba(255, 150, 0, ${0.8 * flicker})`;
+      ctx.beginPath();
+      ctx.arc(canvas.width - 50, h - 220, torchSize * flicker, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Spawn flames
+      if (Math.random() < 0.3) {
+        spawnTorchFlame(50 + (Math.random() - 0.5) * 20, canvas.height - 220);
+        spawnTorchFlame(canvas.width - 50 + (Math.random() - 0.5) * 20, canvas.height - 220);
+      }
+
+      // Storm: torches flicker wildly
+      if (mood === 'storm' && Math.random() < 0.05) {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    function animateParticles() {
+      particles = particles.filter(p => p.life > 0);
+      particles.forEach(p => {
+        p.update();
+        p.draw(ctx);
+      });
+    }
+
+    function drawAtmosphere() {
+      // Background
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, '#0a0e27');
+      gradient.addColorStop(0.5, '#1a1033');
+      gradient.addColorStop(1, '#0d0a1f');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Mood lighting
+      if (mood === 'magic') {
+        ctx.fillStyle = 'rgba(100, 50, 200, 0.1)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      } else if (mood === 'storm') {
+        ctx.fillStyle = 'rgba(50, 50, 100, 0.15)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    function animate() {
+      time++;
+
+      drawAtmosphere();
+      updateMood();
+
+      // Spawn ambient particles
+      if (Math.random() < 0.05) spawnDust();
+      if (mood === 'storm' && Math.random() < 0.1) {
+        // Rain
+        const x = Math.random() * canvas.width;
+        particles.push(new Particle(x, -10, 0, 3, 200, 'rgb(100, 150, 200)', 1));
+      }
+      if (mood === 'magic' && Math.random() < 0.08) {
+        // Rising sparkles
+        const x = Math.random() * canvas.width;
+        const sparkleColors = ['rgb(100, 200, 255)', 'rgb(200, 100, 255)', 'rgb(255, 200, 100)'];
+        particles.push(new Particle(
+          x,
+          canvas.height,
+          (Math.random() - 0.5) * 0.5,
+          -Math.random() * 1,
+          200,
+          sparkleColors[Math.floor(Math.random() * sparkleColors.length)],
+          2
+        ));
+      }
+
+      drawTorches();
+      animateParticles();
+
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    // ─────────────────────────────────────────────────
+    // QUIZ LOGIC
+    // ─────────────────────────────────────────────────
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    const quizQuestions = shuffle(
+      questions.map(q => ({
+        ...q,
+        opts: shuffle([...q.opts])
+      }))
+    );
+
+    let idx = 0;
+    let correct = 0;
+    let wrong = 0;
+    let xp = 0;
+    const answered = new Array(quizQuestions.length).fill(null);
+
+    function updateHearts() {
+      const hearts = document.getElementById('hearts');
+      let html = '';
+      const max_wrong = 10;
+      const fillHearts = Math.max(0, max_wrong - wrong);
+      for (let i = 0; i < max_wrong; i++) {
+        html += i < fillHearts ? '<span class="heart">❤</span>' : '<span class="heart">🖤</span>';
+      }
+      hearts.innerHTML = html;
+    }
+
+    function render() {
+      const q = quizQuestions[idx];
+      document.getElementById('q-num').textContent = idx + 1;
+      document.getElementById('q-total').textContent = quizQuestions.length;
+      document.getElementById('xp-count').textContent = xp;
+      document.getElementById('progress').style.width = `${((correct + wrong) / quizQuestions.length) * 100}%`;
+      document.getElementById('qtext').textContent = q.q;
+      document.getElementById('feedback').textContent = '';
+      document.getElementById('feedback').className = 'feedback';
+
+      updateHearts();
+
+      const optsDiv = document.getElementById('opts');
+      optsDiv.innerHTML = '';
+      const wasAnswered = answered[idx];
+
+      q.opts.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'opt-btn';
+        btn.textContent = opt;
+        if (wasAnswered !== null) {
+          btn.disabled = true;
+          if (opt === q.correct) btn.classList.add('correct');
+          if (wasAnswered === opt && opt !== q.correct) btn.classList.add('wrong');
+          if (wasAnswered === opt && opt === q.correct) btn.classList.add('correct');
+        } else {
+          btn.onclick = () => selectAnswer(opt);
+        }
+        optsDiv.appendChild(btn);
+      });
+
+      if (wasAnswered !== null) {
+        const fb = document.getElementById('feedback');
+        const isCorrect = wasAnswered === q.correct;
+        const messages = {
+          correct: [
+            '* Determination!',
+            '* You feel your SOUL grow stronger.',
+            '* Critical hit!',
+            '* Sans is proud.',
+            '* The answer resonates with you.'
+          ],
+          wrong: [
+            '* You feel a chill.',
+            '* Flowey is watching.',
+            '* Your SOUL cracks.',
+            '* (It didn\'t work.)',
+            '* The shadows close in.'
+          ]
+        };
+        const msgList = isCorrect ? messages.correct : messages.wrong;
+        const msg = msgList[Math.floor(Math.random() * msgList.length)];
+        fb.textContent = msg;
+        fb.classList.add(isCorrect ? 'correct-msg' : 'wrong-msg');
+      }
+
+      document.getElementById('prevBtn').disabled = idx === 0;
+      document.getElementById('nextBtn').textContent = idx === quizQuestions.length - 1 ? 'FINISH' : 'NEXT →';
+    }
+
+    function burstParticles(x, y, color, count) {
+      for (let i = 0; i < count; i++) {
+        const angle = (Math.PI * 2 * i) / count;
+        const speed = 2 + Math.random() * 2;
+        const vx = Math.cos(angle) * speed;
+        const vy = Math.sin(angle) * speed;
+        particles.push(new Particle(x, y, vx, vy, 120, color, 2));
+      }
+    }
+
+    function selectAnswer(opt) {
+      const q = quizQuestions[idx];
+      answered[idx] = opt;
+      const isCorrect = opt === q.correct;
+
+      const btn = event.target;
+      const rect = btn.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      if (isCorrect) {
+        correct++;
+        xp += 10;
+        burstParticles(centerX, centerY, 'rgb(255, 215, 0)', 50);
+
+        // 30% chance for magic mood
+        if (Math.random() < 0.3) {
+          mood = 'magic';
+          moodTimer = 0;
+          nextMoodChange = 120 * 8;
+        }
+      } else {
+        wrong++;
+        burstParticles(centerX, centerY, 'rgb(100, 50, 100)', 25);
+
+        // Screen shake
+        gsap.to('#app', {
+          x: 5,
+          duration: 0.05,
+          repeat: 7,
+          yoyo: true,
+          ease: 'power2.inOut'
+        });
+
+        // Red flash
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.4)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      document.querySelectorAll('.opt-btn').forEach(b => {
+        b.disabled = true;
+        if (b.textContent === q.correct) b.classList.add('correct');
+        if (b.textContent === opt && !isCorrect) b.classList.add('wrong');
+      });
+
+      render();
+
+      if (idx === quizQuestions.length - 1) {
+        setTimeout(showDone, 800);
+      }
+    }
+
+    function move(dir) {
+      idx = Math.max(0, Math.min(quizQuestions.length - 1, idx + dir));
+      render();
+    }
+
+    function showDone() {
+      const pct = Math.round((correct / quizQuestions.length) * 100);
+      const screen = document.createElement('div');
+      screen.className = 'done-screen';
+
+      let message = '';
+      if (pct === 100) {
+        message = '* You have transcended.\n* DETERMINATION at maximum.';
+      } else if (pct >= 80) {
+        message = '* You are growing stronger.\n* The path of ethics shines before you.';
+      } else if (pct >= 60) {
+        message = '* You progress, but challenges remain.\n* Keep studying.';
+      } else {
+        message = '* The darkness is vast.\n* Return when you are ready.';
+      }
+
+      screen.innerHTML = `
+        <div class="done-card">
+          <h2>QUEST COMPLETE</h2>
+          <p>${message}</p>
+          <p>Score: ${correct} / ${quizQuestions.length} (${pct}%)</p>
+          <p>Total XP: ${xp}</p>
+          <button onclick="location.reload()">⟳ RESTART</button>
+        </div>
+      `;
+      document.body.appendChild(screen);
+    }
+
+    render();
+  </script>
+</body>
+</html>

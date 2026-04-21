@@ -562,37 +562,34 @@
       idx = Math.max(0, Math.min(quizQuestions.length - 1, idx + dir));
       if (idx === oldIdx) { isAnimating = false; return; }
 
-      const DIST = 420;
-      const outX = dir > 0 ? -DIST : DIST;
-      const inX  = dir > 0 ?  DIST : -DIST;
+      const outPct = dir > 0 ? -110 : 110;
+      const inPct  = dir > 0 ?  110 : -110;
+      const DUR = 0.22;
 
-      const card = document.getElementById('qcard');
-      const opts = document.getElementById('opts');
+      const oldContent = document.querySelector('.card-content');
+      const oldButtons = [...document.querySelectorAll('.opt-btn')];
 
-      // Clone outgoing elements as fixed overlays so real DOM can update immediately
-      function fixedClone(el) {
-        const r = el.getBoundingClientRect();
-        const c = el.cloneNode(true);
-        Object.assign(c.style, {
-          position: 'fixed', top: r.top + 'px', left: r.left + 'px',
-          width: r.width + 'px', height: r.height + 'px',
-          zIndex: '200', pointerEvents: 'none', margin: '0',
-        });
-        document.body.appendChild(c);
-        return c;
-      }
+      // Kill any lingering tweens so nothing conflicts mid-swap
+      gsap.killTweensOf([oldContent, ...oldButtons]);
 
-      const oldCard = fixedClone(card);
-      const oldOpts = fixedClone(opts);
+      // Slide everything out together (no stagger — timeline ends cleanly when all done)
+      gsap.timeline({
+        onComplete() {
+          renderContent(quizQuestions[idx]);
 
-      // Swap real content and position off-screen — all in same frame, no flash
-      renderContent(quizQuestions[idx]);
-      gsap.set([card, opts], { x: inX, opacity: 0 });
+          const newContent = document.querySelector('.card-content');
+          const newButtons = [...document.querySelectorAll('.opt-btn')];
 
-      // Slide old clones out and new real elements in simultaneously
-      gsap.timeline({ onComplete: () => { oldCard.remove(); oldOpts.remove(); isAnimating = false; }})
-        .to([oldCard, oldOpts], { x: outX, opacity: 0, duration: 0.3, ease: 'power2.inOut' }, 0)
-        .to([card, opts],       { x: 0,    opacity: 1, duration: 0.3, ease: 'power2.out'   }, 0.04);
+          gsap.set(newContent, { xPercent: inPct, opacity: 0 });
+          gsap.set(newButtons, { xPercent: inPct, opacity: 0 });
+
+          gsap.timeline({ onComplete: () => { isAnimating = false; } })
+            .to(newContent, { xPercent: 0, opacity: 1, duration: DUR, ease: 'power2.out' }, 0)
+            .to(newButtons, { xPercent: 0, opacity: 1, duration: DUR, stagger: 0.03, ease: 'power2.out' }, 0.02);
+        }
+      })
+      .to(oldContent, { xPercent: outPct, opacity: 0, duration: DUR, ease: 'power2.in' }, 0)
+      .to(oldButtons, { xPercent: outPct, opacity: 0, duration: DUR, ease: 'power2.in' }, 0);
     }
 
     function render() {

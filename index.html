@@ -195,6 +195,7 @@
       flex-direction: column;
       gap: 0.7rem;
       margin-bottom: 1.5rem;
+      overflow: hidden;
     }
 
     .opt-btn {
@@ -565,37 +566,30 @@
         return;
       }
 
-      const slideOutX = dir > 0 ? -20 : 20;
-      const slideInX = dir > 0 ? 20 : -20;
+      // Slide content inside the card/options containers, not the containers themselves
+      const outPct  = dir > 0 ? -115 : 115;
+      const inPct   = dir > 0 ?  115 : -115;
+      const staggerDir = dir > 0 ? 0.04 : -0.04;
 
-      const card = document.getElementById('qcard');
-      const opts = document.getElementById('opts');
+      const cardContent = document.querySelector('.card-content');
+      const optBtns = [...document.querySelectorAll('.opt-btn')];
 
-      const tl = gsap.timeline();
+      const tl = gsap.timeline({ onComplete: () => { isAnimating = false; } });
 
-      // Slide out
-      tl.to([card, opts], { x: slideOutX, opacity: 0, duration: 0.18, stagger: 0.05, ease: 'power2.in' }, 0);
+      // Slide current content out
+      tl.to(cardContent, { xPercent: outPct, opacity: 0, duration: 0.22, ease: 'power2.in' }, 0);
+      tl.to(optBtns, { xPercent: outPct * 0.9, opacity: 0, duration: 0.18, stagger: staggerDir, ease: 'power2.in' }, 0.03);
 
-      // Update DOM mid-transition
+      // Swap content while invisible
       tl.call(() => {
-        const q = quizQuestions[idx];
-        renderContent(q);
+        renderContent(quizQuestions[idx]);
+        gsap.set('.card-content', { xPercent: inPct, opacity: 1 });
+        gsap.set('.opt-btn', { xPercent: inPct * 0.9, opacity: 0 });
+      });
 
-        // Set new height for card based on incoming question
-        const newHeight = getCardHeight(q.q);
-        if (newHeight) {
-          card.style.height = newHeight + 'px';
-        }
-
-        // Reset transform so slide-in works
-        gsap.set([card, opts], { x: slideInX, opacity: 0 });
-      }, null, '-=0.08');
-
-      // Slide in with height animation
-      tl.to(card, { height: 'auto', duration: 0.3, ease: 'power2.inOut' }, '0.15');
-      tl.to([card, opts], { x: 0, opacity: 1, duration: 0.22, stagger: 0.05, ease: 'power2.out' }, '0.15');
-
-      tl.call(() => { isAnimating = false; });
+      // Slide new content in
+      tl.to('.card-content', { xPercent: 0, duration: 0.28, ease: 'power2.out' }, '+=0.01');
+      tl.to('.opt-btn', { xPercent: 0, opacity: 1, duration: 0.22, stagger: staggerDir, ease: 'power2.out' }, '<0.04');
 
       return tl;
     }

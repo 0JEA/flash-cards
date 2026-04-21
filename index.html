@@ -3,527 +3,502 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ethics Flashcards</title>
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <title>Ethics Mastery — Study Guide</title>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pretext@latest/dist/pretext.min.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: 'Press Start 2P', cursive;
-      background: linear-gradient(135deg, #0a0e27 0%, #1a1033 50%, #0d0a1f 100%);
-      color: #e0e0e0;
-      min-height: 100vh;
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
-      padding: 1.5rem;
-      overflow-x: hidden;
-      overflow-y: auto;
+    :root {
+      --bg-primary: #1a1a1a;
+      --bg-secondary: #242424;
+      --text-primary: #f5f5f1;
+      --text-secondary: #a8a8a0;
+      --accent-gold: #d4af37;
+      --accent-muted: #8b7355;
+      --correct-green: #6b9e4e;
+      --wrong-red: #a53a3a;
     }
 
-    canvas#bg {
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+    }
+
+    body {
+      font-family: 'Geist', sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Subtle background texture */
+    body::before {
+      content: '';
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      z-index: 0;
-      display: block;
+      background-image:
+        repeating-linear-gradient(
+          0deg,
+          rgba(0, 0, 0, 0.03) 0px,
+          rgba(0, 0, 0, 0.03) 1px,
+          transparent 1px,
+          transparent 2px
+        );
+      pointer-events: none;
+      z-index: 1;
     }
 
     #app {
       position: relative;
-      z-index: 10;
+      z-index: 2;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.5rem;
+    }
+
+    .container {
       width: 100%;
-      max-width: 650px;
-      margin-top: 1rem;
+      max-width: 600px;
     }
 
     header {
-      text-align: center;
       margin-bottom: 1.5rem;
-      font-size: 1.2rem;
-      letter-spacing: 2px;
-      color: #ffd700;
-      text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+      text-align: center;
+      border-bottom: 1px solid var(--accent-muted);
+      padding-bottom: 1rem;
     }
 
-    .header-stats {
+    h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: -1px;
+      margin-bottom: 0.25rem;
+      color: var(--text-primary);
+    }
+
+    .subtitle {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 400;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+    }
+
+    .stats {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      margin-top: 0.75rem;
+      gap: 1.5rem;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.75rem;
+    }
+
+    .stat {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .stat-label {
+      color: var(--text-secondary);
+      font-weight: 400;
+      font-size: 0.6rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .stat-value {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--accent-gold);
+    }
+
+    /* Progress bar */
+    .progress-track {
+      height: 2px;
+      background: var(--bg-secondary);
       margin: 1rem 0;
-      font-size: 0.7rem;
-      color: #aaa;
-    }
-
-    .hearts {
-      letter-spacing: 3px;
-    }
-
-    .heart {
-      display: inline-block;
-      color: #ff4444;
-      margin: 0 2px;
-      text-shadow: 0 0 8px rgba(255, 68, 68, 0.8);
+      overflow: hidden;
     }
 
     .progress-bar {
-      height: 6px;
-      background: rgba(0, 0, 0, 0.6);
-      border: 1px solid #ffd700;
-      border-radius: 2px;
-      margin: 1rem 0;
-      overflow: hidden;
-    }
-
-    .progress-fill {
       height: 100%;
-      background: linear-gradient(90deg, #ff00ff, #00ffff);
-      box-shadow: 0 0 10px rgba(255, 0, 255, 0.8);
-      transition: width 0.3s;
+      background: var(--accent-gold);
+      width: 0%;
+      transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
+    /* Question card */
     .card {
-      background: rgba(50, 30, 80, 0.8);
-      border: 2px solid #8b7355;
-      border-radius: 4px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--accent-muted);
       padding: 1.5rem;
-      min-height: 120px;
       margin-bottom: 1.5rem;
-      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.7), 0 0 20px rgba(100, 50, 150, 0.4);
       position: relative;
-      overflow: hidden;
+      min-height: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: height 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     .card::before {
       content: '';
       position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background:
-        repeating-linear-gradient(
-          0deg,
-          rgba(255, 255, 255, 0.03) 0px,
-          rgba(255, 255, 255, 0.03) 1px,
-          transparent 1px,
-          transparent 2px
-        );
-      pointer-events: none;
-      animation: scanlines 8s linear infinite;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+      opacity: 0.3;
     }
 
-    @keyframes scanlines {
-      0% { transform: translateY(0); }
-      100% { transform: translateY(10px); }
-    }
-
-    .card-inner {
-      position: relative;
-      z-index: 1;
+    .card-content {
       text-align: center;
-      font-size: 0.8rem;
-      line-height: 1.6;
-      color: #e0e0e0;
+      width: 100%;
     }
 
     .card-label {
-      font-size: 0.5rem;
-      color: #aaa;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 1.5px;
       text-transform: uppercase;
-      letter-spacing: 2px;
-      margin-bottom: 0.8rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.6rem;
       display: block;
     }
 
+    .card-text {
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: var(--text-primary);
+    }
+
+    /* Options */
     .options {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 0.7rem;
       margin-bottom: 1.5rem;
     }
 
     .opt-btn {
-      background: rgba(40, 20, 60, 0.8);
-      border: 1px solid #6b4a8a;
-      border-radius: 2px;
-      padding: 0.8rem 1rem;
-      font-size: 0.65rem;
-      font-family: 'Press Start 2P', cursive;
-      color: #e0e0e0;
-      cursor: pointer;
+      background: var(--bg-secondary);
+      border: 1px solid var(--accent-muted);
+      color: var(--text-primary);
+      padding: 0.75rem 1.2rem;
+      font-family: 'Geist', sans-serif;
+      font-size: 0.85rem;
       text-align: left;
-      line-height: 1.4;
-      transition: all 0.2s;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
       position: relative;
       overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      line-height: 1.5;
+    }
+
+    .opt-btn::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 3px;
+      background: transparent;
+      transition: background 0.25s;
     }
 
     .opt-btn:hover:not(:disabled) {
-      background: rgba(60, 30, 90, 0.9);
-      border-color: #a070d0;
-      box-shadow: 0 0 15px rgba(160, 112, 208, 0.6);
-      transform: translateY(-2px);
+      background: rgba(212, 175, 55, 0.05);
+      border-color: var(--accent-gold);
+    }
+
+    .opt-btn:hover:not(:disabled)::before {
+      background: var(--accent-gold);
     }
 
     .opt-btn.correct {
-      background: rgba(76, 175, 80, 0.6);
-      border-color: #4caf50;
-      color: #90ee90;
-      box-shadow: 0 0 20px rgba(76, 175, 80, 0.8);
+      background: rgba(107, 158, 78, 0.1);
+      border-color: var(--correct-green);
+      color: var(--correct-green);
+    }
+
+    .opt-btn.correct::before {
+      background: var(--correct-green);
     }
 
     .opt-btn.wrong {
-      background: rgba(244, 67, 54, 0.6);
-      border-color: #f44336;
-      color: #ff8888;
-      box-shadow: 0 0 20px rgba(244, 67, 54, 0.8);
+      background: rgba(165, 58, 58, 0.1);
+      border-color: var(--wrong-red);
+      color: var(--wrong-red);
+    }
+
+    .opt-btn.wrong::before {
+      background: var(--wrong-red);
     }
 
     .opt-btn:disabled {
       cursor: default;
     }
 
-    .feedback {
-      background: rgba(30, 30, 50, 0.9);
-      border: 1px solid #6b4a8a;
-      border-radius: 4px;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      font-size: 0.7rem;
-      min-height: 50px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      color: #e0e0e0;
-      line-height: 1.6;
-      box-shadow: 0 0 15px rgba(100, 50, 150, 0.3);
-    }
-
-    .feedback.correct-msg {
-      color: #90ee90;
-      border-color: #4caf50;
-    }
-
-    .feedback.wrong-msg {
-      color: #ff8888;
-      border-color: #f44336;
-    }
-
+    /* Navigation */
     .nav {
       display: flex;
-      gap: 10px;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
     }
 
     .nav button {
       flex: 1;
-      background: rgba(40, 20, 60, 0.8);
-      border: 1px solid #6b4a8a;
-      border-radius: 2px;
-      padding: 0.8rem;
-      font-size: 0.65rem;
-      font-family: 'Press Start 2P', cursive;
-      color: #e0e0e0;
+      background: var(--bg-secondary);
+      border: 1px solid var(--accent-muted);
+      color: var(--text-primary);
+      padding: 0.6rem 0.8rem;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
       cursor: pointer;
-      transition: all 0.2s;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     .nav button:hover:not(:disabled) {
-      background: rgba(60, 30, 90, 0.9);
-      border-color: #a070d0;
-      box-shadow: 0 0 15px rgba(160, 112, 208, 0.6);
-      transform: translateY(-2px);
+      background: rgba(212, 175, 55, 0.1);
+      border-color: var(--accent-gold);
     }
 
     .nav button:disabled {
-      opacity: 0.4;
+      opacity: 0.3;
       cursor: default;
     }
 
-    .done-screen {
+    /* Completion screen */
+    .done-overlay {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.95);
+      background: rgba(26, 26, 26, 0.95);
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 100;
+      z-index: 1000;
+      backdrop-filter: blur(2px);
     }
 
     .done-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--accent-muted);
+      padding: 2rem;
+      max-width: 400px;
       text-align: center;
-      background: rgba(50, 30, 80, 0.9);
-      border: 2px solid #8b7355;
-      border-radius: 4px;
-      padding: 3rem 2rem;
-      max-width: 500px;
-      box-shadow: 0 0 40px rgba(100, 50, 150, 0.6);
+      position: relative;
+    }
+
+    .done-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+      opacity: 0.3;
     }
 
     .done-card h2 {
-      font-size: 1.2rem;
-      margin-bottom: 1rem;
-      color: #ffd700;
-      text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 0.8rem;
+      letter-spacing: -1px;
     }
 
     .done-card p {
-      font-size: 0.8rem;
-      color: #e0e0e0;
-      margin-bottom: 2rem;
-      line-height: 1.8;
+      font-size: 0.85rem;
+      margin-bottom: 0.8rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .done-card .final-grade {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--accent-gold);
+      margin: 1rem 0;
     }
 
     .done-card button {
-      background: rgba(40, 20, 60, 0.8);
-      border: 1px solid #6b4a8a;
-      border-radius: 2px;
-      padding: 1rem 2rem;
-      font-size: 0.7rem;
-      font-family: 'Press Start 2P', cursive;
-      color: #e0e0e0;
+      background: var(--bg-primary);
+      border: 1px solid var(--accent-muted);
+      color: var(--text-primary);
+      padding: 0.7rem 1.5rem;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-      transition: all 0.2s;
+      transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     .done-card button:hover {
-      background: rgba(60, 30, 90, 0.9);
-      border-color: #a070d0;
-      box-shadow: 0 0 20px rgba(160, 112, 208, 0.6);
+      background: rgba(212, 175, 55, 0.1);
+      border-color: var(--accent-gold);
     }
 
-    .xp-pop {
-      position: fixed;
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: #ffd700;
-      text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
-      pointer-events: none;
-      z-index: 50;
+    /* Initial state for GSAP */
+    h1, .subtitle {
+      opacity: 0;
+      transform: translateY(-12px);
+    }
+
+    .stat {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    .progress-track {
+      transform-origin: left;
+      transform: scaleX(0);
+    }
+
+    .card {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+
+    .opt-btn {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    .nav button {
+      opacity: 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      h1 {
+        font-size: 1.4rem;
+      }
+
+      .card {
+        padding: 1rem;
+      }
     }
   </style>
 </head>
 <body>
-  <canvas id="bg"></canvas>
-
   <div id="app">
-    <header>
-      ✦ ETHICS QUEST ✦
-      <div class="header-stats">
-        <div class="hearts" id="hearts"></div>
-        <div id="score">Q <span id="q-num">1</span>/<span id="q-total">0</span></div>
-        <div id="xp-display" style="color: #ffd700;">XP: <span id="xp-count">0</span></div>
+    <div class="container">
+      <header>
+        <h1>Ethics Mastery</h1>
+        <p class="subtitle">Software Engineering Code of Ethics</p>
+        <div class="stats">
+          <div class="stat">
+            <span class="stat-label">Current</span>
+            <span class="stat-value" id="question-progress">1 / 41</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Grade</span>
+            <span class="stat-value" id="current-grade">—</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Progress</span>
+            <span class="stat-value" id="progress-pct">0%</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Time</span>
+            <span class="stat-value" id="timer">0:00</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="progress-track">
+        <div class="progress-bar" id="progress"></div>
       </div>
-    </header>
 
-    <div class="progress-bar">
-      <div class="progress-fill" id="progress"></div>
-    </div>
-
-    <div class="card" id="qcard">
-      <div class="card-inner">
-        <span class="card-label" id="q-label">Question</span>
-        <div id="qtext"></div>
+      <div class="card" id="qcard">
+        <div class="card-content">
+          <span class="card-label">Question</span>
+          <div class="card-text" id="qtext"></div>
+        </div>
       </div>
-    </div>
 
-    <div class="feedback" id="feedback"></div>
+      <div class="options" id="opts"></div>
 
-    <div class="options" id="opts"></div>
-
-    <div class="nav">
-      <button id="prevBtn" onclick="move(-1)">← PREV</button>
-      <button id="nextBtn" onclick="move(1)">NEXT →</button>
+      <div class="nav">
+        <button id="prevBtn" onclick="move(-1)">← Previous</button>
+        <button id="nextBtn" onclick="move(1)">Next →</button>
+      </div>
     </div>
   </div>
 
-  <script type="module">
-    import questions from './questions.js';
+  <script src="questions.js"></script>
+  <script>
+    // Quiz State
+    let idx = 0;
+    let correct = 0;
+    let wrong = 0;
+    let seconds = 0;
+    let isAnimating = false;
+    let isInitialized = false;
+    const answered = new Array(questions.length).fill(null);
 
-    // ─────────────────────────────────────────────────
-    // PARTICLE SYSTEM
-    // ─────────────────────────────────────────────────
-    class Particle {
-      constructor(x, y, vx, vy, life, color, size = 2) {
-        this.x = x;
-        this.y = y;
-        this.vx = vx;
-        this.vy = vy;
-        this.life = life;
-        this.maxLife = life;
-        this.color = color;
-        this.size = size;
-      }
+    // Timer
+    function formatTime(sec) {
+      const mins = Math.floor(sec / 60);
+      const secs = sec % 60;
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
 
-      update() {
-        this.x += this.vx;
-        this.y += this.vy;
-        this.vy += 0.1; // gravity
-        this.vx *= 0.98; // friction
-        this.life--;
-      }
+    setInterval(() => {
+      seconds++;
+      document.getElementById('timer').textContent = formatTime(seconds);
+    }, 1000);
 
-      draw(ctx) {
-        const alpha = Math.max(0, this.life / this.maxLife);
-        ctx.fillStyle = this.color.replace(')', `, ${alpha})`).replace('rgb(', 'rgba(');
-        ctx.fillRect(this.x, this.y, this.size, this.size);
+    // Text measurement with Pretext
+    function getCardHeight(text) {
+      if (!window.Pretext) return null;
+
+      const cardText = document.getElementById('qtext');
+      const containerWidth = cardText.parentElement.offsetWidth - 40;
+
+      try {
+        const result = Pretext.prepare({
+          text: text,
+          fontFamily: 'Geist, sans-serif',
+          fontSize: '0.95rem',
+          lineHeight: '1.5',
+          maxWidth: containerWidth,
+          whiteSpace: 'normal'
+        });
+        return (result.height || 40) + 48; // content height + padding
+      } catch (e) {
+        return null;
       }
     }
 
-    // ─────────────────────────────────────────────────
-    // CANVAS & ATMOSPHERE
-    // ─────────────────────────────────────────────────
-    const canvas = document.getElementById('bg');
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    let particles = [];
-    let time = 0;
-    let mood = 'normal'; // 'normal', 'storm', 'magic'
-    let moodTimer = 0;
-    let nextMoodChange = 120 * 30; // ~30s at 120fps
-
-    window.addEventListener('resize', () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    });
-
-    function spawnDust() {
-      const x = Math.random() * canvas.width;
-      const y = Math.random() * canvas.height;
-      const vx = (Math.random() - 0.5) * 0.5;
-      const vy = (Math.random() - 0.5) * 0.3;
-      particles.push(new Particle(x, y, vx, vy, 180, 'rgb(100, 80, 120)', 1));
-    }
-
-    function spawnTorchFlame(x, y) {
-      const vx = (Math.random() - 0.5) * 1;
-      const vy = -Math.random() * 1.5;
-      const colors = ['rgb(255, 150, 0)', 'rgb(255, 100, 0)', 'rgb(200, 80, 20)'];
-      const color = colors[Math.floor(Math.random() * colors.length)];
-      particles.push(new Particle(x, y, vx, vy, 60, color, 3));
-    }
-
-    function updateMood() {
-      moodTimer++;
-      if (moodTimer > nextMoodChange) {
-        const moods = ['normal', 'storm', 'magic'];
-        mood = moods[Math.floor(Math.random() * moods.length)];
-        moodTimer = 0;
-        nextMoodChange = 120 * (25 + Math.random() * 20); // 25-45s
-      }
-    }
-
-    function drawTorches() {
-      const h = canvas.height;
-      const flicker = Math.sin(time * 0.1) * 0.3 + 0.7;
-      const torchSize = 40;
-
-      // Left torch
-      ctx.fillStyle = `rgba(255, 180, 50, ${0.6 * flicker})`;
-      ctx.fillRect(40, h - 200, 20, 150);
-      ctx.fillStyle = `rgba(255, 150, 0, ${0.8 * flicker})`;
-      ctx.beginPath();
-      ctx.arc(50, h - 220, torchSize * flicker, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Right torch
-      ctx.fillStyle = `rgba(255, 180, 50, ${0.6 * flicker})`;
-      ctx.fillRect(canvas.width - 60, h - 200, 20, 150);
-      ctx.fillStyle = `rgba(255, 150, 0, ${0.8 * flicker})`;
-      ctx.beginPath();
-      ctx.arc(canvas.width - 50, h - 220, torchSize * flicker, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Spawn flames
-      if (Math.random() < 0.3) {
-        spawnTorchFlame(50 + (Math.random() - 0.5) * 20, canvas.height - 220);
-        spawnTorchFlame(canvas.width - 50 + (Math.random() - 0.5) * 20, canvas.height - 220);
-      }
-
-      // Storm: torches flicker wildly
-      if (mood === 'storm' && Math.random() < 0.05) {
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-      }
-    }
-
-    function animateParticles() {
-      particles = particles.filter(p => p.life > 0);
-      particles.forEach(p => {
-        p.update();
-        p.draw(ctx);
-      });
-    }
-
-    function drawAtmosphere() {
-      // Background
-      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-      gradient.addColorStop(0, '#0a0e27');
-      gradient.addColorStop(0.5, '#1a1033');
-      gradient.addColorStop(1, '#0d0a1f');
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Mood lighting
-      if (mood === 'magic') {
-        ctx.fillStyle = 'rgba(100, 50, 200, 0.1)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-      } else if (mood === 'storm') {
-        ctx.fillStyle = 'rgba(50, 50, 100, 0.15)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-      }
-    }
-
-    function animate() {
-      time++;
-
-      drawAtmosphere();
-      updateMood();
-
-      // Spawn ambient particles
-      if (Math.random() < 0.05) spawnDust();
-      if (mood === 'storm' && Math.random() < 0.1) {
-        // Rain
-        const x = Math.random() * canvas.width;
-        particles.push(new Particle(x, -10, 0, 3, 200, 'rgb(100, 150, 200)', 1));
-      }
-      if (mood === 'magic' && Math.random() < 0.08) {
-        // Rising sparkles
-        const x = Math.random() * canvas.width;
-        const sparkleColors = ['rgb(100, 200, 255)', 'rgb(200, 100, 255)', 'rgb(255, 200, 100)'];
-        particles.push(new Particle(
-          x,
-          canvas.height,
-          (Math.random() - 0.5) * 0.5,
-          -Math.random() * 1,
-          200,
-          sparkleColors[Math.floor(Math.random() * sparkleColors.length)],
-          2
-        ));
-      }
-
-      drawTorches();
-      animateParticles();
-
-      requestAnimationFrame(animate);
-    }
-    animate();
-
-    // ─────────────────────────────────────────────────
-    // QUIZ LOGIC
-    // ─────────────────────────────────────────────────
     function shuffle(arr) {
       for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -539,90 +514,112 @@
       }))
     );
 
-    let idx = 0;
-    let correct = 0;
-    let wrong = 0;
-    let xp = 0;
-    const answered = new Array(quizQuestions.length).fill(null);
+    function updateStats() {
+      const total = correct + wrong;
+      const grade = total > 0 ? Math.round((correct / total) * 100) : 0;
+      const pct = Math.round((total / quizQuestions.length) * 100);
 
-    function updateHearts() {
-      const hearts = document.getElementById('hearts');
-      let html = '';
-      const max_wrong = 10;
-      const fillHearts = Math.max(0, max_wrong - wrong);
-      for (let i = 0; i < max_wrong; i++) {
-        html += i < fillHearts ? '<span class="heart">❤</span>' : '<span class="heart">🖤</span>';
-      }
-      hearts.innerHTML = html;
+      document.getElementById('question-progress').textContent = `${idx + 1} / ${quizQuestions.length}`;
+      document.getElementById('current-grade').textContent = grade > 0 ? `${grade}%` : '—';
+      document.getElementById('progress-pct').textContent = `${pct}%`;
     }
 
-    function render() {
-      const q = quizQuestions[idx];
-      document.getElementById('q-num').textContent = idx + 1;
-      document.getElementById('q-total').textContent = quizQuestions.length;
-      document.getElementById('xp-count').textContent = xp;
-      document.getElementById('progress').style.width = `${((correct + wrong) / quizQuestions.length) * 100}%`;
+    function renderContent(q) {
+      // Pure DOM update, no animations
       document.getElementById('qtext').textContent = q.q;
-      document.getElementById('feedback').textContent = '';
-      document.getElementById('feedback').className = 'feedback';
-
-      updateHearts();
+      updateStats();
 
       const optsDiv = document.getElementById('opts');
       optsDiv.innerHTML = '';
       const wasAnswered = answered[idx];
 
-      q.opts.forEach(opt => {
+      q.opts.forEach((opt) => {
         const btn = document.createElement('button');
         btn.className = 'opt-btn';
         btn.textContent = opt;
+
         if (wasAnswered !== null) {
           btn.disabled = true;
           if (opt === q.correct) btn.classList.add('correct');
           if (wasAnswered === opt && opt !== q.correct) btn.classList.add('wrong');
-          if (wasAnswered === opt && opt === q.correct) btn.classList.add('correct');
         } else {
           btn.onclick = () => selectAnswer(opt);
         }
+
         optsDiv.appendChild(btn);
       });
 
-      if (wasAnswered !== null) {
-        const fb = document.getElementById('feedback');
-        const isCorrect = wasAnswered === q.correct;
-        const messages = {
-          correct: [
-            '* Determination!',
-            '* You feel your SOUL grow stronger.',
-            '* Critical hit!',
-            '* Sans is proud.',
-            '* The answer resonates with you.'
-          ],
-          wrong: [
-            '* You feel a chill.',
-            '* Flowey is watching.',
-            '* Your SOUL cracks.',
-            '* (It didn\'t work.)',
-            '* The shadows close in.'
-          ]
-        };
-        const msgList = isCorrect ? messages.correct : messages.wrong;
-        const msg = msgList[Math.floor(Math.random() * msgList.length)];
-        fb.textContent = msg;
-        fb.classList.add(isCorrect ? 'correct-msg' : 'wrong-msg');
-      }
-
       document.getElementById('prevBtn').disabled = idx === 0;
-      document.getElementById('nextBtn').textContent = idx === quizQuestions.length - 1 ? 'FINISH' : 'NEXT →';
+      document.getElementById('nextBtn').textContent = idx === quizQuestions.length - 1 ? 'Finish' : 'Next →';
     }
 
-    function burstParticles(x, y, color, count) {
-      for (let i = 0; i < count; i++) {
-        const angle = (Math.PI * 2 * i) / count;
-        const speed = 2 + Math.random() * 2;
-        const vx = Math.cos(angle) * speed;
-        const vy = Math.sin(angle) * speed;
-        particles.push(new Particle(x, y, vx, vy, 120, color, 2));
+    function introAnimation() {
+      const tl = gsap.timeline();
+
+      tl.to(['h1', '.subtitle'], { opacity: 1, y: 0, duration: 0.4, ease: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' }, 0)
+        .to('.stat', { opacity: 1, y: 0, duration: 0.4, stagger: 0.08, ease: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' }, 0.15)
+        .to('.progress-track', { scaleX: 1, duration: 0.5, ease: 'power2.inOut' }, 0.3)
+        .to('.card', { opacity: 1, y: 0, duration: 0.4, ease: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' }, 0.4)
+        .to('.opt-btn', { opacity: 1, y: 0, duration: 0.3, stagger: 0.05, ease: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' }, 0.55)
+        .to('.nav button', { opacity: 1, duration: 0.3, ease: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' }, 0.7);
+
+      return tl;
+    }
+
+    function transitionTo(dir) {
+      if (isAnimating) return;
+      isAnimating = true;
+
+      const oldIdx = idx;
+      idx = Math.max(0, Math.min(quizQuestions.length - 1, idx + dir));
+
+      if (idx === oldIdx) {
+        isAnimating = false;
+        return;
+      }
+
+      const slideOutX = dir > 0 ? -20 : 20;
+      const slideInX = dir > 0 ? 20 : -20;
+
+      const card = document.getElementById('qcard');
+      const opts = document.getElementById('opts');
+
+      const tl = gsap.timeline();
+
+      // Slide out
+      tl.to([card, opts], { x: slideOutX, opacity: 0, duration: 0.18, stagger: 0.05, ease: 'power2.in' }, 0);
+
+      // Update DOM mid-transition
+      tl.call(() => {
+        const q = quizQuestions[idx];
+        renderContent(q);
+
+        // Set new height for card based on incoming question
+        const newHeight = getCardHeight(q.q);
+        if (newHeight) {
+          card.style.height = newHeight + 'px';
+        }
+
+        // Reset transform so slide-in works
+        gsap.set([card, opts], { x: slideInX, opacity: 0 });
+      }, null, '-=0.08');
+
+      // Slide in with height animation
+      tl.to(card, { height: 'auto', duration: 0.3, ease: 'power2.inOut' }, '0.15');
+      tl.to([card, opts], { x: 0, opacity: 1, duration: 0.22, stagger: 0.05, ease: 'power2.out' }, '0.15');
+
+      tl.call(() => { isAnimating = false; });
+
+      return tl;
+    }
+
+    function render() {
+      const q = quizQuestions[idx];
+      renderContent(q);
+
+      if (!isInitialized) {
+        isInitialized = true;
+        introAnimation();
       }
     }
 
@@ -631,86 +628,144 @@
       answered[idx] = opt;
       const isCorrect = opt === q.correct;
 
-      const btn = event.target;
-      const rect = btn.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
+      const tl = gsap.timeline();
 
       if (isCorrect) {
         correct++;
-        xp += 10;
-        burstParticles(centerX, centerY, 'rgb(255, 215, 0)', 50);
 
-        // 30% chance for magic mood
-        if (Math.random() < 0.3) {
-          mood = 'magic';
-          moodTimer = 0;
-          nextMoodChange = 120 * 8;
+        // Winning button pulses
+        const buttons = document.querySelectorAll('.opt-btn');
+        buttons.forEach((btn) => {
+          if (btn.textContent === opt) {
+            tl.to(btn, { scale: 1.02, duration: 0.15, ease: 'back.out' }, 0);
+            tl.to(btn, { scale: 1, duration: 0.15, ease: 'back.in' }, 0.15);
+          } else {
+            tl.to(btn, { opacity: 0.4, duration: 0.2 }, 0);
+          }
+        });
+
+        // Progress bar fills with elastic ease
+        const totalAnswered = correct + wrong;
+        const pct = Math.round((totalAnswered / quizQuestions.length) * 100);
+        tl.to('#progress', { width: pct + '%', duration: 0.6, ease: 'elastic.out(1, 0.5)' }, 0.1);
+
+        // Grade counter counts up if applicable
+        if (wrong === 0 || total > 0) {
+          const total = correct + wrong;
+          const grade = Math.round((correct / total) * 100);
+          tl.to({ val: 0 }, { val: grade, duration: 0.5, onUpdate: function() {
+            document.getElementById('current-grade').textContent = Math.round(this.targets()[0].val) + '%';
+          }, ease: 'power2.out' }, 0.1);
         }
       } else {
         wrong++;
-        burstParticles(centerX, centerY, 'rgb(100, 50, 100)', 25);
 
-        // Screen shake
-        gsap.to('#app', {
-          x: 5,
-          duration: 0.05,
-          repeat: 7,
-          yoyo: true,
-          ease: 'power2.inOut'
+        // Wrong button shakes
+        const buttons = document.querySelectorAll('.opt-btn');
+        buttons.forEach((btn) => {
+          if (btn.textContent === opt) {
+            tl.to(btn, { x: 4, duration: 0.05, repeat: 5, yoyo: true, ease: 'power2.inOut' }, 0);
+          }
         });
 
-        // Red flash
-        ctx.fillStyle = 'rgba(255, 0, 0, 0.4)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // Correct button fades in and highlights
+        tl.call(() => {
+          buttons.forEach((btn) => {
+            if (btn.textContent === q.correct) {
+              btn.classList.add('correct');
+              gsap.fromTo(btn, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: 'power2.out' });
+            } else if (btn.textContent !== opt) {
+              gsap.to(btn, { opacity: 0.4, duration: 0.2 });
+            }
+          });
+        }, null, 0);
+
+        // Screen shake
+        tl.to('#app', { x: 4, duration: 0.06, repeat: 4, yoyo: true, ease: 'power2.inOut' }, 0);
       }
 
-      document.querySelectorAll('.opt-btn').forEach(b => {
-        b.disabled = true;
-        if (b.textContent === q.correct) b.classList.add('correct');
-        if (b.textContent === opt && !isCorrect) b.classList.add('wrong');
+      tl.call(() => {
+        renderContent(q);
+        if (idx === quizQuestions.length - 1) {
+          setTimeout(showDone, 600);
+        }
       });
-
-      render();
-
-      if (idx === quizQuestions.length - 1) {
-        setTimeout(showDone, 800);
-      }
     }
 
     function move(dir) {
-      idx = Math.max(0, Math.min(quizQuestions.length - 1, idx + dir));
-      render();
+      transitionTo(dir);
     }
 
     function showDone() {
-      const pct = Math.round((correct / quizQuestions.length) * 100);
-      const screen = document.createElement('div');
-      screen.className = 'done-screen';
-
+      const grade = Math.round((correct / quizQuestions.length) * 100);
       let message = '';
-      if (pct === 100) {
-        message = '* You have transcended.\n* DETERMINATION at maximum.';
-      } else if (pct >= 80) {
-        message = '* You are growing stronger.\n* The path of ethics shines before you.';
-      } else if (pct >= 60) {
-        message = '* You progress, but challenges remain.\n* Keep studying.';
+
+      if (grade === 100) {
+        message = 'Mastery achieved. Exemplary understanding of software engineering ethics.';
+      } else if (grade >= 90) {
+        message = 'Excellent performance. You demonstrate strong ethical understanding.';
+      } else if (grade >= 80) {
+        message = 'Very good. Solid grasp of the core principles.';
+      } else if (grade >= 70) {
+        message = 'Good. You understand the fundamental concepts.';
+      } else if (grade >= 60) {
+        message = 'Passing. Consider reviewing the material again.';
       } else {
-        message = '* The darkness is vast.\n* Return when you are ready.';
+        message = 'Study the material and try again.';
       }
 
-      screen.innerHTML = `
+      const overlay = document.createElement('div');
+      overlay.className = 'done-overlay';
+      overlay.innerHTML = `
         <div class="done-card">
-          <h2>QUEST COMPLETE</h2>
-          <p>${message}</p>
-          <p>Score: ${correct} / ${quizQuestions.length} (${pct}%)</p>
-          <p>Total XP: ${xp}</p>
-          <button onclick="location.reload()">⟳ RESTART</button>
+          <h2 style="opacity: 0; transform: translateY(12px);">Assessment Complete</h2>
+          <p style="opacity: 0; transform: translateY(12px);">${message}</p>
+          <div class="final-grade" style="opacity: 0; transform: translateY(12px);">0%</div>
+          <p style="opacity: 0; transform: translateY(12px); font-size: 0.85rem;">${correct} of ${quizQuestions.length} correct</p>
+          <p style="opacity: 0; transform: translateY(12px); font-size: 0.8rem; color: var(--text-secondary); margin-top: 1rem;">Time: ${formatTime(seconds)}</p>
+          <button style="opacity: 0; transform: scale(0.9);" onclick="location.reload()">Review Again</button>
         </div>
       `;
-      document.body.appendChild(screen);
+      document.body.appendChild(overlay);
+
+      const tl = gsap.timeline();
+
+      // Fade in overlay
+      tl.to(overlay, { opacity: 1, duration: 0.25, ease: 'power2.inOut' }, 0);
+
+      // Card slides up from bottom with bounce
+      tl.fromTo(
+        '.done-card',
+        { y: 60, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, ease: 'back.out(1.2)' },
+        0.1
+      );
+
+      // Stagger inner elements
+      const card = document.querySelector('.done-card');
+      const elements = card.querySelectorAll('h2, p, .final-grade, button');
+
+      tl.to(elements[0], { opacity: 1, y: 0, duration: 0.3, ease: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' }, 0.3);
+      tl.to(elements[1], { opacity: 1, y: 0, duration: 0.3, ease: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' }, 0.4);
+
+      // Grade counts up
+      const gradeElement = elements[2];
+      tl.to({ val: 0 }, {
+        val: grade,
+        duration: 0.8,
+        ease: 'power2.out',
+        onUpdate: function() {
+          gradeElement.textContent = Math.round(this.targets()[0].val) + '%';
+        }
+      }, 0.45);
+      tl.to(gradeElement, { opacity: 1, y: 0, duration: 0.3, ease: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' }, 0.45);
+
+      tl.to(elements[3], { opacity: 1, y: 0, duration: 0.3, ease: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' }, 0.65);
+      tl.to(elements[4], { opacity: 1, y: 0, duration: 0.3, ease: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' }, 0.75);
+      tl.to(elements[5], { opacity: 1, scale: 1, duration: 0.3, ease: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' }, 0.85);
     }
 
+    // Initialize
     render();
   </script>
 </body>

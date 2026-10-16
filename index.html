@@ -25,11 +25,9 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { width: 100%; min-height: 100%; }
-
-    /* Reserve the scrollbar's space so content width never changes between
-       short and tall cards (Pretext measures at the current width). */
-    html { scrollbar-gutter: stable; }
+    /* The page itself never scrolls: every screen fits the window, and only
+       inner boxes (a long card, the blanks list) scroll on their own. */
+    html, body { width: 100%; height: 100%; overflow: hidden; }
 
     body {
       font-family: 'Geist', sans-serif;
@@ -40,23 +38,26 @@
     }
 
     [hidden] { display: none !important; }
+    * { scrollbar-color: var(--accent-muted) transparent; scrollbar-width: thin; }
 
     #app {
-      min-height: 100vh;
-      min-height: 100dvh;
+      height: 100vh;
+      height: 100dvh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 1.25rem 1rem 2rem;
-      padding-top: max(1.25rem, env(safe-area-inset-top));
-      padding-bottom: max(2rem, env(safe-area-inset-bottom));
+      padding: 0.75rem 1rem 1rem;
+      padding-top: max(0.75rem, env(safe-area-inset-top));
+      padding-bottom: max(1rem, env(safe-area-inset-bottom));
     }
-    .container { width: 100%; max-width: 640px; }
+    .container { width: 100%; max-width: 640px; flex: 1; min-height: 0; display: flex; flex-direction: column; }
+    .container > section { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+    .scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
 
     /* ── Top bar ── */
     .topbar {
       display: flex; align-items: center; gap: 0.75rem;
-      padding-bottom: 0.75rem; margin-bottom: 1.25rem;
+      padding-bottom: 0.5rem; margin-bottom: 0.9rem; flex: none;
       border-bottom: 1px solid var(--accent-muted);
     }
     .brand { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.1rem; letter-spacing: -0.5px; margin-right: auto; background: none; border: 0; color: inherit; cursor: pointer; }
@@ -76,7 +77,7 @@
       font-family: 'Space Grotesk', sans-serif; font-size: 0.65rem; font-weight: 600;
       letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-secondary);
     }
-    .panel { background: var(--bg-secondary); border: 1px solid var(--accent-muted); padding: 1.25rem; margin-bottom: 1rem; }
+    .panel { background: var(--bg-secondary); border: 1px solid var(--accent-muted); padding: 1rem 1.25rem; margin-bottom: 0.75rem; }
     .muted { color: var(--text-secondary); font-size: 0.85rem; }
     .btn {
       background: var(--bg-secondary); border: 1px solid var(--accent-muted); color: var(--text-primary);
@@ -107,7 +108,7 @@
     input.mono { font-family: var(--mono); font-size: 15px; }
 
     /* ── Home ── */
-    .hero-stats { display: flex; gap: 1.5rem; margin: 0.25rem 0 1rem; }
+    .hero-stats { display: flex; gap: 1.5rem; margin: 0.25rem 0 0.6rem; flex: none; }
     .hero-stats .n { font-family: 'Space Grotesk', sans-serif; font-size: 2rem; font-weight: 700; line-height: 1.1; }
     .metric { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
     .metric .n { font-family: 'Space Grotesk', sans-serif; font-size: 1.6rem; font-weight: 700; color: var(--accent-bright); }
@@ -127,8 +128,13 @@
     .study-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
     .qcard {
       background: var(--bg-secondary); border: 1px solid var(--accent-muted);
-      padding: 1.25rem; margin-bottom: 1rem; position: relative; overflow: hidden;
+      padding: 1.25rem; margin-bottom: 0.75rem; position: relative;
+      flex: 0 0 auto; max-height: 55%; overflow-y: auto; /* the question keeps its height; the answer box gives way */
+      scrollbar-gutter: stable; /* keeps the text width fixed for Pretext when a long card scrolls */
     }
+    .answer-area { flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+    .actions { flex: none; padding-top: 0.75rem; }
+    .actions:empty { display: none; }
     .qcard-inner { position: relative; }
     .prompt { font-size: 1rem; line-height: 1.55; margin-top: 0.5rem; white-space: pre-wrap; }
     pre.code {
@@ -189,6 +195,7 @@
     .blank.filled input { border-color: var(--correct); }
 
     /* ── Settings ── */
+    #screen-settings, #screen-done { overflow-y: auto; }
     .field + .field { margin-top: 1rem; }
     .field > label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.3rem; }
     .field .muted { margin-top: 0.3rem; }
@@ -220,28 +227,28 @@
       <section id="screen-home" aria-labelledby="home-title">
         <h1 class="label" id="home-title">Today</h1>
         <div class="hero-stats">
-          <div><div class="n" id="dueCount">0</div><div class="muted">due</div></div>
-          <div><div class="n" id="newCount">0</div><div class="muted">new</div></div>
+          <div><div class="n" id="dueCount">0</div><div class="muted">to review</div></div>
+          <div><div class="n" id="newCount">0</div><div class="muted">to learn</div></div>
         </div>
         <button class="btn primary big" id="studyBtn">Study</button>
-        <p class="muted" id="studyNote" style="margin-top:0.5rem"></p>
+        <p class="muted" id="studyNote" style="margin-top:0.4rem"></p>
 
-        <div class="panel" style="margin-top:1.25rem">
+        <div class="panel" style="margin-top:0.75rem">
           <div class="metric">
             <div>
-              <div class="label">Delayed recall · last 14 days</div>
+              <div class="label">Remembered later · last 14 days</div>
               <div class="muted" id="recallNote"></div>
             </div>
             <div class="n" id="recallPct">—</div>
           </div>
         </div>
 
-        <div class="panel">
+        <div class="panel scroll">
           <div class="label" style="margin-bottom:0.4rem">Lectures</div>
           <div id="lectureList"></div>
           <div class="legend">
             <span><i style="background:var(--correct)"></i>mastered</span>
-            <span><i style="background:var(--accent)"></i>learning / in review</span>
+            <span><i style="background:var(--accent)"></i>started</span>
             <span><i style="background:repeating-linear-gradient(135deg,var(--text-secondary) 0 2px,transparent 2px 5px);opacity:.5"></i>blanks to fill</span>
           </div>
         </div>
@@ -265,6 +272,7 @@
           </div>
         </div>
         <div class="answer-area" id="answerArea"></div>
+        <div class="actions" id="actions"></div>
       </section>
 
       <!-- Session done -->
@@ -287,7 +295,7 @@
         <p class="muted" style="margin:0.4rem 0 1rem">Fill these from your lecture notes with the slide open. Each blank you fill becomes a card, checked against your own answer. Writing them yourself is part of learning them.</p>
         <div class="tabs" id="blankTabs" role="group" aria-label="Lecture"></div>
         <p class="muted" id="blankCount"></p>
-        <div id="blankList"></div>
+        <div id="blankList" class="scroll"></div>
       </section>
 
       <!-- Settings -->
@@ -300,9 +308,9 @@
             <p class="muted">Optional. Review gaps are capped at 30% of the days left, so everything gets reviewed again before the exam.</p>
           </div>
           <div class="field">
-            <label for="newPerDay">New cards per day</label>
+            <label for="newPerDay">Cards to learn per day</label>
             <input type="number" id="newPerDay" min="0" max="60" step="1" inputmode="numeric">
-            <p class="muted">Each new card needs 3 correct answers today, so 10 new cards is about 30+ answers.</p>
+            <p class="muted">Each card you learn needs 3 correct answers that day, so 10 cards is about 30+ answers.</p>
           </div>
         </div>
         <div class="panel">

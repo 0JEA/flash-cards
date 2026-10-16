@@ -16,6 +16,10 @@
   let session = null;   // sched.Session plus bookkeeping
   let current = null;   // { card, pending } for the card on screen
   let blankLecture = deck.lectures[0].n;
+  // ?nocode hides every card that shows code; ?all lifts the new-cards-per-day limit.
+  const params = new URLSearchParams(location.search);
+  const NO_CODE = params.has('nocode'), ALL_NEW = params.has('all');
+  const newPerDay = () => (ALL_NEW ? 1e9 : settings.newPerDay);
 
   function readJSON(key) { try { return JSON.parse(store.getItem(key)) || {}; } catch (e) { return {}; } }
   function saveSettings() { store.setItem(SETTINGS_KEY, JSON.stringify(settings)); }
@@ -53,6 +57,7 @@
       answer: answers[b.id], why: '', source: `Your notes · lecture ${b.lecture}, slide ${b.slide}`,
     }));
     return cloze.concat(deck.cards)
+      .filter(c => !(NO_CODE && c.code))
       .map((c, i) => [c, i])
       .sort((a, b) => rank.get(a[0].lecture) - rank.get(b[0].lecture) || a[1] - b[1])
       .map(x => x[0]);
@@ -76,7 +81,7 @@
     const cards = allCards();
     const t = today();
     const sts = sched.states(events, cards, { examDay: examDay() });
-    const queue = sched.buildQueue(sts, cards, t, { newPerDay: settings.newPerDay, shuffle: x => x });
+    const queue = sched.buildQueue(sts, cards, t, { newPerDay: newPerDay(), shuffle: x => x });
     const due = queue.filter(id => sts[id].phase !== 'new').length;
     const fresh = queue.length - due;
     $('dueCount').textContent = due;
@@ -84,14 +89,14 @@
     $('studyBtn').disabled = queue.length === 0;
     const left = cards.filter(c => sts[c.id].phase === 'new').length;
     $('studyNote').textContent = queue.length ? ''
-      : left ? 'All done for today. New cards unlock tomorrow (or raise the daily limit in Settings).'
+      : left ? 'All done for today. More cards to learn unlock tomorrow (or raise the daily limit in Settings).'
       : 'All done for today. Fill more lecture blanks to add cards.';
 
     const r = sched.delayedRecall(events, t, 14);
     $('recallPct').textContent = r.total ? Math.round(100 * r.right / r.total) + '%' : '—';
     $('recallNote').textContent = r.total
-      ? `${r.right} of ${r.total} first attempts right on cards seen on an earlier day`
-      : 'Fills in from tomorrow: it only counts cards you saw on an earlier day.';
+      ? `You got ${r.right} of ${r.total} right when a card came back hours or days later`
+      : 'Starts tomorrow: it counts how many cards you still remember when they come back.';
 
     const answers = log.blankAnswers(events);
     const list = $('lectureList');
@@ -134,7 +139,7 @@
   function startSession() {
     const cards = allCards();
     const sts = sched.states(events, cards, { examDay: examDay() });
-    const queue = sched.buildQueue(sts, cards, today(), { newPerDay: settings.newPerDay });
+    const queue = sched.buildQueue(sts, cards, today(), { newPerDay: newPerDay() });
     if (!queue.length) { renderHome(); return; } // a sync may have just finished today's work
     session = new sched.Session(queue);
     session.byId = new Map(cards.map(c => [c.id, c]));
@@ -160,7 +165,7 @@
     const tomorrow = cards.filter(c => sts[c.id].phase === 'review' && sts[c.id].due === today() + 1).length;
     $('doneNext').textContent = s.remaining
       ? `${s.remaining} card${s.remaining === 1 ? '' : 's'} left in today’s queue. They will still be due when you come back.`
-      : `${tomorrow} review${tomorrow === 1 ? '' : 's'} due tomorrow.`;
+      : `${tomorrow} card${tomorrow === 1 ? '' : 's'} to review tomorrow.`;
     for (const name of screens) $('screen-' + name).hidden = name !== 'done';
     window.scrollTo(0, 0);
   }
@@ -203,7 +208,8 @@
         const w = ref.getBoundingClientRect().width - px(cs.paddingLeft) - px(cs.paddingRight) - px(cs.borderLeftWidth) - px(cs.borderRightWidth);
         hgt += codeMargin + codeChrome + textHeight(card.code, ref, w, true);
       }
-      return hgt;
+      const maxH = px(getComputedStyle(q).maxHeight);
+      return maxH ? Math.min(hgt, maxH) : hgt;
     } catch (e) {
       console.warn('Pretext measurement failed', e);
       return null;
@@ -215,17 +221,18 @@
     const card = session.byId.get(id);
     current = { card, pending: null };
     $('leftCount').textContent = `${session.remaining} left`;
-    const area = $('answerArea');
+    const area = $('answerArea'), actions = $('actions');
     if (first || !window.gsap) {
       fillQuestion(card);
       area.replaceChildren(buildAnswer(card));
+      $('qcard').scrollTop = 0;
       focusFirst();
       return;
     }
     animating = true;
     const q = $('qcard'), inner = $('qinner');
     const target = predictCardHeight(card);
-    gsap.killTweensOf([q, inner, area]);
+    gsap.killTweensOf([q, inner, area, actions]);
     if (target) {
       gsap.set(q, { height: q.getBoundingClientRect().height });
       gsap.to(q, {
@@ -236,10 +243,10 @@
       });
     }
     gsap.timeline()
-      .to([inner, area], { xPercent: -8, opacity: 0, duration: 0.18, ease: 'power2.in' })
-      .add(() => { fillQuestion(card); area.replaceChildren(buildAnswer(card)); })
-      .set([inner, area], { xPercent: 8 })
-      .to([inner, area], { xPercent: 0, opacity: 1, duration: 0.22, ease: 'power2.out', onComplete: () => { animating = false; focusFirst(); } });
+      .to([inner, area, actions], { xPercent: -8, opacity: 0, duration: 0.18, ease: 'power2.in' })
+      .add(() => { fillQuestion(card); area.replaceChildren(buildAnswer(card)); q.scrollTop = 0; area.scrollTop = 0; })
+      .set([inner, area, actions], { xPercent: 8 })
+      .to([inner, area, actions], { xPercent: 0, opacity: 1, duration: 0.22, ease: 'power2.out', onComplete: () => { animating = false; focusFirst(); } });
   }
 
   function focusFirst() {
@@ -309,7 +316,7 @@
     const sureBtn = h('button', { class: 'btn primary', onclick: () => submit(true) }, 'Sure', h('span', { class: 'kbd' }, card.type === 'recall' ? 'Ctrl+⏎' : '⏎'));
     const guessBtn = h('button', { class: 'btn', onclick: () => submit(false) }, 'Guess', h('span', { class: 'kbd' }, card.type === 'recall' ? 'Ctrl+⇧⏎' : '⇧⏎'));
     const idkBtn = h('button', { class: 'btn', onclick: () => giveUp() }, 'I don’t know');
-    wrap.append(h('div', { class: 'btn-row' }, idkBtn, guessBtn, sureBtn));
+    $('actions').replaceChildren(h('div', { class: 'btn-row' }, idkBtn, guessBtn, sureBtn));
     function updateReady() { const r = read().ready; sureBtn.disabled = !r; guessBtn.disabled = !r; }
     wrap.addEventListener('input', updateReady);
     queueMicrotask(updateReady);
@@ -344,15 +351,6 @@
   function showFeedback() {
     const { card, pending: p } = current;
     const area = $('answerArea');
-    // Lock the inputs, keep them visible above the feedback.
-    area.querySelectorAll('input, textarea, button').forEach(el => { el.disabled = true; });
-    area.querySelector('.btn-row')?.remove();
-    if (card.type === 'mc') {
-      area.querySelectorAll('.opt').forEach(b => {
-        if (b.dataset.opt === card.answer) b.classList.add('correct');
-        else if (b.dataset.opt === p.given) b.classList.add('wrong');
-      });
-    }
 
     const fb = h('div', { class: 'feedback', role: 'status', 'aria-live': 'polite' });
     const selfGrade = card.type === 'recall' && !p.gaveUp;
@@ -370,12 +368,17 @@
     paintVerdict();
     fb.append(verdict, alert);
 
-    const showGiven = p.given && card.type !== 'mc' && card.type !== 'order';
-    if (showGiven) fb.append(h('div', { class: 'fb-block' }, h('div', { class: 'label' }, 'You wrote'), h('div', { class: 'val' + (card.code ? ' mono' : '') }, p.given)));
-    const answerText = card.type === 'order' ? card.answer.map((t, i) => `${i + 1}. ${t}`).join('\n') : card.answer;
-    if (card.type !== 'mc' || !p.ok) {
+    // Your answer, then the right one (the input is gone once feedback shows).
+    const numbered = list => list.map((t, i) => `${i + 1}. ${t}`).join('\n');
+    const mono = card.verify || card.type === 'order' ? ' mono' : '';
+    if (p.given && p.given.length) {
+      const yours = card.type === 'order' ? 'Your order' : card.type === 'mc' ? 'You chose' : 'You wrote';
+      fb.append(h('div', { class: 'fb-block' }, h('div', { class: 'label' }, yours),
+        h('div', { class: 'val' + mono }, Array.isArray(p.given) ? numbered(p.given) : p.given)));
+    }
+    if (!(card.type === 'mc' && p.ok)) {
       fb.append(h('div', { class: 'fb-block' }, h('div', { class: 'label' }, card.type === 'cloze' ? 'Your notes say' : card.type === 'recall' ? 'Model answer' : 'Answer'),
-        h('div', { class: 'val' + (card.code && card.type !== 'recall' ? ' mono' : '') }, answerText)));
+        h('div', { class: 'val' + mono }, card.type === 'order' ? numbered(card.answer) : card.answer)));
     }
     if (card.type === 'recall') {
       fb.append(h('div', { class: 'fb-block' }, h('div', { class: 'label' }, 'Count it if you had'), h('ul', { class: 'points' }, card.points.map(pt => h('li', null, pt)))));
@@ -399,10 +402,11 @@
       }
       row.append(h('button', { class: 'btn primary', id: 'contBtn', onclick: cont }, 'Continue', h('span', { class: 'kbd' }, '⏎')));
     }
-    area.append(fb, row);
+    area.replaceChildren(fb);
+    area.scrollTop = 0;
+    $('actions').replaceChildren(row);
     const btn = row.querySelector('.btn.primary');
     if (btn && matchMedia('(hover: hover)').matches) btn.focus({ preventScroll: true });
-    fb.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
   function commit() {

@@ -44,9 +44,29 @@
     return editDistance(g, e) <= Math.floor(e.length / 8);
   }
 
+  // Unordered answers (boundary values, prime paths, …). Items are separated by commas,
+  // semicolons or new lines, unless the expected items themselves contain commas (paths like
+  // "N0,N1,N2"): then items are separated by semicolons, new lines or bracket groups.
+  function set(given, card) {
+    const expected = card.answer.map(x => normalize(x).replace(/[\[\]\s]/g, ''));
+    const itemsHaveCommas = expected.some(x => x.includes(','));
+    let raw = String(given);
+    let parts;
+    if (itemsHaveCommas) {
+      const groups = raw.match(/\[[^\]]*\]/g);
+      parts = groups && groups.length > 1 ? groups : raw.split(/[;\n]+/);
+    } else {
+      parts = raw.split(/[,;\n]+/);
+    }
+    const got = parts.map(x => normalize(x).replace(/[\[\]\s]/g, '')).filter(Boolean);
+    if (!got.length || got.length !== expected.length) return false;
+    const a = got.slice().sort(), b = expected.slice().sort();
+    return a.every((x, i) => x === b[i]);
+  }
+
   function order(given, expected) {
     return given.length === expected.length && given.every((x, i) => x === expected[i]);
   }
 
-  FC.grade = { normalize, typed, cloze, order, editDistance };
+  FC.grade = { normalize, typed, cloze, order, set, editDistance };
 })(globalThis.FC = globalThis.FC || {});

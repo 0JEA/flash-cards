@@ -136,8 +136,10 @@
     return { right, total };
   }
 
-  // In-session re-asking (L7): a miss or guess returns 3-5 cards later; a learning card
-  // that has not reached its 3 successes today returns 6-10 cards later.
+  // In-session re-asking (L7): a card that must come back (a miss, a guess, or a new card
+  // short of its 3 correct answers today) goes to the END of the session queue, so every
+  // other card is seen before any repeat. Longer gaps between retrievals help more (owner
+  // asked 2026-10-16: no repeats within a handful of cards).
   class Session {
     constructor(queue, rng = Math.random) {
       this.queue = queue.slice();
@@ -146,17 +148,12 @@
     }
     next() { return this.queue[0]; }
     get remaining() { return this.queue.length; }
-    reinsert(id, min, max) {
-      const gap = min + Math.floor(this.rng() * (max - min + 1));
-      this.queue.splice(Math.min(gap, this.queue.length), 0, id);
-    }
     // outcome: { ok, sure, learningShort } where learningShort = still learning and
     // fewer than 3 successes today after this answer.
     record(id, outcome) {
       if (this.queue[0] === id) this.queue.shift();
       else { const k = this.queue.indexOf(id); if (k >= 0) this.queue.splice(k, 1); }
-      if (!outcome.ok || !outcome.sure) this.reinsert(id, 3, 5);
-      else if (outcome.learningShort) this.reinsert(id, 6, 10);
+      if (!outcome.ok || !outcome.sure || outcome.learningShort) this.queue.push(id);
       else this.done++;
     }
   }

@@ -6,14 +6,18 @@
   const { log, sched, grade } = FC;
   const $ = id => document.getElementById(id);
   // Every class the app knows, in launch-list order. A deck file that failed to load is skipped.
-  const DECKS = ['csc370', 'softtest', 'ethics'].map(id => FC.decks[id]).filter(Boolean);
+  const DECKS = ['csc370', 'csc310', 'softtest', 'ethics'].map(id => FC.decks[id]).filter(Boolean);
   const deckById = new Map(DECKS.map(d => [d.id, d]));
 
   // ── State ──────────────────────────────────────────────────────────────
   let events = log.load();
   const SETTINGS_KEY = 'fc.settings', TOKEN_KEY = 'fc.token';
   const store = log._store();
-  let settings = Object.assign({ newLimit: 20, exams: {}, off: {}, mix: { total: 30, pct: {} } }, readJSON(SETTINGS_KEY));
+  let settings = Object.assign({ newLimit: 'all', minutes: 20, exams: {}, off: {}, view: {}, focus: {}, mix: { total: 30, pct: {} } }, readJSON(SETTINGS_KEY));
+  settings.view = settings.view || {}; settings.focus = settings.focus || {};
+  // v2 (2026-10-16): sessions draw from every card (repeats go to the end of the session)
+  // and are bounded by time instead; the old 20-new-cards default made the same 20 cycle.
+  if (!settings.v || settings.v < 2) { settings.newLimit = 'all'; settings.v = 2; store.setItem(SETTINGS_KEY, JSON.stringify(settings)); }
   // Older settings (single class): carry the exam date over to CSC 370.
   if (settings.examDate && !settings.exams.csc370) settings.exams.csc370 = settings.examDate;
   delete settings.examDate; delete settings.newPerDay;
@@ -25,8 +29,31 @@
   function readJSON(key) { try { return JSON.parse(store.getItem(key)) || {}; } catch (e) { return {}; } }
   function saveSettings() { store.setItem(SETTINGS_KEY, JSON.stringify(settings)); }
   const newLimit = () => (settings.newLimit === 'all' ? 1e9 : +settings.newLimit || 20);
+  const minutesLimit = () => (settings.minutes === 'none' ? Infinity : +settings.minutes || 20);
 
   // DOM helper: h('div', { class: 'x', onclick }, 'text', child)
+  // Card text with inline math: $...$ is rendered by KaTeX (vendor/katex), everything else
+  // stays a plain text node. KaTeX builds its own escaped markup (trust: false), so card
+  // text is never parsed as HTML. \$ is a literal dollar sign.
+  // Only for classes whose deck sets `math: true` (elsewhere "$50 … $100" is money).
+  let mathOn = false;
+  function math(text) {
+    const t = String(text);
+    if (!mathOn) return [t];
+    if (!window.katex || !/(^|[^\\])\$/.test(t)) return [t.replace(/\\\$/g, '$')];
+    const out = [];
+    let last = 0;
+    for (const m of t.matchAll(/(?<!\\)\$(.+?)(?<!\\)\$/g)) {
+      if (m.index > last) out.push(t.slice(last, m.index).replace(/\\\$/g, '$'));
+      const span = document.createElement('span');
+      katex.render(m[1], span, { throwOnError: false, trust: false, output: 'html' });
+      out.push(span);
+      last = m.index + m[0].length;
+    }
+    if (last < t.length) out.push(t.slice(last).replace(/\\\$/g, '$'));
+    return out;
+  }
+
   function h(tag, attrs, ...kids) {
     const el = document.createElement(tag);
     for (const [k, v] of Object.entries(attrs || {})) {
@@ -67,15 +94,17 @@
     const groups = FC.blankGroups || [], asks = FC.blankAsk || {};
     const grouped = new Set(groups.flatMap(g => g.ids));
     const byId = new Map(deck.blanks.map(b => [b.id, b]));
-    const groupCards = groups.filter(g => byId.has(g.ids[0])).map(g => {
+    const retiredIds = new Set(FC.blankRetired || []);
+    const groupCards = groups.filter(g => byId.has(g.ids[0]) && !g.ids.every(id => retiredIds.has(id))).map(g => {
       const first = byId.get(g.ids[0]);
       return {
         id: 'blank:' + g.ids[0], lecture: first.lecture, blankRef: first, type: 'recall', blank: true, prompt: g.ask,
-        answer: g.answer, points: [g.answer], basis: g.basis, why: g.note || '',
+        answer: g.answer, points: g.points || [g.answer], basis: g.basis, why: g.note || '',
         source: `Lecture ${first.lecture}, slide ${first.slide} · ` + (BASIS[g.basis] || 'supplied'),
       };
     });
-    return groupCards.concat(deck.blanks.filter(b => !grouped.has(b.id) && (mine[b.id] || supplied[b.id])).map(b => {
+    const retired = new Set(FC.blankRetired || []);
+    return groupCards.concat(deck.blanks.filter(b => !grouped.has(b.id) && !retired.has(b.id) && (mine[b.id] || supplied[b.id])).map(b => {
       const own = mine[b.id], sup = supplied[b.id] || {}, q = questions[b.id];
       const answer = own || (q && q.answer) || sup.answer;
       return {
@@ -96,18 +125,29 @@
     if (cardCache.has(key)) return cardCache.get(key);
     const rank = new Map(deck.lectures.map((l, i) => [l.n, i]));
     const topic = FC.topics && FC.topics[deckId];
-    const cards = blankCards(deck).concat(deck.cards)
+    const gens = FC.gen ? FC.gen.forDeck(deckId).map(FC.gen.asCard) : [];
+    const cards = blankCards(deck).concat(deck.cards, gens)
       .map((c, i) => [c, i])
       .sort((a, b) => (rank.get(a[0].lecture) ?? 99) - (rank.get(b[0].lecture) ?? 99) || a[1] - b[1])
-      .map(([c]) => Object.assign({}, c, { deck: deckId }, topic ? topic(c) : { cat: c.cat || 'General', sub: c.sub || 'General' }));
+      .map(([c]) => Object.assign({}, c, { deck: deckId },
+        c.generator ? { cat: c.cat, sub: c.sub } : topic ? topic(c) : { cat: c.cat || 'General', sub: c.sub || 'General' }));
     cardCache.set(key, cards);
     return cards;
   }
 
   // Topic toggles: settings.off[deckId] lists switched-off "cat" or "cat/sub" keys.
   const offSet = deckId => new Set(settings.off[deckId] || []);
-  const isOn = (off, c) => !off.has(c.cat) && !off.has(c.cat + '/' + c.sub);
-  const activeCards = deckId => { const off = offSet(deckId); return cardsFor(deckId).filter(c => isOn(off, c)); };
+  const isOn = (off, c) => !off.has(c.cat) && !off.has(c.cat + '/' + c.sub) && !off.has('L:' + c.lecture);
+  // Exam mode: within 7 days of a class's exam date, History is left out (exam-format
+  // practice first, research/04 rule 25) unless it was switched back on for the exam.
+  const EXAM_WEEK = 7;
+  function examMode(deckId) { const ed = examDay(deckId); return ed != null && ed >= today() && ed - today() <= EXAM_WEEK; }
+  const activeCards = deckId => {
+    const off = offSet(deckId);
+    if (examMode(deckId) && !(settings.examHistory || {})[deckId]) for (const cat of ['History', 'History & stories']) off.add(cat);
+    const focus = settings.focus[deckId];
+    return cardsFor(deckId).filter(c => isOn(off, c) && (!focus || (c.assignment || []).includes(focus)));
+  };
 
   // Card states, each class with its own exam date.
   function statesFor(cards) {
@@ -158,6 +198,17 @@
         h('div', { class: 'class-sub' }, `${k.review} to review · ${k.learn} to learn · ${k.total} cards`),
         bar(k.mastered, k.started, k.total));
     }));
+    // Calibration (research/04 rule 17): of the answers marked Sure on cards seen on an
+    // earlier day, how many were right? Overconfidence means stopping practice too early.
+    const firstOfDay = new Map(), lastSeen = new Map(); let sureRight = 0, sureTotal = 0;
+    for (const ev of events.filter(e => e.k === 'r').sort((a, b) => a.t - b.t)) {
+      const day = sched.dayOf(ev.t), prev = lastSeen.get(ev.c), key = ev.c + '@' + day;
+      if (prev != null && prev < day && !firstOfDay.has(key) && ev.s === 1) { sureTotal++; if (ev.ok === 1) sureRight++; }
+      firstOfDay.set(key, true); lastSeen.set(ev.c, day);
+    }
+    $('honesty').textContent = sureTotal >= 5
+      ? `When you said Sure on a card from an earlier day, you were right ${Math.round(100 * sureRight / sureTotal)}% of the time (${sureRight}/${sureTotal}).`
+      : 'Your “Sure” accuracy shows here once you have reviewed cards on a second day.';
     const r = sched.delayedRecall(events, today(), 14);
     $('recallPct').textContent = r.total ? Math.round(100 * r.right / r.total) + '%' : '—';
     $('recallNote').textContent = r.total
@@ -178,11 +229,45 @@
       : k.total === 0 ? 'Every topic is switched off.' : 'Nothing left for today with these topics.';
     $('examDate').value = settings.exams[d.id] || '';
     $('newLimit').value = String(settings.newLimit);
+    $('sessionMinutes').value = String(settings.minutes);
+    const ed = examDay(d.id);
+    $('examBanner').textContent = examMode(d.id)
+      ? `Exam in ${ed - today()} day${ed - today() === 1 ? '' : 's'}: exam mode. Review gaps are capped to fit, and History is left out (switch it on to include it).`
+      : ed != null && ed > today() ? `Exam in ${ed - today()} days: review gaps are capped so everything comes back before it.` : '';
+    $('examBanner').hidden = !$('examBanner').textContent;
 
+    // Group by topic, lecture, or assignment.
+    const hasAssignments = (d.assignments || []).some(a => all.some(c => (c.assignment || []).includes(a.id)));
+    let view = settings.view[d.id] || 'topic';
+    if (view === 'assignment' && !hasAssignments) view = 'topic';
+    document.querySelectorAll('#viewSwitch button').forEach(b => {
+      b.setAttribute('aria-pressed', String(b.dataset.view === view));
+      b.hidden = b.dataset.view === 'assignment' && !hasAssignments;
+    });
+    const tree = $('topicTree');
+    if (view === 'lecture') {
+      $('viewHint').textContent = 'Switch lectures on or off.';
+      tree.replaceChildren(...d.lectures.filter(l => all.some(c => c.lecture === l.n)).map(l => {
+        const n = all.filter(c => c.lecture === l.n).length, on = !off.has('L:' + l.n);
+        return h('div', { class: 'topic' }, h('label', { class: 'topic-head' },
+          h('input', { type: 'checkbox', checked: on, onchange: e => toggle(d.id, 'L:' + l.n, e.target.checked) }),
+          h('span', null, l.title), h('span', { class: 'muted' }, ` ${n}`)));
+      }));
+      return;
+    }
+    if (view === 'assignment') {
+      const focus = settings.focus[d.id] || '';
+      $('viewHint').textContent = 'Pick an assignment to study only the concepts it needs. Your answers to the assignment itself are not on any card.';
+      const rows = [{ id: '', title: 'All cards', n: all.length }].concat(d.assignments.map(a => ({ id: a.id, title: a.title, n: all.filter(c => (c.assignment || []).includes(a.id)).length })));
+      tree.replaceChildren(...rows.filter(r => r.n).map(r => h('div', { class: 'topic' }, h('label', { class: 'topic-head' },
+        h('input', { type: 'radio', name: 'focus', checked: focus === r.id, onchange: () => { settings.focus[d.id] = r.id || null; saveSettings(); renderClass(); } }),
+        h('span', null, r.title), h('span', { class: 'muted' }, ` ${r.n}`)))));
+      return;
+    }
+    $('viewHint').textContent = 'Switch topics on or off. Open a topic to pick its parts.';
     // Topics in the deck's preferred order, each with its subgroups as chips.
     const order = (FC.topics && FC.topics[d.id + 'Order']) || d.catOrder || [];
     const cats = [...new Set(order.concat(all.map(c => c.cat)))].filter(cat => all.some(c => c.cat === cat));
-    const tree = $('topicTree');
     // Few subgroups: show every chip. Many (Software Testing has ~90): groups start
     // collapsed so the screen still fits, and you open the one you want to fine-tune.
     const totalSubs = new Set(all.map(c => c.cat + '/' + c.sub)).size;
@@ -190,7 +275,7 @@
     const open = expanded.get(d.id);
     tree.replaceChildren(...cats.map(cat => {
       const inCat = all.filter(c => c.cat === cat);
-      const subOrder = (FC.topics && FC.topics[d.id + 'SubOrder']) || [];
+      const subOrder = (FC.topics && FC.topics[d.id + 'SubOrder']) || d.subOrder || [];
       const rankOf = sub => { const i = subOrder.indexOf(sub); return i < 0 ? 999 : i; };
       const subs = [...new Set(inCat.map(c => c.sub))].sort((a, b) => rankOf(a) - rankOf(b));
       const catOn = !off.has(cat);
@@ -212,6 +297,7 @@
     }));
   }
   function toggle(deckId, key, on) {
+    if (examMode(deckId) && /^History/.test(key)) { settings.examHistory = Object.assign({}, settings.examHistory, { [deckId]: on }); }
     const off = offSet(deckId);
     if (on) off.delete(key); else off.add(key);
     settings.off[deckId] = [...off];
@@ -219,7 +305,9 @@
     renderClass();
   }
   $('examDate').addEventListener('change', e => { settings.exams[openDeck] = e.target.value; saveSettings(); renderClass(); });
+  document.querySelectorAll('#viewSwitch button').forEach(b => b.addEventListener('click', () => { settings.view[openDeck] = b.dataset.view; saveSettings(); renderClass(); }));
   $('newLimit').addEventListener('change', e => { settings.newLimit = e.target.value === 'all' ? 'all' : +e.target.value; saveSettings(); renderClass(); });
+  $('sessionMinutes').addEventListener('change', e => { settings.minutes = e.target.value === 'none' ? 'none' : +e.target.value; saveSettings(); });
   $('studyBtn').addEventListener('click', () => withSync($('studyBtn'), () => startSession(activeCards(openDeck))));
 
   // ── Mix: cards from several classes, by percentage ─────────────────────
@@ -278,6 +366,20 @@
 
   // ── Study ──────────────────────────────────────────────────────────────
   $('endBtn').addEventListener('click', () => endSession(true));
+  // Report a wrong or unclear card: logged, listed in Settings, fixed next session.
+  // (Not a "suspend" button: dropping cards early hurts retention, Karpicke 2009.)
+  $('reportBtn').addEventListener('click', () => {
+    if (!current || $('reportBox')) return;
+    const card = current.card;
+    const note = h('input', { type: 'text', placeholder: 'What’s wrong? (optional)', 'aria-label': 'What is wrong with this card' });
+    const box = h('div', { class: 'report-box', id: 'reportBox' }, note, h('button', { class: 'btn', onclick: () => {
+      log.append(events, { k: 'f', c: card.id, v: note.value.trim().slice(0, 300), q: String(card.prompt).slice(0, 200) });
+      box.replaceChildren(h('span', { class: 'muted' }, 'Reported.'));
+      pushSoon();
+    } }, 'Send'));
+    $('screen-study').querySelector('.study-top').after(box);
+    note.focus();
+  });
   let returnTo = 'class';
 
   function startSession(cards, opts = {}) {
@@ -287,6 +389,8 @@
     returnTo = opts.queue ? 'mix' : 'class';
     session = new sched.Session(queue);
     session.byId = new Map(cards.map(c => [c.id, c]));
+    session.started = Date.now();
+    session.limitMs = minutesLimit() * 60000;
     session.firstTry = new Map(); // card id -> right on first attempt this session
     current = null;
     for (const s of screens) $('screen-' + s).hidden = s !== 'study';
@@ -309,7 +413,7 @@
     const sts = statesFor(cards);
     const tomorrow = cards.filter(c => sts[c.id].phase === 'review' && sts[c.id].due === today() + 1).length;
     $('doneNext').textContent = s.remaining
-      ? `${s.remaining} card${s.remaining === 1 ? '' : 's'} left in this session. They will still be due when you come back.`
+      ? (s.timeUp ? `Time’s up (${Math.round(s.limitMs / 60000)} min). ` : '') + `${s.remaining} card${s.remaining === 1 ? '' : 's'} not reached; they stay due for next time.`
       : `${tomorrow} of these card${tomorrow === 1 ? '' : 's'} come back tomorrow.`;
     $('doneBack').textContent = returnTo === 'mix' ? 'Back to mix' : 'Back to class';
     document.body.classList.remove('studying');
@@ -317,15 +421,26 @@
   }
   $('doneBack').addEventListener('click', () => show(returnTo));
 
-  const TYPE_LABEL = { recall: 'Explain', typed: 'Short answer', mc: 'Choose', order: 'Put in order', cloze: 'From your notes' };
+  const TYPE_LABEL = { recall: 'Explain', typed: 'Short answer', mc: 'Choose', order: 'Put in order', cloze: 'From your notes', set: 'List them' };
+
+  // New-card progress toward today's 3 correct (and Sure) answers, shown on the card.
+  function learnProgress(card) {
+    const st = sched.states(events, [card], { examDay: examDay(card.deck) })[card.id];
+    if (st.phase === 'new') return { learning: true, done: 0 };
+    if (st.phase === 'learning') return { learning: true, done: st.successesToday(today()) };
+    return { learning: false };
+  }
 
   function fillQuestion(card) {
     const deck = deckById.get(card.deck) || DECKS[0];
+    mathOn = !!deck.math;
     const lec = deck.lectures.find(l => l.n === card.lecture);
     const where = card.lecture === 'paper' ? 'Reading' : deck.lectures.length > 1 ? `Lecture ${card.lecture}` : '';
-    $('qlabel').textContent = [deck.short || deck.title, where, card.blank ? 'Fill the blank' : card.type === 'typed' && card.code ? 'Trace' : TYPE_LABEL[card.type]].filter(Boolean).join(' · ');
+    const kind = card.generated ? 'Practice problem' : card.blank ? 'Fill the blank' : card.type === 'typed' && card.code ? 'Trace' : TYPE_LABEL[card.type];
+    const prog = current && current.progress && current.progress.learning ? `new · ${current.progress.done}/${sched.LEARN_CRITERION}` : '';
+    $('qlabel').textContent = [deck.short || deck.title, where, kind, prog].filter(Boolean).join(' · ');
     $('qlabel').title = lec ? lec.title : '';
-    $('qprompt').textContent = card.prompt;
+    $('qprompt').replaceChildren(...math(card.prompt));
     $('qcode').hidden = !card.code;
     $('qcode').textContent = card.code || '';
   }
@@ -352,6 +467,7 @@
     return [...root.querySelectorAll('[data-fit]')].filter(el => el.offsetParent).map(el => {
       const cs = getComputedStyle(el), r = el.getBoundingClientRect();
       return {
+        el, math: !!el.querySelector('.katex'),
         text: el.dataset.text ?? el.textContent, pre: el.dataset.fit === 'pre',
         weight: cs.fontWeight, size: px(cs.fontSize), family: cs.fontFamily, lh: px(cs.lineHeight),
         width: r.width - px(cs.paddingLeft) - px(cs.paddingRight) - px(cs.borderLeftWidth) - px(cs.borderRightWidth),
@@ -362,9 +478,11 @@
 
   // Largest scale in [FIT_MIN, FIT_MAX] where chrome + all text fits `available`;
   // null if even FIT_MIN is too big.
-  function searchScale(blocks, chrome, available) {
-    const total = sc => chrome + blocks.reduce((sum, b) =>
-      sum + pretextHeight(b.text, `${b.weight} ${b.size * sc}px ${b.family}`, b.width, b.lh * sc, b.pre), 0);
+  // Blocks with rendered math (KaTeX boxes aren't plain text runs) are measured by the DOM
+  // at each candidate scale instead of by Pretext: `domHeight(sc)` (still in fit-measure).
+  function searchScale(blocks, chrome, available, domHeight) {
+    const total = sc => chrome + domHeight(sc) + blocks.reduce((sum, b) =>
+      b.math ? sum : sum + pretextHeight(b.text, `${b.weight} ${b.size * sc}px ${b.family}`, b.width, b.lh * sc, b.pre), 0);
     if (total(FIT_MIN) > available) return null;
     if (total(FIT_MAX) <= available) return FIT_MAX;
     let lo = FIT_MIN, hi = FIT_MAX;
@@ -390,8 +508,15 @@
     const natural = Math.max(...[...sec.children].filter(el => el.offsetParent).map(el => el.getBoundingClientRect().bottom)) - top;
     const available = sec.clientHeight;
     const blocks = textBlocks(sec);
+    const mathBlocks = blocks.filter(b => b.math);
+    const domHeight = sc => {
+      if (!mathBlocks.length) return 0;
+      sec.style.setProperty('--fit-q', sc); sec.style.setProperty('--fit-a', sc);
+      return mathBlocks.reduce((t, b) => { const cs = getComputedStyle(b.el);
+        return t + b.el.getBoundingClientRect().height - px(cs.paddingTop) - px(cs.paddingBottom) - px(cs.borderTopWidth) - px(cs.borderBottomWidth); }, 0);
+    };
+    let sc = searchScale(blocks, natural - blocks.reduce((t, b) => t + b.dom, 0), available, domHeight);
     sec.classList.remove('fit-measure');
-    let sc = searchScale(blocks, natural - blocks.reduce((t, b) => t + b.dom, 0), available);
     if (sc === null) { sc = FIT_MIN; sec.classList.add('fit-overflow'); }
     const apply = v => { sec.style.setProperty('--fit-q', v); sec.style.setProperty('--fit-a', v); };
     apply(sc);
@@ -401,19 +526,12 @@
     if (overflowing()) sec.classList.add('fit-overflow');
   }
 
-  // Feedback: the question keeps its size; the feedback gets the space below it.
+  // Feedback: one scale for the whole screen (question + feedback together), chosen by the
+  // same Pretext search as when asking.
   function fitFeedback() {
     if (!window.Pretext || !current) return;
-    const area = $('answerArea'), fb = area.firstElementChild;
-    if (!fb) return;
-    area.style.setProperty('--fit-a', 1);
-    const blocks = textBlocks(area);
-    const chrome = fb.getBoundingClientRect().height - blocks.reduce((t, b) => t + b.dom, 0);
-    let sc = searchScale(blocks, chrome, area.clientHeight);
-    // Feedback too long for the space left under the question: shrink both together.
-    if (sc === null) { area.style.removeProperty('--fit-a'); fitAsk(); return; }
-    area.style.setProperty('--fit-a', sc);
-    for (let k = 0; k < 6 && sc > FIT_MIN && area.scrollHeight > area.clientHeight + 1; k++) area.style.setProperty('--fit-a', sc = Math.max(FIT_MIN, sc - 0.03));
+    $('answerArea').style.removeProperty('--fit-a');
+    fitAsk();
   }
 
   function refit() {
@@ -426,9 +544,14 @@
 
   let animating = false;
   function showCard(id, first) {
-    const card = session.byId.get(id);
-    current = { card, pending: null };
-    $('leftCount').textContent = `${session.remaining} left`;
+    const base = session.byId.get(id);
+    // A generated skill card becomes a fresh problem each time it is shown.
+    const card = base.type === 'gen' && FC.gen ? Object.assign(FC.gen.instance(base.generator), { deck: base.deck, cat: base.cat, sub: base.sub }) : base;
+    current = { card, pending: null, progress: learnProgress(base) };
+    $('screen-study').classList.remove('answered');
+    if ($('reportBox')) $('reportBox').remove();
+    const mins = Math.floor((Date.now() - session.started) / 60000);
+    $('leftCount').textContent = `${session.remaining} left` + (isFinite(session.limitMs) ? ` · ${mins}/${Math.round(session.limitMs / 60000)} min` : '');
     const area = $('answerArea'), actions = $('actions'), inner = $('qinner');
     // Render, then fit while the content is still invisible, so the new card appears at its final size.
     const render = () => { fillQuestion(card); area.replaceChildren(buildAnswer(card)); $('qcard').scrollTop = 0; area.scrollTop = 0; fitAsk(); };
@@ -461,10 +584,10 @@
       ta.addEventListener('keydown', e => {
         if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); e.stopPropagation(); submit(!e.shiftKey); }
       });
-    } else if (card.type === 'typed' || card.type === 'cloze') {
+    } else if (card.type === 'typed' || card.type === 'cloze' || card.type === 'set') {
       const input = h('input', { type: 'text', id: 'ans', class: card.verify ? 'mono' : null, 'aria-label': 'Your answer',
         autocomplete: 'off', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false',
-        placeholder: card.verify ? 'Exact output (spacing and line breaks don’t matter)' : 'Your answer' });
+        placeholder: card.type === 'set' ? 'Separate items with commas (any order)' : card.verify ? 'Exact output (spacing and line breaks don’t matter)' : 'Your answer' });
       wrap.append(input);
       read = () => ({ given: input.value, ready: input.value.trim().length > 0 });
       // stopPropagation: the same Enter must not reach the document handler, which would
@@ -475,7 +598,7 @@
       let chosen = null;
       const box = h('div', { role: 'group', 'aria-label': 'Options' });
       opts.forEach((o, i) => {
-        const b = h('button', { class: 'opt', 'aria-pressed': 'false', 'data-opt': o, 'data-fit': '', 'data-text': o, onclick: () => pick(i) }, h('span', { class: 'kbd' }, `${i + 1}`), ' ', o);
+        const b = h('button', { class: 'opt', 'aria-pressed': 'false', 'data-opt': o, 'data-fit': '', 'data-text': o, onclick: () => pick(i) }, h('span', { class: 'kbd' }, `${i + 1}`), ' ', math(o));
         box.append(b);
       });
       function pick(i) {
@@ -494,9 +617,9 @@
       const ans = h('div', { class: 'tiles', 'aria-label': 'Your order' });
       const src = h('div', { class: 'tiles pool', 'aria-label': 'Tiles to place' });
       function draw() {
-        ans.replaceChildren(...(placed.length ? placed.map((t, i) => h('button', { class: 'tile', 'data-fit': '', 'data-text': t, onclick: () => { placed.splice(i, 1); pool.push(t); draw(); } }, h('span', { class: 'num' }, `${i + 1}.`), t))
+        ans.replaceChildren(...(placed.length ? placed.map((t, i) => h('button', { class: 'tile', 'data-fit': '', 'data-text': t, onclick: () => { placed.splice(i, 1); pool.push(t); draw(); } }, h('span', { class: 'num' }, `${i + 1}.`), math(t)))
           : [h('div', { class: 'tiles-empty' }, 'Tap tiles below in order. Tap a placed tile to take it back.')]));
-        src.replaceChildren(...pool.map((t, i) => h('button', { class: 'tile', 'data-fit': '', 'data-text': t, onclick: () => { pool.splice(i, 1); placed.push(t); draw(); } }, t)));
+        src.replaceChildren(...pool.map((t, i) => h('button', { class: 'tile', 'data-fit': '', 'data-text': t, onclick: () => { pool.splice(i, 1); placed.push(t); draw(); } }, math(t))));
         src.hidden = pool.length === 0;
         updateReady();
       }
@@ -522,6 +645,7 @@
     if (card.type === 'cloze') return grade.cloze(given, card.answer);
     if (card.type === 'mc') return given === card.answer;
     if (card.type === 'order') return grade.order(given, card.answer);
+    if (card.type === 'set') return grade.set(given, card);
     return null; // recall: self-graded
   }
 
@@ -543,6 +667,7 @@
   function showFeedback() {
     const { card, pending: p } = current;
     const area = $('answerArea');
+    $('screen-study').classList.add('answered');
 
     const fb = h('div', { class: 'feedback', role: 'status', 'aria-live': 'polite' });
     const selfGrade = card.type === 'recall' && !p.gaveUp;
@@ -551,43 +676,55 @@
     function paintVerdict() {
       fb.classList.toggle('good', p.ok === true);
       fb.classList.toggle('bad', p.ok === false);
-      verdict.textContent = p.ok === null ? 'Compare with the model answer' : p.ok ? (p.sure ? 'Correct' : 'Correct, but you guessed') : p.gaveUp ? 'Here’s the answer' : 'Not quite';
-      // Confident errors are the ones feedback fixes best (Butterfield & Metcalfe 2001).
-      alert.textContent = p.ok === false && p.sure && !p.gaveUp ? 'You were sure. Read this one carefully: it’s the kind feedback fixes best.' : '';
-      alert.hidden = !alert.textContent;
+      verdict.textContent = p.ok === null ? 'How did you do?' : p.ok ? (p.sure ? 'Correct' : 'Correct (guessed)') : p.gaveUp ? 'Answer' : 'Not quite';
+      alert.hidden = true;
     }
     if (selfGrade) p.ok = null;
     paintVerdict();
     fb.append(verdict, alert);
 
     // Your answer, then the right one (the input is gone once feedback shows).
-    const numbered = list => list.map((t, i) => `${i + 1}. ${t}`).join('\n');
-    const mono = card.verify || card.type === 'order' ? ' mono' : '';
+    const numbered = list => math(list.map((t, i) => `${i + 1}. ${t}`).join('\n'));
+    const hasMath = [].concat(card.answer).some(t => /\$/.test(String(t)));
+    const mono = card.verify || (card.type === 'order' && !hasMath) ? ' mono' : '';
     if (p.given && p.given.length) {
       const yours = card.type === 'order' ? 'Your order' : card.type === 'mc' ? 'You chose' : 'You wrote';
       fb.append(h('div', { class: 'fb-block' }, h('div', { class: 'label' }, yours),
-        h('div', { class: 'val' + mono, 'data-fit': 'pre' }, Array.isArray(p.given) ? numbered(p.given) : p.given)));
+        h('div', { class: 'val' + mono, 'data-fit': 'pre' }, Array.isArray(p.given) ? numbered(p.given) : card.type === 'mc' ? math(p.given) : p.given)));
     }
-    if (!(card.type === 'mc' && p.ok)) {
-      fb.append(h('div', { class: 'fb-block' }, h('div', { class: 'label' }, card.blank ? 'Answer' : card.type === 'recall' ? 'Model answer' : 'Answer'),
-        h('div', { class: 'val' + mono, 'data-fit': 'pre' }, card.type === 'order' ? numbered(card.answer) : card.answer)));
+    // A recall answer that is just its checklist (e.g. a memory diagram) is shown once, as the checklist.
+    const answerIsChecklist = selfGrade && card.points && card.points.join('\n') === String(card.answer);
+    if (!(card.type === 'mc' && p.ok) && !answerIsChecklist) {
+      fb.append(h('div', { class: 'fb-block' }, p.gaveUp ? null : h('div', { class: 'label' }, card.type === 'recall' && !card.blank ? 'Model answer' : 'Answer'),
+        h('div', { class: 'val' + mono, 'data-fit': 'pre' }, card.type === 'order' ? numbered(card.answer) : mono ? card.answer : math(Array.isArray(card.answer) ? card.answer.join(', ') : card.answer))));
     }
     if (card.blank && card.basis === 'inferred') {
-      fb.append(h('div', { class: 'alert', 'data-fit': '' }, 'This blank’s answer is a best guess. Check it against your class notes.'));
+      fb.append(h('div', { class: 'alert', 'data-fit': '' }, 'Best guess. Check your notes.'));
     }
-    if (card.type === 'recall' && !card.blank) {
-      fb.append(h('div', { class: 'fb-block' }, h('div', { class: 'label' }, 'Count it if you had'), h('ul', { class: 'points' }, card.points.map(pt => h('li', { 'data-fit': '' }, pt)))));
+    // Self-grading: tick each point your answer actually contained; the app decides.
+    // Students credit themselves for wrong answers far less when judging idea by idea
+    // (Lipko 2009; Dunlosky 2011; Grimaldi & Karpicke 2014; research/04 rule 15).
+    const checks = [];
+    if (selfGrade) {
+      const pts = card.points && card.points.length ? card.points : [String(card.answer)];
+      fb.append(h('div', { class: 'fb-block' }, h('div', { class: 'label' }, 'Tick what your answer said'),
+        h('div', { class: 'checklist' }, pts.map((pt, i) => {
+          const box = h('input', { type: 'checkbox', id: 'pt' + i });
+          checks.push({ box, pt });
+          return h('label', { class: 'check', for: 'pt' + i }, box, h('span', { 'data-fit': '' }, math(pt)));
+        }))));
     }
-    if (card.why) fb.append(h('p', { class: 'why', 'data-fit': '' }, card.why));
-    fb.append(h('p', { class: 'source', 'data-fit': '' }, card.source));
+    if (card.why) fb.append(h('p', { class: 'why', 'data-fit': '' }, math(card.why)));
 
     const row = h('div', { class: 'btn-row' });
     const cont = () => commit();
     if (selfGrade) {
-      // Self-grade against the key points (L14). Nothing is recorded until one is chosen.
-      row.append(
-        h('button', { class: 'btn', onclick: () => { p.ok = false; cont(); } }, 'Missed it', h('span', { class: 'kbd' }, '1')),
-        h('button', { class: 'btn primary', onclick: () => { p.ok = true; cont(); } }, 'Got it', h('span', { class: 'kbd' }, '2')));
+      // Got it only if every point is ticked.
+      const done = h('button', { class: 'btn primary', id: 'contBtn', onclick: () => {
+        p.ok = checks.every(c => c.box.checked);
+        cont();
+      } }, 'Done', h('span', { class: 'kbd' }, '⏎'));
+      row.append(h('button', { class: 'btn', onclick: () => { p.ok = false; cont(); } }, 'I missed it'), done);
     } else {
       if ((card.type === 'typed' || card.type === 'cloze') && p.ok === false && !p.gaveUp) {
         // Exact matching can reject a right answer worded differently; allow an honest override.
@@ -612,6 +749,7 @@
     const given = Array.isArray(p.given) ? p.given.join(' | ') : p.given;
     if (given) fields.g = String(given).slice(0, 200);
     if (p.override) fields.o = 1;
+    if (card.generated) fields.sd = card.seed; // which generated problem was shown
     log.append(events, fields);
     if (!session.firstTry.has(card.id)) session.firstTry.set(card.id, !!(p.ok && p.sure));
     const st = sched.states(events, [card], { examDay: examDay(card.deck) })[card.id];
@@ -621,6 +759,7 @@
     });
     current.pending = null;
     if (session.remaining === 0) { endSession(true); return; }
+    if (Date.now() - session.started >= session.limitMs) { session.timeUp = true; endSession(true); return; }
     showCard(session.next(), false);
   }
 
@@ -630,8 +769,7 @@
     const typing = /^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName) && !document.activeElement.disabled;
     if (current.pending) {
       if (current.card.type === 'recall' && current.pending.ok === null && !current.pending.gaveUp) {
-        if (e.key === '1') { current.pending.ok = false; commit(); }
-        if (e.key === '2') { current.pending.ok = true; commit(); }
+        if (e.key === 'Enter' && !e.repeat && document.activeElement?.tagName !== 'INPUT') { e.preventDefault(); $('contBtn')?.click(); }
         return;
       }
       if (e.key === 'Enter' && !e.repeat) { e.preventDefault(); commit(); }
@@ -647,6 +785,9 @@
   function renderSettings() {
     $('token').value = store.getItem(TOKEN_KEY) || '';
     $('logSize').textContent = `${events.length} events stored on this device.`;
+    const reports = events.filter(e => e.k === 'f');
+    $('reportList').replaceChildren(...(reports.length ? reports.slice(-50).reverse().map(r =>
+      h('li', null, h('b', null, r.c), ': ', r.v || '(no note)', h('div', { class: 'muted' }, r.q || ''))) : [h('li', { class: 'muted' }, 'None yet.')]));
   }
   $('saveToken').addEventListener('click', async () => {
     const tok = $('token').value.trim();

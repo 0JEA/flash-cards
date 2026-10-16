@@ -52,3 +52,14 @@ test('typed: verified program output is case-sensitive; other answers (even besi
   assert.equal(G.typed('Identifier', { answer: 'identifier', code: 'for (int i = 0; …' }), true);
   assert.equal(G.typed('turing completeness', { answer: 'Turing completeness' }), true);
 });
+
+test('set: any order, comma or newline separated, brackets/spaces ignored, duplicates matter', () => {
+  const card = { answer: ['17', '18', '19', '64', '65', '66'] };
+  assert.equal(G.set('66, 65, 64, 19, 18, 17', card), true);
+  assert.equal(G.set('17\n18\n19\n64\n65\n66', card), true);
+  assert.equal(G.set('17, 18, 19, 64, 65', card), false);          // missing one
+  assert.equal(G.set('17, 18, 19, 64, 65, 66, 67', card), false);  // extra one
+  const paths = { answer: ['N0,N1,N2', 'N1,N2,N1'] };
+  assert.equal(G.set('[N1, N2, N1]; [N0, N1, N2]', paths), true);  // ; also separates, brackets/spaces ignored
+  assert.equal(G.set('', card), false);
+});

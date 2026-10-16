@@ -251,9 +251,9 @@
   "basis": "sebesta"
  },
  "b2-13-184z91j": {
-  "answer": "lowercase letters (or: strings / block IF)",
+  "answer": "UNKNOWN (not in her PDFs)",
   "basis": "inferred",
-  "note": "Not in Sebesta; his 3 F77 items take up the other bullets. Unverified guess; ask the prof or check the lecture."
+  "note": "The old guess 'lowercase letters' is probably wrong: lowercase only became standard in Fortran 90 (in Fortran 77 it was a common compiler extension). Ask the prof or check your notes."
  },
  "b2-14-1q9irl6": {
   "answer": "Dynamic",
@@ -373,17 +373,18 @@
  },
  "b2-24-1ed7fqu": {
   "answer": "AI (artificial intelligence)",
-  "basis": "sebesta"
+  "basis": "sebesta",
+  "note": "This is the slide's claim, and it is dated: in 2026 the leader in AI is Python."
  },
  "b2-24-1jb3gcb": {
-  "answer": "Python (historically Prolog)",
+  "answer": "UNKNOWN (best guess: Python)",
   "basis": "inferred",
-  "note": "Guess. Python today and Prolog historically are both plausible."
+  "note": "Not in her PDFs. Python today and Prolog historically are both plausible."
  },
  "b2-25-g4eews": {
-  "answer": "Best Programming Language You've Never Heard Of",
+  "answer": "UNKNOWN (the badge text is not in her PDFs)",
   "basis": "inferred",
-  "note": "Box: 1 short line, 'Programming Language', then 2 lines, which fits your recollection. Alternative: 'Most Influential ... You've Never Heard Of'."
+  "note": "The earlier answer ('Best Programming Language You've Never Heard Of') was invented, not read off the slide. Check your notes."
  },
  "b2-25-1i08umn": {
   "answer": "Universal, machine-independent language for expressing algorithms",
@@ -505,9 +506,9 @@
   "basis": "sebesta"
  },
  "b2-34-1rw1fxo": {
-  "answer": "Hardly (barely)",
+  "answer": "Hardly (very little), except its records (hierarchical data), which prompted structs in C",
   "basis": "sebesta",
-  "note": "Sebesta: little effect on later languages, only PL/I."
+  "note": "Sebesta: little effect on later languages except PL/I. The 'except records' part is from her own slide 36 (records prompted structs in C, eventually OOP); without it this card contradicted that slide."
  },
  "b2-35-1brpsfm": {
   "answer": "simple English",
@@ -623,9 +624,9 @@
   "note": "Sebesta: derivation = repeated application of rules, start symbol to a sentence."
  },
  "b4-14-1mg5y26": {
-  "answer": "A grammar that can generate a sentence in more than one way (more than one meaning)",
+  "answer": "A grammar that generates a sentence (program) with two or more distinct parse trees",
   "basis": "inferred",
-  "note": "Next line on the slide is 'two or more distinct parse trees'."
+  "note": "Exact slide wording unknown; the next line on the slide is 'two or more distinct parse trees'. CORRECTED 2026-10-16: the old answer ('can generate a sentence in more than one way') was wrong, since every sentence has both a leftmost and a rightmost derivation."
  },
  "b4-18-1rtsj9w": {
   "answer": "recursion (only left recursion, so left-associative)",
@@ -723,7 +724,8 @@
  },
  "b5.2-5-o2oefn": {
   "answer": "recursion",
-  "basis": "sebesta"
+  "basis": "sebesta",
+  "note": "The reason is not 'the memory is always in use': each static variable has exactly one cell for the whole run, so a second active call of the same function would overwrite the first call's locals."
  },
  "b5.2-5-qzsegc": {
   "answer": "the size (amount of memory needed) is not known",
@@ -854,9 +856,9 @@
   "note": "Slide has three e.g. lines; any reasonable use works, such as a debug flag or counters."
  },
  "b5.2-22-oyg3tt": {
-  "answer": "permission first (justify it)",
+  "answer": "UNKNOWN (the slide word is not in her PDFs)",
   "basis": "inferred",
-  "note": "Guess at the prof's warning. Unverifiable."
+  "note": "The earlier answer ('permission') was a guess. Check your notes."
  },
  "b5.2-25-1tsvhoc": {
   "answer": "Most languages",
@@ -912,39 +914,50 @@
 // Cards must make sense without the slide in front of you. Blanks that were defined by
 // their position ("third point", "the box on slide 25") are either merged into one
 // question about the whole list (blankGroups) or reworded around their content (blankAsk).
+// A group's `points` are its atomic grading points (one checkbox each, all required).
 (function (FC) {
   FC.blankGroups = [
     { ids: ['b1-5-1s832o7', 'b1-5-fngtn3', 'b1-5-10haett', 'b1-5-7m32oy', 'b1-5-s7pz3a', 'b1-5-182gwm3', 'b1-5-4eparh'],
       ask: 'What does a language need to be Turing complete?',
       answer: 'Ordered (sequential) instructions that read from and write to memory; a conditional jump (goto with a compare) so instructions can repeat conditionally; and memory, so information is stored and can be changed later.',
+      points: ['ordered (sequential) instructions', 'instructions that read from and write to memory', 'a conditional jump (goto with a compare): conditional repetition', 'memory: information is stored and can be changed later'],
       basis: 'inferred', note: 'Her slide 5 lists these as blanks; her Control Structures slides confirm “ordered statements plus a conditional kind of repetition (goto with compare) is sufficient”.' },
     { ids: ['b2-13-rcmyge', 'b2-13-1lkuwux', 'b2-13-184z91j'],
-      ask: 'What did Fortran 77 add? (It was also an ANSI standard, 1978, with logical loop control.)',
-      answer: 'Character string handling and the IF-THEN-ELSE statement (also: lowercase letters could be used for the first time, a best guess).',
-      basis: 'sebesta', note: 'The lowercase-letters item is a guess at one blank; the rest is Sebesta.' },
+      ask: 'What did Fortran 77 add?',
+      answer: 'Character string handling, logical loop control statements, and an IF-THEN-ELSE statement.',
+      points: ['character string handling', 'logical loop control statements', 'IF-THEN-ELSE'],
+      basis: 'sebesta', note: 'From Sebesta. One more blank on her slide (“first time ____ could be used”) is unknown; the old guess “lowercase letters” is probably wrong (lowercase became standard only in Fortran 90).' },
+    // Fortran 90's five-item list: retired (low-yield list; see FC.blankRetired). Kept so its
+    // positional blanks still have a readable question on the fill-in screen.
     { ids: ['b2-14-1q9irl6', 'b2-14-1ki8wyr', 'b2-14-1dhnq6a', 'b2-14-m9s88n', 'b2-14-fu1s9p'],
       ask: 'What did Fortran 90 add (besides modules)?',
       answer: 'Dynamic arrays, pointers, recursion, a CASE statement, and parameter type checking.',
+      points: ['dynamic arrays', 'pointers', 'recursion', 'CASE statement', 'parameter type checking'],
       basis: 'sebesta' },
     { ids: ['b2-15-ksgz9q', 'b2-15-5d957n'],
-      ask: 'Fortran today: what is it still used for, and what are its main competitors?',
-      answer: 'Still widely used, mainly for scientific / numerical (high-performance) computing; its main competitors are C and C++.',
-      basis: 'inferred' },
+      ask: 'Fortran today: what is it still mainly used for?',
+      answer: 'Scientific and numerical (high-performance) computing.',
+      points: ['scientific / numerical (high-performance) computing'],
+      basis: 'inferred', note: 'Sebesta calls Fortran the lingua franca of scientific computing. The slide also names its “main competitors”; those are not in her PDFs (C and C++ is a guess), so they are not asked here.' },
     { ids: ['b2-17-1upkq0w', 'b2-17-4xn65v'],
       ask: 'LISP came from AI research. What two kinds of processing did that need?',
       answer: 'Processing data in lists (rather than arrays) and symbolic computation (rather than numeric).',
+      points: ['processing data in lists (not arrays)', 'symbolic (not numeric) computation'],
       basis: 'sebesta' },
     { ids: ['b2-19-sv918w', 'b2-19-1wor3hx'],
       ask: 'Pure Lisp has exactly two kinds of data. What are they? (e.g. grizzly vs (lynx (grizzly black) moose))',
       answer: 'Atoms (like grizzly) and lists (like (lynx (grizzly black) moose)).',
+      points: ['atoms (like grizzly)', 'lists (like (lynx (grizzly black) moose))'],
       basis: 'sebesta' },
     { ids: ['b2-20-1ugwahe', 'b2-20-4euqdy', 'b2-20-k9tt2n'],
       ask: 'Pure Lisp has no loops. Why is it still Turing complete?',
       answer: 'Repetition comes from recursion; selection comes from conditional expressions (cond); data/memory is held in lists and function parameters.',
+      points: ['repetition comes from recursion', 'selection comes from conditional expressions (cond)', 'data is held in lists and function parameters'],
       basis: 'inferred', note: 'Recursion as the source of repetition is from her History post-test; the other two points are best guesses.' },
     { ids: ['b5.2-8-1ru0447', 'b5.2-8-7nh2ae', 'b5.2-8-1r4q93h'],
       ask: 'What are the advantages of stack-dynamic variables?',
       answer: 'They allow recursion; they conserve storage (memory is reused across calls); and they are freed automatically when the function returns.',
+      points: ['allow recursion', 'conserve storage (memory reused across calls)', 'freed automatically when the function returns'],
       basis: 'sebesta', note: 'The third point is a best guess at her wording.' },
   ];
   FC.blankAsk = {
@@ -956,4 +969,68 @@
     'b2-8-1e39jm4': 'What was the 1954 “Fortran on paper”, and was it implemented?',
     'b4-14-1mg5y26': 'Define an ambiguous grammar.',
   };
+
+  // Blanks NOT studied as cards (2026-10-16, owner-approved plan). Each was merged into a
+  // definition card in decks/csc370.js (named after the arrow), or dropped as a duplicate,
+  // number/name/year trivia, or an invented answer. The blank and its answer stay for the
+  // fill-in screen. The app skips a single blank whose id is here, and a blankGroups entry
+  // whose ids are ALL here.
+  FC.blankRetired = [
+    // Lecture 1
+    'b1-13-1lo5k3f', 'b1-13-1vptfan', 'b1-13-yaafuc',            // → l1-simplicity
+    'b1-13-1uiwubu', 'b1-13-1bb3vzn', 'b1-13-jzmera',            // → l1-orthogonality
+    'b1-14-1frds5a', 'b1-14-1fj8yuf', 'b1-14-14iqt74',           // → l1-syntax-design
+    'b1-16-5s267y', 'b1-16-1o087oo',                             // → l1-type-checking
+    'b1-16-100awig', 'b1-16-1f265qw',                            // → l1-exception-handling
+    // Lecture 2 (history: keep each story's lesson, drop the numbers, names and years)
+    'b2-4-1nt5uym', 'b2-4-wb62jk', 'b2-4-53ku95',                // duplicate of l2-eniac-how
+    'b2-5-1hu26ma',                                              // duplicate of l2-vonneumann
+    'b2-8-1e39jm4', 'b2-8-1tt0c81', 'b2-8-19fizvh',              // → l2-fortran-1954
+    'b2-8-1amnoyj', 'b2-9-7u0gva',                               // trivia: name lengths
+    'b2-9-6xyr4a', 'b2-22-1sar9py', 'b2-34-d154lm',              // → l2-wsut-order, l2-wsut-oldest
+    'b2-9-1pr3e15', 'b2-9-1hsycm8',                              // → l2-fortran-typing
+    'b2-9-95yyrz', 'b2-9-1s6lhvx', 'b2-10-19c3tbf',              // trivia: 400 lines, punched cards
+    'b2-12-tihx5q', 'b2-12-1n6i5jy',                             // trivia: ANSI 1966 / Fortran 66
+    'b2-14-1q9irl6', 'b2-14-1ki8wyr', 'b2-14-1dhnq6a', 'b2-14-m9s88n', 'b2-14-fu1s9p', // Fortran 90 list (low yield)
+    'b2-18-1k9huce',                                             // duplicate of the LISP-motivation card
+    'b2-18-1uzj7j',                                              // minor detail (differentiation)
+    'b2-22-1nrcgpx', 'b2-22-1cnplg7', 'b2-22-5qngrm',            // trivia: names and years
+    'b2-24-13lgn3q', 'b2-24-1ed7fqu', 'b2-24-1jb3gcb',           // → l2-lisp-status
+    'b2-25-g4eews',                                              // invented answer (badge text unknown)
+    'b2-25-1i08umn',                                             // duplicate of l2-algol-origin
+    'b2-25-4ez7f5',                                              // duplicate of l2-algol-committee
+    'b2-27-1trn0u6', 'b2-27-in6ge7', 'b2-27-1gxvaog',            // → l2-algol-subgoals
+    'b2-28-f7vsxu', 'b2-28-16o8t44',                             // inferred anecdotes
+    'b2-29-1u3hy07', 'b2-29-soyamr', 'b2-29-17ert3j', 'b2-30-wcesra', 'b2-30-11brhvz', // minor Algol syntax firsts
+    'b2-32-1v33sp', 'b2-32-1u3vlgo', 'b2-32-ks9qku',             // → l2-algol-death
+    'b2-34-1wt15e2',                                             // → l2-cobol-hopper
+    'b2-35-1brpsfm', 'b2-35-1r93pxg', 'b2-35-hq9j73',            // → l2-cobol-goals
+    'b2-36-1ilwd9j',                                             // → l2-cobol-records
+    'b2-36-19g160h', 'b2-36-2lbnmi',                             // trivia: macro facility, 30 characters
+    'b2-36-1amaebz',                                             // duplicate of l2-cobol-sections
+    'b2-40-i3wca9', 'b2-40-16sajux',                             // → l2-prolog-how
+    'b2-41-1tsfogg',                                             // trivia: FGCS
+    // Lecture 4
+    'b4-6-1pvaezd', 'b4-6-25409l',                               // duplicate of l4-lexeme-token
+    'b4-10-gksina', 'b4-10-188phra', 'b4-10-zrpxqy',             // → l4-production
+    'b4-14-1mg5y26',                                             // duplicate of l4-ambiguous (its old answer was wrong)
+    'b4-18-1rtsj9w',                                             // → l4-left-assoc
+    // Lecture 5.1
+    'b5.1-2-xih8qp', 'b5.1-2-1bzqiww', 'b5.1-2-15dbo29',         // → l51-entities
+    'b5.1-11-1alzemu',                                           // vague restatement of l51-attrs
+    'b5.1-12-d0rlwo', 'b5.1-12-1vp401l',                         // → l51-binding-def
+    'b5.1-23-512qco',                                            // → l52-lifetime-def
+    // Lecture 5.2
+    'b5.2-3-1fpops0', 'b5.2-3-13hvl1o',                          // → l52-lifetime-def
+    'b5.2-4-k5eo6i', 'b5.2-4-6sb5rq',                            // → l52-static-lifetime
+    'b5.2-5-1cn54g5', 'b5.2-5-185j6u1',                          // → l52-static-adv
+    'b5.2-5-1apq569', 'b5.2-5-o2oefn', 'b5.2-5-qzsegc', 'b5.2-5-vfx0v2', // → l52-static-disadv, l52-static-recursion
+    'b5.2-9-1wwejxc',                                            // → l3-malloc-free (her exam asks for both calls)
+    'b5.2-17-1z0hmfk', 'b5.2-17-1nmgw0y', 'b5.2-17-1nupb69', 'b5.2-17-xlqxev', // → l52-decl-rules
+    'b5.2-22-oyg3tt',                                            // invented answer (slide word unknown)
+    'b5.2-25-1tsvhoc', 'b5.2-25-cfdb6p',                         // → l52-static-scope-adv
+    'b5.2-26-sjqamj', 'b5.2-26-j5g3ig',                          // → l52-dynamic-disadv
+    'b5.2-29-1ern6en', 'b5.2-29-1f7ujm2',                        // → l52-named-const
+    'b5.2-30-9s5mne', 'b5.2-30-17h7wbd',                         // → l52-manifest
+  ];
 })(globalThis.FC = globalThis.FC || {});

@@ -1,17 +1,21 @@
 // AUCSC 325 Software Testing and Quality Assurance (Thibaud "Tibo" Lutellier).
 // Cards are written per slide deck into decks/softtest-{a,b,c}.js (FC.softtestCards);
 // this file assembles them into the class. Each card carries its own topic (cat / sub).
+// Repeated slides (lectures 4/5, 3/7) were de-duplicated in the part files themselves
+// on 2026-10-16, so there is no filter here: a card id appears exactly once.
 (function (FC) {
   'use strict';
-  // Lectures 4 and 5 (and 3 and 7) repeat the same slides, so the per-deck card writers made
-  // the same cards twice. Keep the first lecture's card; drop the repeat (2026-10-16 audit).
-  const DUPLICATES = new Set([
-    'st5-dependability-def', 'st5-four-methods', 'st5-measures-list', 'st5-other-features', 'st5-avail-vs-rel',
-    'st5-measure-integrity', 'st5-measure-safety', 'st5-measure-maint', 'st5-mtbf-mttr', 'st5-avail-formula',
-    'st5-avail-calc-99', 'st5-planning-failure', 'st5-failure-tests', 'st5-chaos-monkey', 'st5-chaos-mc',
-    'st5-do178-order', 'st5-do178-defs', 'st5-do178-major', 'st5-do178-minor',
-    'st7-leftpad-story', 'st7-leftpad-framework', 'st1-first-bug-date',
-  ]);
+  // Topics in teaching order (the `sub` of every card is one of these).
+  const SUB_ORDER = [
+    'Why test, V&V & limits', 'Fault, error, failure & RIPR', 'Test anatomy, JUnit & TDD',
+    'Dependability', 'Where bugs hide & flaky tests', 'Bug reports',
+    'Partitions, boundaries & combinations',
+    'Adequacy criteria', 'Graph coverage', 'Mutation testing',
+    'Test doubles & Mockito', 'AI agent harness',
+    'Bug of the Day lessons', 'Origin of “bug”',
+  ];
+  // js/app.js reads sub order from FC.topics[<deck id> + 'SubOrder'].
+  (FC.topics = FC.topics || {}).softtestSubOrder = SUB_ORDER;
   (FC.decks = FC.decks || {}).softtest = {
     id: 'softtest', title: 'CSC 325 · Software Testing', short: 'CSC 325',
     lectures: [
@@ -22,8 +26,11 @@
       { n: '12', title: 'Black-box testing' }, { n: '13', title: 'Code coverage' }, { n: '14', title: 'AI agent harness' },
       { n: 'paper', title: 'Reading: Stalking the elusive computer bug' },
     ],
-    catOrder: ['Foundations', 'Test design', 'Dependability', 'Principles', 'Bugs & reports', 'Test doubles', 'Coverage', 'Tools & automation', 'History & stories'],
-    cards: (FC.softtestCards || []).filter(c => !DUPLICATES.has(c.id)),
+    // 12 study topics in 5 categories, plus History as its own optional category
+    // (regrouped 2026-10-16 per research/audit-softtest-cards.md, "Proposed regrouping").
+    catOrder: ['Foundations', 'Quality & process', 'Test design', 'Test adequacy', 'Doubles & tools', 'History & stories'],
+    subOrder: SUB_ORDER,
+    cards: FC.softtestCards || [],
     blanks: [],
   };
 })(globalThis.FC = globalThis.FC || {});

@@ -112,17 +112,15 @@ test('delayed recall counts only first attempts on cards last seen on an earlier
   assert.deepEqual(r, { right: 1, total: 2 });
 });
 
-test('session: a miss or guess comes back 3-5 cards later; a learning success short of 3 comes back 6-10 later', () => {
-  const sess = new S.Session(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l'], () => 0);
-  assert.equal(sess.next(), 'a');
+test('session: a miss, a guess, or a learning card short of 3 goes to the END of the queue', () => {
+  const sess = new S.Session(['a', 'b', 'c', 'd', 'e']);
   sess.record('a', { ok: 0, sure: 1, learningShort: false });
-  assert.equal(sess.queue.indexOf('a'), 3); // rng 0 -> minimum gap
-  assert.equal(sess.next(), 'b');
+  assert.deepEqual(sess.queue, ['b', 'c', 'd', 'e', 'a']);
   sess.record('b', { ok: 1, sure: 1, learningShort: true });
-  assert.equal(sess.queue.indexOf('b'), 6);
-  assert.equal(sess.next(), 'c');
+  assert.deepEqual(sess.queue, ['c', 'd', 'e', 'a', 'b']);
   sess.record('c', { ok: 1, sure: 1, learningShort: false });
-  assert.equal(sess.queue.includes('c'), false);
+  assert.deepEqual(sess.queue, ['d', 'e', 'a', 'b']);
+  assert.equal(sess.done, 1);
 });
 
 test('review: a miss from a high step resets all the way to step 0, not one step back', () => {
@@ -138,10 +136,22 @@ test('mastered needs 3 successful relearning days: 2 is not enough', () => {
   assert.equal(S.states(ev, cards)['a'].mastered, false);
 });
 
-test('session: a correct Guess is re-asked like a miss (3-5 cards later)', () => {
-  const sess = new S.Session(['a', 'b', 'c', 'd', 'e', 'f', 'g'], () => 0);
+test('session: a correct Guess comes back too (at the end)', () => {
+  const sess = new S.Session(['a', 'b', 'c']);
   sess.record('a', { ok: 1, sure: 0, learningShort: false });
-  assert.equal(sess.queue.indexOf('a'), 3);
+  assert.deepEqual(sess.queue, ['b', 'c', 'a']);
+});
+
+test('session: no card repeats until every other card has been shown once', () => {
+  const ids = Array.from({ length: 10 }, (_, i) => 'c' + i);
+  const sess = new S.Session(ids);
+  const seen = [];
+  for (let k = 0; k < 30; k++) { const id = sess.next(); seen.push(id); sess.record(id, { ok: 1, sure: 1, learningShort: seen.filter(x => x === id).length < 3 }); }
+  for (let i = 0; i < seen.length; i++) {
+    const prev = seen.slice(0, i).lastIndexOf(seen[i]);
+    if (prev >= 0) assert.ok(i - prev >= 10, `${seen[i]} repeated after only ${i - prev} cards`);
+  }
+  assert.equal(sess.remaining, 0);
 });
 
 test('a review answered before its due day (a stale device) does not move the schedule', () => {

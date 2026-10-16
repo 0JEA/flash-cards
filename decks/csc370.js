@@ -1,15 +1,28 @@
 // AUCSC 370 Programming Languages (Rosanna Heise), lectures 1-5 and 10.
 //
-// Sources: the 8 pre/post-test answer keys and the non-blank text of the 6 "Student"
-// slide decks (PDFs in ~/Downloads, 2026-10-15). Every `source` names where a card came
-// from. Cards whose answer is NOT in those PDFs say so in `source`.
+// Sources: the 8 pre/post-test answer keys, the C Language Exam 1 (2026) key, and the
+// non-blank text of the 6 "Student" slide decks (PDFs in ~/Downloads). Every `source` names
+// where a card came from. Cards whose answer is NOT in those PDFs say so in `source`
+// (Sebesta, standard knowledge, or "practice item").
 //
-// `blanks` are the empty fill-ins on the student slides. Their answers come from the
-// owner's lecture notes (entered in the app), never from this file.
+// Recall `points` are graded one checkbox each and ALL are required, so every point is one
+// checkable idea, never "any two of …".
 //
-// Every `verify.src` is run by tests/verify-traces.js; its output must equal `answer`.
+// `blanks` are the empty fill-ins on the student slides. Their supplied answers live in
+// decks/csc370-blank-answers.js. Blanks merged into a card here (or dropped as duplicates or
+// trivia) are listed in FC.blankRetired there and are not studied on their own.
+//
+// Every `verify.src` is run by tests/verify-traces.test.js; its output must equal `answer`.
 (function (FC) {
   'use strict';
+
+  // One rubric for every “argue a design choice” card (research/04 rule 15: grade point by point).
+  const ARGUE = [
+    'takes a side',
+    'names the criterion it rests on (readability, writeability, reliability or cost)',
+    'gives a concrete code example',
+    'admits the trade-off: what the other side gains',
+  ];
 
   const cards = [
     // ───────────── Lecture 1: intro, what makes a language good ─────────────
@@ -36,14 +49,56 @@
       points: ['reliability', 'cost', 'readability', 'writeability'],
       why: 'Every sub-criterion (simplicity, orthogonality, type checking, …) feeds one of these four.',
       source: 'Slides 1, slide 11' },
-    { id: 'l1-subcriteria', lecture: '1', type: 'recall',
-      prompt: 'Name at least four of the twelve sub-criteria for judging a language.',
-      answer: 'Simplicity, orthogonality, data types, syntax design, support for abstraction, expressivity, type checking, exception handling, restricted aliasing, run-time speed, portability, security.',
-      points: ['any four of the twelve listed'],
-      why: 'Slide 12 lists them in two columns; slides 13-17 explain each.',
-      source: 'Slides 1, slide 12' },
+    { id: 'l1-subcriteria-all', lecture: '1', type: 'recall',
+      prompt: 'Name all twelve sub-criteria used to judge a language.',
+      answer: 'Simplicity, orthogonality, data types, syntax design, support for abstraction, expressivity; type checking, exception handling, restricted aliasing, run-time speed, portability, security.',
+      points: ['simplicity', 'orthogonality', 'data types', 'syntax design', 'support for abstraction', 'expressivity', 'type checking', 'exception handling', 'restricted aliasing', 'run-time speed', 'portability', 'security'],
+      why: 'The list is fixed, so the answer is the same every time. The first six mostly shape readability and writeability; the last six mostly reliability and cost. Each one also has its own definition card.',
+      source: 'Slides 1, slide 12 (replaces the old “name any four” card)' },
+    { id: 'l1-simplicity', lecture: '1', type: 'recall',
+      prompt: 'What three properties make a language simple?',
+      answer: 'A manageable (small) set of features and constructs; minimal feature multiplicity (few ways to do the same thing, e.g. count++ vs count = count + 1); minimal operator overloading.',
+      points: ['a manageable (small) set of features and constructs', 'minimal feature multiplicity: few ways to do one thing', 'minimal operator overloading'],
+      why: 'Each extra way of saying the same thing is one more thing a reader must know.',
+      source: 'Slides 1, slide 13 (blank wording from Sebesta ch. 1; merges three slide blanks)' },
+    { id: 'l1-orthogonality', lecture: '1', type: 'recall',
+      prompt: 'Define orthogonality as a language criterion (three parts).',
+      answer: 'A small set of primitive constructs can be combined in a relatively small number of ways to build the control and data structures; every possible combination is legal; there are few or no exceptions to the rules.',
+      points: ['a small set of primitive constructs, combined in a small number of ways', 'every possible combination is legal', 'few or no exceptions to the rules'],
+      why: 'Orthogonal = the features are independent, so knowing the parts tells you every combination.',
+      source: 'Slides 1, slide 13 (blank wording from Sebesta ch. 1; merges three slide blanks)' },
+    { id: 'l1-orthog-example', lecture: '1', type: 'recall',
+      prompt: 'In C, a function may return a struct but not an array. Which sub-criterion does this rule break, and how?',
+      answer: 'Orthogonality: “return type” and “array” are both legal constructs, but this one combination of them is not, so it is an exception the programmer has to remember.',
+      points: ['orthogonality', 'one combination of two legal constructs is illegal (an exception to the rules)'],
+      why: 'Classifying an example is how definitions transfer to new questions.',
+      source: 'Sebesta ch. 1 example (not in her slides)' },
+    { id: 'l1-syntax-design', lecture: '1', type: 'recall',
+      prompt: 'Name three aspects of syntax design that affect readability.',
+      answer: 'Special (reserved) words such as while, class and for; the way compound statements are formed (end if / end loop vs braces); meaningful keywords, so that a construct’s form shows what it does.',
+      points: ['special words (e.g. while, class, for)', 'how compound statements are formed (e.g. end if vs { })', 'meaningful keywords: form shows meaning'],
+      why: 'A closing brace says “something ended”; end loop says what ended.',
+      source: 'Slides 1, slide 14 (blank wording from Sebesta ch. 1; merges three slide blanks)' },
+    { id: 'l1-type-checking', lecture: '1', type: 'recall',
+      prompt: 'Define type checking as a language criterion.',
+      answer: 'The compiler (or the run-time system) checks that each variable is used in a way that is correct for its type.',
+      points: ['done by the compiler or the run-time system', 'checks each variable is used correctly for its type'],
+      why: 'It feeds reliability: type errors are caught instead of silently producing garbage.',
+      source: 'Slides 1, slide 16 (blank wording from Sebesta ch. 1; merges two slide blanks)' },
+    { id: 'l1-exception-handling', lecture: '1', type: 'recall',
+      prompt: 'Define exception handling as a language criterion.',
+      answer: 'The program intercepts run-time errors (unusual conditions) and takes corrective measures, so it can continue.',
+      points: ['intercepts run-time errors / unusual conditions', 'takes corrective measures'],
+      why: 'It feeds reliability.',
+      source: 'Slides 1, slide 16 (blank wording from Sebesta ch. 1; merges two slide blanks)' },
+    { id: 'l1-why-study', lecture: '1', type: 'recall',
+      prompt: 'Give the six reasons the course gives for studying programming languages.',
+      answer: 'Better ability to express ideas; choosing the appropriate language(s); learning new languages; seeing how the way a language is implemented has consequences for the programmer; better use of the languages you already know; advancing computational thinking.',
+      points: ['better ability to express ideas', 'choose appropriate language(s)', 'learn new languages', 'how a language is implemented has consequences for the programmer', 'better use of languages you already know', 'advancement of computational thinking'],
+      why: 'The list is fixed, in the order the slides give it.',
+      source: 'Slides 1, slides 8-10' },
     { id: 'l1-readwrite', lecture: '1', type: 'recall',
-      prompt: 'Compare the readability and the writeability of these two equivalent conditionals.',
+      prompt: 'Considering only how the condition is written, discuss the readability of these two equivalent conditionals.',
       code: `In Pascal                      In Java
 if kiwi > orange then          if (kiwi > orange)
    WriteLn('CLOUDS')              System.out.println("CLOUDS");
@@ -51,10 +106,36 @@ else if kiwi = orange then     else if (kiwi == orange)
    WriteLn('WINDY')               System.out.println("WINDY");
 else                           else
    WriteLn('SUNNY')               System.out.println("SUNNY");`,
-      answer: 'Readability: Pascal reads more like English (the word “then”, no brackets around the condition), which helps beginners; experienced programmers find them about equal. Writeability: Java needs two fewer characters per condition, which adds up because we write a lot of conditionals (though forgetting a bracket costs edits). Either version can be called better if the argument is justified.',
-      points: ['readability: Pascal is more English-like, no brackets', 'writeability: Java types fewer characters per condition', 'either side is acceptable if justified'],
-      why: 'The professor’s key picks Pascal for beginners, but grades the justification, not the choice.',
-      source: 'Intro to PL answer key, Q1' },
+      answer: 'Pascal reads more like English (the word “then”, no brackets around the condition), which helps beginners. Experienced programmers find the two about equally readable.',
+      points: ['Pascal is more English-like (then, no brackets)', 'this helps beginners most', 'experienced programmers find them about equal'],
+      why: 'Her key separates readability, writeability and the verdict into three parts; so do these cards.',
+      source: 'Intro to PL answer key, Q1a' },
+    { id: 'l1-readwrite-w', lecture: '1', type: 'recall',
+      prompt: 'Considering only how the condition is written, discuss the writeability of these two equivalent conditionals.',
+      code: `In Pascal                      In Java
+if kiwi > orange then          if (kiwi > orange)
+   WriteLn('CLOUDS')              System.out.println("CLOUDS");
+else if kiwi = orange then     else if (kiwi == orange)
+   WriteLn('WINDY')               System.out.println("WINDY");
+else                           else
+   WriteLn('SUNNY')               System.out.println("SUNNY");`,
+      answer: 'Java needs two fewer characters per condition, and we write a great many conditionals, so it may be more writeable. Against that: forgetting a bracket means going back to insert it, while in Pascal you just type “then” at the end.',
+      points: ['Java: two fewer characters per condition', 'conditionals are frequent, so the saving adds up', 'counterpoint: a forgotten bracket costs a fix; “then” is typed at the end'],
+      why: 'A writeability argument is about the effort of producing the code, not reading it.',
+      source: 'Intro to PL answer key, Q1b' },
+    { id: 'l1-readwrite-which', lecture: '1', type: 'recall',
+      prompt: 'Which syntax is better, the Java version or the Pascal version? Argue it.',
+      code: `In Pascal                      In Java
+if kiwi > orange then          if (kiwi > orange)
+   WriteLn('CLOUDS')              System.out.println("CLOUDS");
+else if kiwi = orange then     else if (kiwi == orange)
+   WriteLn('WINDY')               System.out.println("WINDY");
+else                           else
+   WriteLn('SUNNY')               System.out.println("SUNNY");`,
+      answer: 'Either can be chosen if justified. Her answer: Pascal, because it is closer to English (“then”, no brackets). Working with beginners, forcing “then” into their thinking helps them see that something is about to happen, and beginners find brackets around a condition abnormal and “too mathy”. The cost: more typing on every conditional.',
+      points: ['takes a side', 'names the criterion it rests on (readability or writeability)', 'points at the concrete difference (then / brackets / characters typed)', 'admits what the other version gains'],
+      why: 'Her key: “Either could be chosen if properly justified.” The marks are for the justification.',
+      source: 'Intro to PL answer key, Q1c' },
     { id: 'l1-expressivity', lecture: '1', type: 'typed',
       prompt: 'The slides use this Lisp line as an example of expressivity. What does it evaluate to?',
       code: `(mapcar '+ '(1 3 4 7) '(2 4 6 8))`,
@@ -68,20 +149,16 @@ else                           else
       points: ['procedural = imperative', 'functional', 'logic', 'object-oriented'],
       why: 'The course languages cover them: C (procedural), Scheme (functional), Prolog (logic), Java (OO).',
       source: 'Slides 1, slide 19' },
-    { id: 'l1-cat-prolog', lecture: '1', type: 'mc',
-      prompt: 'Prolog belongs to which language category?',
-      answer: 'Logic', options: ['Functional', 'Procedural', 'Object-oriented'],
-      why: 'A Prolog program is a set of statements of what is true (facts and rules) that you query.',
-      source: 'Slides 1, slide 19; History post-test Q3' },
-    { id: 'l1-cat-scheme', lecture: '1', type: 'mc',
-      prompt: 'Scheme belongs to which language category?',
-      answer: 'Functional', options: ['Logic', 'Procedural', 'Object-oriented'],
-      why: 'Scheme is a Lisp dialect: computation happens by applying functions.',
-      source: 'Slides 1, slide 19; Pre Test #1 key (C, Scheme, Prolog)' },
+    { id: 'l1-classify', lecture: '1', type: 'recall',
+      prompt: 'Classify each course language by category: C, Scheme, Prolog, Java.',
+      answer: 'C: procedural (imperative). Scheme: functional. Prolog: logic. Java: object-oriented.',
+      points: ['C: procedural (imperative)', 'Scheme: functional', 'Prolog: logic', 'Java: object-oriented'],
+      why: 'Prolog states what is true (facts and rules) and you query it; Scheme computes by applying functions.',
+      source: 'Slides 1, slide 19; Pre Test #1 key (replaces the two one-language MC cards)' },
     { id: 'l1-tradeoff', lecture: '1', type: 'recall',
       prompt: 'Java refuses array indices that go out of bounds; C allows them. Which criteria trade off against each other here?',
       answer: 'Reliability (and security) against run-time speed: Java checks every index at run time, which costs time; C skips the check, which is faster but lets bugs and attacks through.',
-      points: ['Java: more reliable / secure', 'C: faster, no run-time index check', 'the two criteria pull against each other'],
+      points: ['Java’s check buys reliability (and security)', 'C’s missing check buys run-time speed'],
       why: 'Almost every language feature buys one criterion by spending another.',
       source: 'Slides 1, slide 18 (the slide gives the example; the explanation follows Sebesta ch. 1, not the handout)' },
 
@@ -141,12 +218,27 @@ else                           else
       points: ['LISP', 'Prolog'],
       why: 'Neither had loops originally; a function (or rule) calling itself was the only way to repeat.',
       source: 'History post-test, Q3 (key: A/D)' },
+    { id: 'l2-wsut-oldest', lecture: '2', type: 'mc',
+      prompt: 'Which is the oldest language that is still widely used today (her “WSUT” label)?',
+      answer: 'FORTRAN', options: ['LISP', 'COBOL', 'Plankalkül'],
+      why: 'Her slides badge FORTRAN, LISP and COBOL as the oldest, 2nd-oldest and 3rd-oldest WSUT languages. Plankalkül is older but was never in wide use. (The expansion of WSUT is not written out in her PDFs.)',
+      source: 'History post-test, Q3' },
+    { id: 'l2-wsut-order', lecture: '2', type: 'order',
+      prompt: 'Order these still-widely-used (WSUT) languages from oldest to newest.',
+      answer: ['FORTRAN', 'LISP', 'COBOL'],
+      why: 'Fortran I compiler 1957; LISP designed 1958; COBOL 1959.',
+      source: 'Slides 2, slides 9, 22, 34 (replaces the three “how is X labelled” blank cards)' },
+    { id: 'l2-newest', lecture: '2', type: 'mc',
+      prompt: 'Which of these languages is the newest?',
+      answer: 'Python', options: ['Prolog', 'COBOL', 'LISP'],
+      why: 'Python 1991; Prolog 1972; COBOL 1959; LISP 1958. Her key marks Python “newest” from a list that also had C and Java. Strictly, Java (1995) is newer than Python (1991), so this card leaves Java out; if her test lists both, her key says Python.',
+      source: 'History post-test, Q3 (dates: standard history, not her slides)' },
     { id: 'l2-plankalkul', lecture: '2', type: 'recall',
-      prompt: 'Plankalkül: what does the name mean, who designed it, and when?',
-      answer: 'Program Calculus; Konrad Zuse; written in 1945, published in 1972.',
-      points: ['Program Calculus', 'Zuse', '1945 (published 1972)'],
-      why: 'It already had floating point, arrays and records.',
-      source: 'Slides 2, slide 3' },
+      prompt: 'What was Plankalkül, and who designed it?',
+      answer: 'Konrad Zuse’s “Program Calculus” (1945, published 1972): an early high-level language design that already had floating point, arrays and records.',
+      points: ['Konrad Zuse', 'an early high-level language design (never implemented at the time)'],
+      why: 'It shows the ideas were there long before the big four; it simply was not published or built.',
+      source: 'Slides 2, slide 3 (“never implemented at the time” follows Sebesta)' },
     { id: 'l2-fortran-acronym', lecture: '2', type: 'typed',
       prompt: 'What does FORTRAN stand for?',
       answer: 'FORmula TRANslation', accept: ['formula translator'],
@@ -164,6 +256,18 @@ else                           else
       points: ['compiled code as good as hand-written machine code'],
       why: 'Programmers would only abandon hand coding if the compiler’s output was as fast.',
       source: 'Slides 2, slide 9' },
+    { id: 'l2-fortran-1954', lecture: '2', type: 'recall',
+      prompt: 'The first Fortran (1954, sometimes called Fortran 0) existed only on paper. What did that report claim?',
+      answer: 'That compiled Fortran would be as efficient as hand-coded machine code, and that it would eliminate coding errors and debugging.',
+      points: ['as efficient as hand-written machine code', 'would eliminate coding errors / debugging'],
+      why: 'The first claim was the real design goal (and Fortran I nearly met it); the second was wildly over-optimistic.',
+      source: 'Slides 2, slide 8 (blank wording from Sebesta ch. 2; merges three slide blanks)' },
+    { id: 'l2-fortran-typing', lecture: '2', type: 'recall',
+      prompt: 'In Fortran I, how did a variable get its type?',
+      answer: 'From its name: there were no type declarations. Names starting with I, J, K, L, M or N were integers; all others were reals.',
+      points: ['no type declarations', 'names starting with I to N were integers', 'all other names were reals'],
+      why: 'Fortran IV later added explicit type declarations.',
+      source: 'Slides 2, slide 9 (merges two slide blanks)' },
     { id: 'l2-fortran-if', lecture: '2', type: 'recall',
       prompt: 'Fortran I’s IF statement was 3-way. What were the three branches?',
       answer: 'Negative, zero and positive (the sign of the tested expression).',
@@ -177,47 +281,71 @@ else                           else
       why: 'Fortran II (1958) added independent compilation.',
       source: 'Slides 2, slides 9 and 11' },
     { id: 'l2-lisp-origin', lecture: '2', type: 'recall',
-      prompt: 'LISP: what does the name stand for, who designed it, and where and when?',
-      answer: 'LISt Processing; John McCarthy, at MIT, on paper in 1958.',
-      points: ['LISt Processing', 'John McCarthy', 'MIT, 1958'],
+      prompt: 'What does LISP stand for, and who designed it?',
+      answer: 'LISt Processing; John McCarthy (at MIT, 1958).',
+      points: ['LISt Processing', 'John McCarthy'],
       why: 'It came out of artificial-intelligence research, which needed lists and recursion.',
       source: 'Slides 2, slides 17-18 and 22' },
     { id: 'l2-lisp-dialects', lecture: '2', type: 'recall',
-      prompt: 'Name Lisp’s two main dialects and how each was standardised.',
-      answer: 'Common Lisp (ANSI standard, 1994) and Scheme (IEEE standard, 1995).',
-      points: ['Common Lisp, ANSI 1994', 'Scheme, IEEE 1995'],
-      why: 'More than 20 kinds exist (Clojure, Racket, Emacs Lisp …), but these two are the main dialects.',
+      prompt: 'What are Lisp’s two main dialects today?',
+      answer: 'Common Lisp and Scheme.',
+      points: ['Common Lisp', 'Scheme'],
+      why: 'More than 20 kinds exist (Clojure, Racket, Emacs Lisp …); Scheme is the one this course uses.',
       source: 'Slides 2, slide 23' },
+    { id: 'l2-lisp-status', lecture: '2', type: 'recall',
+      prompt: 'What do the slides say about Lisp’s status today?',
+      answer: 'It dominated AI for about 25 years; Lisp machines have died out; it lives on inside Emacs (Editor MACroS).',
+      points: ['dominated AI for about 25 years', 'Lisp machines died out', 'lives on in Emacs'],
+      why: 'The slide says Lisp is “still leader for” AI. That is the slide’s (dated) claim: in 2026 the AI leader is Python.',
+      source: 'Slides 2, slide 24 (the blank wording follows Sebesta; merges three slide blanks)' },
     { id: 'l2-algol-origin', lecture: '2', type: 'recall',
       prompt: 'What does Algol stand for, and what was it trying to be?',
-      answer: 'ALGOrithmic Language: an attempt at a universal programming language that would work on more than one architecture, by the U.S. and Germany.',
-      points: ['ALGOrithmic Language', 'universal language', 'more than one architecture', 'U.S. + Germany'],
-      why: 'Same era as Lisp and Fortran (late 1950s).',
+      answer: 'ALGOrithmic Language: a universal, machine-independent language for expressing algorithms (one that would work on more than one architecture).',
+      points: ['ALGOrithmic Language', 'a universal language that works on more than one architecture'],
+      why: 'Same era as Lisp and Fortran (late 1950s). Who made it is on the “international committee” card.',
       source: 'Slides 2, slides 25 and 27' },
+    { id: 'l2-algol-subgoals', lecture: '2', type: 'recall',
+      prompt: 'What were Algol’s three subgoals?',
+      answer: 'Syntax close to mathematical notation; good for describing algorithms in publications; mechanically translatable into machine code.',
+      points: ['syntax close to mathematical notation', 'good for describing algorithms in publications', 'mechanically translatable into machine code'],
+      why: 'The second subgoal is why Algol-style pseudocode is still how algorithms are written down.',
+      source: 'Slides 2, slide 27 (blank wording from Sebesta ch. 2; merges three slide blanks)' },
     { id: 'l2-algol-death', lecture: '2', type: 'recall',
-      prompt: 'Give three reasons Algol died quickly in the U.S.',
-      answer: 'Its BNF description was hard to understand; IBM owned Fortran, so IBM would not support Algol; the U.S. wanted its own language. (Also: no I/O, left out because of machine dependence, and Algol 68 changed too much.)',
-      points: ['BNF was hard to understand', 'IBM owned Fortran: no support', 'the U.S. wanted its own language'],
+      prompt: 'Give four reasons Algol died quickly in the U.S.',
+      answer: 'It had no I/O (left out because I/O is machine dependent); its BNF description was hard to understand; IBM owned Fortran, so IBM would not support Algol; the U.S. wanted its own language. (Algol 68 then made a complete redesign.)',
+      points: ['no I/O statements (machine dependent)', 'BNF was hard to understand', 'IBM owned Fortran: no support', 'the U.S. wanted its own language'],
       why: 'It died commercially but lived on: most languages today descend from it.',
-      source: 'Slides 2, slide 32 (the parenthetical items fill slide blanks; check them against your notes)' },
-    { id: 'l2-cobol-goals', lecture: '2', type: 'recall',
-      prompt: 'COBOL: who is it associated with, and name two of its design goals from the slides.',
-      answer: 'Grace Hopper. Goals: look like simple English so managers could read it; broaden the base of computer programmers; have no preconceptions about what would be hard to implement in the compiler (English over math).',
-      points: ['Grace Hopper', 'any two goals: English-like, broaden the programmer base, ignore compiler difficulty'],
+      source: 'Slides 2, slide 32 (the I/O and BNF items fill slide blanks, wording from Sebesta)' },
+    { id: 'l2-cobol-hopper', lecture: '2', type: 'recall',
+      prompt: 'Who is COBOL most associated with, and which way did she push programming notation?',
+      answer: 'Grace Hopper: towards English, away from mathematical notation.',
+      points: ['Grace Hopper', 'towards English', 'away from mathematical notation'],
       why: 'COBOL chose English over mathematical notation on purpose.',
-      source: 'Slides 2, slides 34-35' },
+      source: 'Slides 2, slide 34 (split from the old COBOL card)' },
+    { id: 'l2-cobol-goals', lecture: '2', type: 'recall',
+      prompt: 'What were COBOL’s five design goals?',
+      answer: 'Look like simple English; managers should be able to read it; be easy to use, even if that means less powerful; broaden the base of computer programmers; have no preconceptions about what would be hard to implement in the compiler (English over math).',
+      points: ['look like simple English', 'managers can read it', 'easy to use, even if less powerful', 'broaden the base of programmers', 'ignore what is hard for the compiler'],
+      why: 'Every goal puts the human reader ahead of the compiler writer.',
+      source: 'Slides 2, slide 35 (three blanks filled from Sebesta; merges four slide blanks)' },
     { id: 'l2-cobol-records', lecture: '2', type: 'recall',
-      prompt: 'COBOL pioneered a way of grouping data. What later features did that idea prompt?',
-      answer: 'Structs in C, and eventually object-oriented programming.',
-      points: ['structs in C', 'eventually OOP'],
-      why: 'COBOL records (hierarchical data) were the first of their kind in a high-level language.',
-      source: 'Slides 2, slide 36' },
+      prompt: 'What data-structure idea did COBOL pioneer, and what did it lead to?',
+      answer: 'Hierarchical data structures (records), the first in a high-level language. They prompted structs in C, and eventually object-oriented programming.',
+      points: ['hierarchical data structures (records)', 'prompted structs in C', 'eventually OOP'],
+      why: 'This is COBOL’s one big influence on later languages.',
+      source: 'Slides 2, slide 36 (merges a slide blank)' },
     { id: 'l2-prolog-origin', lecture: '2', type: 'recall',
-      prompt: 'Prolog: what does the name stand for, when was it created, and by whom?',
-      answer: 'PROgramming LOGic; 1972; Alain Colmerauer, Philippe Roussel and Robert Kowalski.',
-      points: ['PROgramming LOGic', '1972', 'Colmerauer, Roussel, Kowalski'],
+      prompt: 'What does Prolog stand for, and roughly when was it created?',
+      answer: 'PROgramming LOGic; 1972.',
+      points: ['PROgramming LOGic', '1972 (early 1970s)'],
       why: 'It is non-procedural: you state facts and rules instead of steps.',
       source: 'Slides 2, slide 40' },
+    { id: 'l2-prolog-how', lecture: '2', type: 'recall',
+      prompt: 'How do you write a Prolog program, and how do you get answers out of it?',
+      answer: 'State facts and rules (what is true); then pose queries (goals), which the system tries to prove.',
+      points: ['state facts and rules', 'pose queries (goals) that the system tries to prove'],
+      why: 'Compare the palindrome rule: palindrome(Word) :- … then ?- palindrome(abba).',
+      source: 'Slides 2, slide 40 (merges two slide blanks; the “queries” wording is a best guess at her blank)' },
     { id: 'l2-code-fortran', lecture: '2', type: 'mc',
       prompt: 'Which language is this palindrome function written in?',
       code: `function is_palindro(t)
@@ -326,24 +454,350 @@ else{
       verify: { lang: 'c', src: `#include <stdio.h>
 int main(void){ int banana = 13; if (++banana - 7){ } else{ } printf("%d", banana); return 0; }` } },
     { id: 'l3-banana-java', lecture: '3', type: 'recall',
-      prompt: 'Even with printf changed to System.out.println, that code would not run in Java. Why?',
+      prompt: 'Even with printf changed to System.out.println, this code would not run in Java. Why?',
+      code: `int banana = 13;
+if (++banana - 7){
+   printf("Boogy Boogy");
+}
+else{
+   printf("Have a nice day");
+}`,
       answer: 'Java checks types more strongly than C. The if condition is an int expression, not a boolean, and is not cast to one, so it is a static type error.',
       points: ['Java checks types more strongly', 'the condition is an int, not a boolean', 'static (compile-time) type error'],
       why: 'C treats any nonzero number as true; Java requires a boolean.',
       source: 'Pre Test on C, Q1d' },
+    { id: 'l3-banana-diagram', lecture: '3', type: 'recall',
+      prompt: 'Draw a memory diagram (variables with their values in RAM) of this code running. Type it as rows of  name | value,  crossing out old values with →.',
+      code: `int banana = 13;
+if (++banana - 7){
+   printf("Boogy Boogy");
+}
+else{
+   printf("Have a nice day");
+}`,
+      answer: 'banana | 13 → 14\n(no box for 7: the subtraction’s result is never stored)',
+      points: ['one box, named banana', 'value 13, crossed out, then 14', 'no box for 7: the subtraction is not stored'],
+      why: '++banana stores 14 back into banana before the subtraction; 14 - 7 = 7 is only a temporary value used by the if.',
+      source: 'Pre Test on C, Q1a (4 marks; the key leaves the diagram blank, so this follows her C exam’s diagram style)' },
+
+    // ── C & memory: her C exam (32 marks) is memory diagrams, a pointer function, malloc/free ──
+    // Diagram cards use her exam's conventions: the stack is drawn newest on top, an
+    // unknown address is ?, a pointer's value is an arrow, and old values are crossed out.
+    { id: 'l3-exam-q1-diagram', lecture: '3', type: 'recall',
+      prompt: 'Draw a memory (stack) diagram of this C program and give the output. Type rows of  name | value,  newest on top; cross out old values with →.',
+      code: `#include <stdio.h>
+
+int main() {
+    int a = 0;
+    int b = 0;
+
+    if (--b) {
+        b += 10;
+    }
+
+    printf("%d %d", a, b);
+    return 0;
+}`,
+      answer: 'b | 0 → -1 → 9\na | 0\nOutput: 0 9',
+      points: ['a below b (a declared first)', 'a: 0', 'b: 0, then -1, then 9 (old values crossed out)', 'output 0 9'],
+      why: '--b stores -1 before the test. -1 is nonzero, so it counts as true in C, and b += 10 gives 9. Output gcc-verified.',
+      source: 'C Language Exam 1 (2026), Q1 (6 marks: 1 per name, 1 per value, 2 for the output)' },
+    { id: 'l3-exam-q2-diagram', lecture: '3', type: 'recall',
+      prompt: 'Draw a memory diagram of this C program and give the output. Type rows of  name | value;  write ? for an unknown address and → for an arrow.',
+      code: `#include <stdio.h>
+
+int main() {
+    int arr[] = {10, 20, 30, 40};
+    int *p;
+
+    p = arr + 1;
+    printf("%d", *p + 2);
+    return 0;
+}`,
+      answer: 'p   | ??  → (arrow to the 20)\narr | ?   → [ 10 | 20 | 30 | 40 ]\nOutput: 22',
+      points: ['arr: an address (?) with an arrow to the four cells', 'the cells hold 10, 20, 30, 40 in order', 'p: an address (??) with an arrow to the 20 (arr + 1 is one int along)', 'output 22'],
+      why: 'arr + 1 moves one int, not one byte, so p points at 20; *p + 2 = 22. Her diagram draws arr as a box pointing at the cells (strictly, the array is the cells and arr names the first one’s address). Output gcc-verified.',
+      source: 'C Language Exam 1 (2026), Q2 (6 marks)' },
+    { id: 'l3-exam-q3-diagram', lecture: '3', type: 'recall',
+      prompt: 'Draw a memory diagram of this C program and give the output. Type rows of  name | value,  newest on top; write ? for an unknown address and → for an arrow.',
+      code: `#include <stdio.h>
+
+void money(int *p) {
+    int q = 100;
+    p = &q;
+}
+
+int main() {
+    int x = 10;
+    money(&x);
+    printf("%d", x);
+    return 0;
+}`,
+      answer: 'q | 100\np | ?  → x   (crossed out, then → q)\nx | 10\nOutput: 10',
+      points: ['x: 10, and it never changes', 'p: an address with an arrow to x', 'p’s arrow is then redrawn to q (the old arrow crossed out)', 'q: 100', 'output 10'],
+      why: 'p is a copy of x’s address. p = &q changes where the copy points, not x. Only *p = … would change x. Output gcc-verified.',
+      source: 'C Language Exam 1 (2026), Q3 (6 marks)' },
+    { id: 'l3-why-money', lecture: '3', type: 'recall',
+      prompt: 'money() sets p = &q, yet x is still 10 afterwards. Why? What would money() have to do to change x?',
+      code: `void money(int *p) {
+    int q = 100;
+    p = &q;
+}
+/* in main: */  int x = 10;  money(&x);  printf("%d", x);`,
+      answer: 'C passes arguments by value: p is a local copy of x’s address. p = &q only changes where that copy points. To change x, money must assign through the pointer: *p = 100;',
+      points: ['p is a local copy of x’s address (pass by value)', 'p = &q changes only the copy, not x', 'changing x needs an assignment through the pointer: *p = …'],
+      why: 'Same trap in every “reassign the pointer inside the function” question.',
+      source: 'C Language Exam 1 (2026), Q3 (the explanation is standard C, not in her key)' },
+    { id: 'l3-malloc-free', lecture: '3', type: 'recall',
+      prompt: 'If you need to grab and release memory dynamically in C, what two commands would you most likely use?',
+      answer: 'malloc and free.',
+      points: ['malloc (grabs heap memory)', 'free (releases it)'],
+      why: 'Memory from malloc lives on the explicit heap until free is called. In Java, new creates heap objects and the garbage collector releases them.',
+      source: 'C Language Exam 1 (2026), Q4 (3 marks)' },
+    { id: 'l3-reverse-string', lecture: '3', type: 'recall',
+      prompt: 'Write void reverseString(char *theString), which reverses a null-terminated string in place. Use pointers only: no array indexing and no imports.',
+      answer: `void reverseString(char *theString){
+    char temp;
+    char *endString;
+    endString = theString;
+    while (*endString){        // find the null
+        endString++;
+    }
+    endString--;               // back up to the last real character
+    while (theString < endString){
+        temp = *theString;     // exchange front and back
+        *theString = *endString;
+        *endString = temp;
+        endString--;
+        theString++;
+    }
+}`,
+      points: ['handshake line: void reverseString(char *theString)', 'char temp, for the exchange', 'char *endString, initialised to theString', 'loop until *endString is the null, moving endString forward', 'step endString back one so it is on the last character, not the null', 'while theString < endString, exchange the two characters through temp', 'move both pointers: theString++ and endString--'],
+      why: 'Her marks: 1 handshake, 3 variables + init, 3 find end, 1 the null, 2 exchange, 1 increment/decrement. This code was tested with gcc on "stressed", "" and "x".',
+      source: 'C Language Exam 1 (2026), Q5 (11 marks)' },
+    { id: 'l3-length', lecture: '3', type: 'recall',
+      prompt: 'Using pointers only (no indexing, no <string.h>), write int length(char *s), which returns the number of characters before the null.',
+      answer: `int length(char *s){
+    char *end = s;
+    while (*end){
+        end++;
+    }
+    return end - s;
+}`,
+      points: ['signature: int length(char *s)', 'a second pointer that starts at s', 'loop while *end is not the null, moving end forward', 'return end - s (the pointer difference)'],
+      why: 'Same “find the end” loop as reverseString. Subtracting two pointers into one array gives the number of elements between them. Tested with gcc: "hello" 5, "" 0.',
+      source: 'Practice item in the style of C Exam 1, Q5 (not from her PDFs)' },
+    { id: 'l3-count-char', lecture: '3', type: 'recall',
+      prompt: 'Using pointers only (no indexing), write int countChar(char *s, char c), which returns how many times c appears in the string s.',
+      answer: `int countChar(char *s, char c){
+    int count = 0;
+    while (*s){
+        if (*s == c){
+            count++;
+        }
+        s++;
+    }
+    return count;
+}`,
+      points: ['a counter that starts at 0', 'loop while *s is not the null', 'compare *s with c and count a match', 'advance s every pass', 'return the count'],
+      why: 's is a copy of the caller’s pointer, so moving it does not move the caller’s. Tested with gcc: "banana" and a → 3.',
+      source: 'Practice item in the style of C Exam 1, Q5 (not from her PDFs)' },
+    { id: 'l3-ptr-inc', lecture: '3', type: 'typed',
+      prompt: 'What does this C code print?',
+      code: `int a = 5;
+int *p = &a;
+*p += 3;
+int b = *p * 2;
+printf("%d %d", a, b);`,
+      answer: '8 16',
+      why: 'p points at a, so *p += 3 changes a itself to 8. Then b = 8 * 2 = 16.',
+      source: 'Practice item in the style of C Exam 1 (verified with gcc)',
+      verify: { lang: 'c', src: `#include <stdio.h>
+int main(void) { int a = 5; int *p = &a; *p += 3; int b = *p * 2; printf("%d %d", a, b); return 0; }` } },
+    { id: 'l3-diagram-ptrinc', lecture: '3', type: 'recall',
+      prompt: 'Draw the memory diagram for this code after the last line. Rows of  name | value,  newest on top; ? for an unknown address, → for an arrow.',
+      code: `int a = 5;
+int *p = &a;
+*p += 3;
+int b = *p * 2;`,
+      answer: 'b | 16\np | ?  → a\na | 5 → 8',
+      points: ['a: 5, crossed out, then 8', 'p: an address with an arrow to a', 'b: 16', 'order bottom to top: a, p, b'],
+      why: 'Changing *p changes the box p’s arrow points at (a); p itself never changes.',
+      source: 'Practice item in the style of C Exam 1, Q1-3 (values verified with gcc)' },
+    { id: 'l3-swap-out', lecture: '3', type: 'typed',
+      prompt: 'What does this C program print?',
+      code: `void swap(int *x, int *y) {
+    int t = *x;
+    *x = *y;
+    *y = t;
+}
+/* in main: */
+int c = 1;
+int d = 2;
+swap(&c, &d);
+printf("%d %d", c, d);`,
+      answer: '2 1',
+      why: 'x and y hold the addresses of c and d, so assigning to *x and *y changes c and d themselves.',
+      source: 'Practice item in the style of C Exam 1 (verified with gcc)',
+      verify: { lang: 'c', src: `#include <stdio.h>
+void swap(int *x, int *y) { int t = *x; *x = *y; *y = t; }
+int main(void) { int c = 1; int d = 2; swap(&c, &d); printf("%d %d", c, d); return 0; }` } },
+    { id: 'l3-diagram-swap', lecture: '3', type: 'recall',
+      prompt: 'Draw the stack just before swap returns. Rows of  name | value,  newest on top; ? for an unknown address, → for an arrow.',
+      code: `void swap(int *x, int *y) {
+    int t = *x;
+    *x = *y;
+    *y = t;
+}
+int main() {
+    int c = 1;
+    int d = 2;
+    swap(&c, &d);
+    printf("%d %d", c, d);
+}`,
+      answer: 't | 1\ny | ?  → d\nx | ?  → c\nd | 2 → 1\nc | 1 → 2',
+      points: ['c: 1, crossed out, then 2', 'd: 2, crossed out, then 1', 'x: an arrow to c', 'y: an arrow to d', 't: 1', 'swap’s boxes (x, y, t) sit above main’s (c, d)'],
+      why: 'Compare money(): here the function assigns through the pointers, so main’s variables change.',
+      source: 'Practice item in the style of C Exam 1, Q1-3 (output 2 1 verified with gcc)' },
+    { id: 'l3-setto', lecture: '3', type: 'typed',
+      prompt: 'What does this C program print?',
+      code: `void setTo(int *p) {
+    int q = 7;
+    p = &q;
+}
+/* in main: */
+int x = 3;
+setTo(&x);
+printf("%d", x);`,
+      answer: '3',
+      why: 'p = &q only re-points setTo’s own copy of the address. Nothing is assigned through *p, so x stays 3. Same trap as money() on her exam.',
+      source: 'Practice item in the style of C Exam 1, Q3 (verified with gcc)',
+      verify: { lang: 'c', src: `#include <stdio.h>
+void setTo(int *p) { int q = 7; p = &q; }
+int main(void) { int x = 3; setTo(&x); printf("%d", x); return 0; }` } },
+    { id: 'l3-addten', lecture: '3', type: 'typed',
+      prompt: 'What does this C program print?',
+      code: `void addTen(int *p) {
+    *p += 10;
+}
+/* in main: */
+int x = 5;
+addTen(&x);
+printf("%d", x);`,
+      answer: '15',
+      why: 'This time the function assigns through the pointer (*p), so main’s x changes: 5 + 10 = 15. Contrast setTo / money, which only re-point p.',
+      source: 'Practice item in the style of C Exam 1 (verified with gcc)',
+      verify: { lang: 'c', src: `#include <stdio.h>
+void addTen(int *p) { *p += 10; }
+int main(void) { int x = 5; addTen(&x); printf("%d", x); return 0; }` } },
+    { id: 'l3-arr-ptr', lecture: '3', type: 'typed',
+      prompt: 'What does this C code print?',
+      code: `int arr[] = {4, 8, 15, 16};
+int *q = arr + 2;
+printf("%d %d", *q, *(q - 1) + 1);`,
+      answer: '15 9',
+      why: 'arr + 2 points two ints along, at 15. q - 1 points at 8, and 8 + 1 = 9.',
+      source: 'Practice item in the style of C Exam 1, Q2 (verified with gcc)',
+      verify: { lang: 'c', src: `#include <stdio.h>
+int main(void) { int arr[] = {4, 8, 15, 16}; int *q = arr + 2; printf("%d %d", *q, *(q - 1) + 1); return 0; }` } },
+    { id: 'l3-arr-mod', lecture: '3', type: 'typed',
+      prompt: 'What does this C code print?',
+      code: `int arr[] = {1, 2, 3};
+int *p = arr;
+*(p + 1) = 9;
+p++;
+printf("%d %d %d", arr[1], *p, *(p + 1));`,
+      answer: '9 9 3',
+      why: '*(p + 1) = 9 writes into arr[1]. p++ then moves p to arr[1], so *p is 9 and *(p + 1) is arr[2], 3.',
+      source: 'Practice item in the style of C Exam 1, Q2 (verified with gcc)',
+      verify: { lang: 'c', src: `#include <stdio.h>
+int main(void) { int arr[] = {1, 2, 3}; int *p = arr; *(p + 1) = 9; p++; printf("%d %d %d", arr[1], *p, *(p + 1)); return 0; }` } },
+    { id: 'l3-alias', lecture: '3', type: 'typed',
+      prompt: 'What does this C code print?',
+      code: `int x = 1;
+int *p = &x;
+int *q = p;
+*q = 7;
+printf("%d %d", x, *p);`,
+      answer: '7 7',
+      why: 'q = p copies the address, so x, *p and *q are three names for one memory cell (aliasing). Writing through q changes what the other two see.',
+      source: 'Practice item in the style of C Exam 1 (verified with gcc)',
+      verify: { lang: 'c', src: `#include <stdio.h>
+int main(void) { int x = 1; int *p = &x; int *q = p; *q = 7; printf("%d %d", x, *p); return 0; }` } },
+    { id: 'l3-predec', lecture: '3', type: 'typed',
+      prompt: 'What does this C code print?',
+      code: `int n = 1;
+if (--n) {
+    n += 5;
+} else {
+    n -= 5;
+}
+printf("%d", n);`,
+      answer: '-5',
+      why: '--n stores 0 first. 0 is false in C, so the else runs: 0 - 5 = -5. (On her exam, --b gave -1, which is true.)',
+      source: 'Practice item in the style of C Exam 1, Q1 (verified with gcc)',
+      verify: { lang: 'c', src: `#include <stdio.h>
+int main(void) { int n = 1; if (--n) { n += 5; } else { n -= 5; } printf("%d", n); return 0; }` } },
+    { id: 'l3-walk', lecture: '3', type: 'typed',
+      prompt: 'What does this C code print?',
+      code: `char s[] = "cat";
+char *e = s;
+while (*e) {
+    e++;
+}
+printf("%d", (int)(e - s));`,
+      answer: '3',
+      why: 'e stops on the null after “t”, three chars along from s. The same loop finds the end in reverseString.',
+      source: 'Practice item in the style of C Exam 1, Q5 (verified with gcc)',
+      verify: { lang: 'c', src: `#include <stdio.h>
+int main(void) { char s[] = "cat"; char *e = s; while (*e) { e++; } printf("%d", (int)(e - s)); return 0; }` } },
+    { id: 'l3-malloc-trace', lecture: '3', type: 'typed',
+      prompt: 'What does this C code print?',
+      code: `int *p = malloc(sizeof(int));
+*p = 4;
+int *q = p;
+*q += 1;
+printf("%d", *p);
+free(p);`,
+      answer: '5',
+      why: 'p and q both point at the one int on the heap, so q’s change is seen through p. free(p) releases it once; after that neither pointer may be used.',
+      source: 'Practice item in the style of C Exam 1, Q4 (verified with gcc)',
+      verify: { lang: 'c', src: `#include <stdio.h>
+#include <stdlib.h>
+int main(void) { int *p = malloc(sizeof(int)); *p = 4; int *q = p; *q += 1; printf("%d", *p); free(p); return 0; }` } },
 
     // ───────────── Lecture 4: translation ─────────────
-    { id: 'l4-compiler-steps', lecture: '4', type: 'order',
-      prompt: 'Put the three main steps of a compiler in order.',
-      answer: ['Lexical analysis', 'Syntax analysis', 'Low-level (machine) code generation'],
+    { id: 'l4-compiler-steps-list', lecture: '4', type: 'recall',
+      prompt: 'List the three main steps of a compiler, in order.',
+      answer: 'Lexical analysis; syntax analysis; low-level (machine) code generation.',
+      points: ['lexical analysis', 'syntax analysis', 'low-level (machine) code generation', 'in that order'],
       why: 'Characters become tokens (lexical), tokens become a parse tree (syntax), the tree becomes machine code.',
-      source: 'Post Test Translation, Q1' },
+      source: 'Post Test Translation, Q1 (replaces an order card that handed over the three steps)' },
+    { id: 'l4-hybrid', lecture: '4', type: 'recall',
+      prompt: 'Besides compiling and interpreting, what is a hybrid implementation system? Give an example.',
+      answer: 'The source is compiled to an intermediate language (such as bytecode), which is then interpreted (or JIT-compiled) on each machine. Example: Java (source → bytecode → JVM).',
+      points: ['compile to an intermediate language (e.g. bytecode)', 'then interpret that intermediate code', 'example: Java and its JVM'],
+      why: 'It trades some speed for portability: the bytecode runs anywhere a JVM exists.',
+      source: 'Slides 4, slide 2 names “Hybrid”; the definition is Sebesta ch. 1 (her diagram slides have no text)' },
     { id: 'l4-lexeme-token', lecture: '4', type: 'recall',
       prompt: 'What is the difference between a lexeme and a token?',
       answer: 'A lexeme is a lowest-level syntactic unit of a language (e.g. “if”). A token is a category of lexemes (e.g. “if” belongs to the token for the reserved word that starts a conditional).',
-      points: ['lexeme: lowest-level syntactic unit', 'token: a category of lexemes', 'an example of each'],
+      points: ['lexeme: lowest-level syntactic unit', 'token: a category of lexemes', 'an example lexeme with its token (e.g. count → identifier)'],
       why: 'Many lexemes (count, i, total) share one token (identifier).',
       source: 'Post Test Translation, Q2' },
+    { id: 'l4-tokenize-while', lecture: '4', type: 'recall',
+      prompt: 'Split this Java statement into lexemes and give the token of each.',
+      code: `while (count >= 10) sum = sum + count;`,
+      answer: 'while: reserved word · ( : open paren · count: identifier · >= : relational operator · 10: integer literal · ) : close paren · sum: identifier · = : assignment operator · sum: identifier · + : plus (arithmetic) operator · count: identifier · ; : semicolon',
+      points: ['while → reserved word', '( and ) → open / close paren', 'count and sum → identifier, every time', '>= → relational operator (one lexeme, not two)', '10 → integer literal', '= → assignment operator', '+ → plus (arithmetic) operator', '; → semicolon'],
+      why: 'Token names vary between compilers (her slide writes for_resWord, int_literal …); what matters is the category.',
+      source: 'Slides 4, slides 7-8 method, applied to a new statement (Sebesta ch. 3 example)' },
+    { id: 'l4-how-know', lecture: '4', type: 'recall',
+      prompt: 'In  x = y + 2 * z;  how does the compiler know that = and + are operations, x and z are variables, and ; is just syntax?',
+      answer: 'The language has rules for what makes an operator, a variable and plain syntax. The lexical analyzer reads left to right, ignoring whitespace. On reading x it keeps adding characters to an identifier until it meets one that is not a letter, digit or underscore. Then it reads =, which the rules say is the assignment operator (with its own machine code), and so on.',
+      points: ['the language’s rules define operators, variables and syntax', 'it reads left to right', 'whitespace is ignored', 'an identifier continues until a character that is not a letter, digit or underscore', 'each lexeme is then classified (= is the assignment operator, …)'],
+      why: 'This is lexical analysis, the first compiler step.',
+      source: 'Pre Test Translation, Q2e' },
     { id: 'l4-symtab', lecture: '4', type: 'recall',
       prompt: 'What is a symbol table, and what is its role in a compiler?',
       answer: 'A list of all the identifiers in a program, along with their value or memory location (and other properties).',
@@ -358,13 +812,20 @@ int main(void){ int banana = 13; if (++banana - 7){ } else{ } printf("%d", banan
       points: ['4.0 handled as its own case', 'left digit limited to 0-3', 'right digit 0-9'],
       why: 'Limiting the left digit to 0-3 is what keeps 4.1 through 4.9 out.',
       source: 'Post Test Translation, Q4a' },
-    { id: 'l4-gpa-derive', lecture: '4', type: 'order',
-      prompt: 'Using that GPA grammar, put the leftmost derivation of 3.9 in order.',
-      answer: ['<GPA>', '<left digit> . <right digit>', '3 . <right digit>', '3.9'],
-      why: 'Leftmost: always replace the leftmost nonterminal first.',
-      source: 'Post Test Translation, Q4b (the key leaves the derivation blank)' },
+    { id: 'l4-gpa-derive-write', lecture: '4', type: 'recall',
+      prompt: 'Using this GPA grammar, write the leftmost derivation of 3.9.',
+      code: `<GPA> → 4.0 | <left digit> . <right digit>
+<left digit> → 0 | 1 | 2 | 3
+<right digit> → 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9`,
+      answer: '<GPA> ⇒ <left digit> . <right digit> ⇒ 3 . <right digit> ⇒ 3.9',
+      points: ['starts at the start symbol <GPA>', 'uses <GPA> → <left digit> . <right digit>', 'replaces <left digit> (the leftmost) with 3 first', 'then <right digit> with 9'],
+      why: 'Leftmost: always replace the leftmost nonterminal first. One rule per ⇒.',
+      source: 'Post Test Translation, Q4b (the key leaves the derivation blank; replaces an order card that could be sorted by length)' },
     { id: 'l4-gpa-41', lecture: '4', type: 'recall',
-      prompt: 'Using that GPA grammar, derive 4.1.',
+      prompt: 'Using this GPA grammar, derive 4.1.',
+      code: `<GPA> → 4.0 | <left digit> . <right digit>
+<left digit> → 0 | 1 | 2 | 3
+<right digit> → 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9`,
       answer: 'It cannot be derived. The only rule that produces a leading 4 is <GPA> → 4.0, and <left digit> only goes up to 3. So 4.1 is not a sentence of the language, which is correct because 4.1 is not a valid GPA.',
       points: ['cannot be derived', 'only 4.0 starts with 4', '<left digit> stops at 3'],
       why: 'A derivation question can have “impossible” as its answer; say why.',
@@ -393,11 +854,12 @@ int main(void){ int banana = 13; if (++banana - 7){ } else{ } printf("%d", banan
       points: ['starts running sooner', 'errors elsewhere in the code do not block the start'],
       why: '',
       source: 'Pre Test Translation, Q1d' },
-    { id: 'l4-xyz-order', lecture: '4', type: 'order',
-      prompt: 'All variables are integers. Put the machine instructions a compiler might generate for  x = y + 2 * z;  in order.',
-      answer: ['Load y into register A and z into register B (from memory)', 'Shift register B left by 1 bit', 'Add registers A and B, result into A', 'Store register A into memory at x'],
-      why: 'Multiplying by 2 is a 1-bit left shift, so no 2 is ever loaded. The exact instructions depend on the architecture.',
-      source: 'Pre Test Translation, Q2a' },
+    { id: 'l4-xyz-instr', lecture: '4', type: 'recall',
+      prompt: 'All variables are integers. What machine-language instructions must be generated for  x = y + 2 * z; ?',
+      answer: 'Depends on the architecture, but something like: load y into register A and z into register B (from memory); shift register B left by 1 bit; add A and B, result into A; store A into memory at x.',
+      points: ['load y and z from memory into registers', 'shift z’s register left 1 bit (× 2)', 'add the two registers', 'store the result into memory at x'],
+      why: 'Multiplying by 2 is a 1-bit left shift, so no 2 is ever loaded.',
+      source: 'Pre Test Translation, Q2a (replaces an order card)' },
     { id: 'l4-where-2', lecture: '4', type: 'recall',
       prompt: 'In  x = y + 2 * z;  where does the 2 come from during execution?',
       answer: 'Likely nowhere: the multiplication by 2 is replaced by a 1-bit left shift. Otherwise the compiler builds the 2 directly into the instruction.',
@@ -405,25 +867,31 @@ int main(void){ int banana = 13; if (++banana - 7){ } else{ } printf("%d", banan
       why: 'Constants usually live inside instructions, not in variables.',
       source: 'Pre Test Translation, Q2d' },
     { id: 'l4-where-x', lecture: '4', type: 'recall',
-      prompt: 'In  x = y + 2 * z;  where does the x come from during execution, and what decides which machine instructions are generated?',
-      answer: 'x comes from memory (RAM or cache). The instructions are decided by the compiler or interpreter: a program that translates high-level code into lower-level code.',
-      points: ['x: memory (RAM or cache)', 'chosen by the compiler / interpreter'],
-      why: '',
-      source: 'Pre Test Translation, Q2b-c' },
+      prompt: 'In  x = y + 2 * z;  where does the x come from during execution?',
+      answer: 'From memory (RAM or cache).',
+      points: ['memory (RAM or cache)'],
+      why: 'Variables live in memory; they are loaded into registers to be worked on, then stored back.',
+      source: 'Pre Test Translation, Q2c' },
+    { id: 'l4-how-instr', lecture: '4', type: 'recall',
+      prompt: 'How are the machine-language instructions for a statement like  x = y + 2 * z;  determined?',
+      answer: 'By the compiler or the interpreter: a program that runs to translate high-level code into lower-level code.',
+      points: ['by the compiler or interpreter', 'a program that translates high-level code into lower-level code'],
+      why: 'The same statement can become different instructions on different architectures.',
+      source: 'Pre Test Translation, Q2b (split from the old two-part card)' },
     { id: 'l4-token-i', lecture: '4', type: 'typed',
       prompt: 'In the Java sentence below, what token is the lexeme  i ?',
       code: `for (int i = 0; i < 10; i++){`,
-      answer: 'identifier',
+      answer: 'identifier', accept: ['id', 'ident', 'identifier name', 'variable name', 'variable', 'name'],
       why: 'Every i here is an identifier. (The slide’s table labels the second i “int_literal”, which is a slip.)',
       source: 'Slides 4, slides 7-8' },
     { id: 'l4-token-10', lecture: '4', type: 'typed',
       prompt: 'In the same Java sentence, what token is the lexeme  10 ?',
       code: `for (int i = 0; i < 10; i++){`,
-      answer: 'int_literal', accept: ['int literal', 'integer literal', 'integer_literal'],
-      why: 'A number written directly in the code is a literal; its token says which kind.',
+      answer: 'int_literal', accept: ['int literal', 'integer literal', 'integer_literal', 'literal', 'number', 'integer', 'numeric literal', 'integer constant', 'int constant', 'constant'],
+      why: 'A number written directly in the code is a literal; its token says which kind. Token names vary between compilers; her slide says int_literal.',
       source: 'Slides 4, slide 8' },
-    { id: 'l4-sample-derive', lecture: '4', type: 'order',
-      prompt: 'Grammar below. The derivation of  c = c + 2 * a  starts  <program> ⇒ <stmts> ⇒ <stmt> ⇒ <var> = <expr>.  Put the rest of the leftmost derivation in order.',
+    { id: 'l4-sample-derive-write', lecture: '4', type: 'recall',
+      prompt: 'Using this grammar, write the leftmost derivation of  c = c + 2 * a.',
       code: `<program> → <stmts>
 <stmts> → <stmt> | <stmt> ; <stmts>
 <stmt> → <var> = <expr>
@@ -431,9 +899,67 @@ int main(void){ int banana = 13; if (++banana - 7){ } else{ } printf("%d", banan
 <num> → 1 | 2 | 3
 <expr> → <term> + <expr> | <term> * <expr> | <term>
 <term> → <var> | <num>`,
-      answer: ['c = <expr>', 'c = <term> + <expr>', 'c = <var> + <expr>', 'c = c + <expr>', 'c = c + <term> * <expr>', 'c = c + <num> * <expr>', 'c = c + 2 * <expr>', 'c = c + 2 * <term>', 'c = c + 2 * <var>', 'c = c + 2 * a'],
-      why: 'Leftmost: each step rewrites the leftmost nonterminal, so the sentence fills in left to right.',
-      source: 'Slides 4, slides 12-13 (derivation worked from the slide’s grammar)' },
+      answer: `<program> ⇒ <stmts> ⇒ <stmt> ⇒ <var> = <expr> ⇒ c = <expr>
+⇒ c = <term> + <expr> ⇒ c = <var> + <expr> ⇒ c = c + <expr>
+⇒ c = c + <term> * <expr> ⇒ c = c + <num> * <expr> ⇒ c = c + 2 * <expr>
+⇒ c = c + 2 * <term> ⇒ c = c + 2 * <var> ⇒ c = c + 2 * a`,
+      points: ['<program> ⇒ <stmts> ⇒ <stmt> ⇒ <var> = <expr> (the one-statement rule)', 'always expands the leftmost nonterminal, one rule per ⇒', '<expr> ⇒ <term> + <expr> for the +', 'the inner <expr> ⇒ <term> * <expr> for the *', 'the leaves come from <var> (c, a) and <num> (2)'],
+      why: 'Leftmost: the sentence fills in left to right.',
+      source: 'Slides 4, slides 12-13 (derivation worked from the slide’s grammar; replaces an order card that could be sorted by length)' },
+    { id: 'l4-derive-two', lecture: '4', type: 'recall',
+      prompt: 'Using this grammar, write the leftmost derivation of  a = b ; c = 1.',
+      code: `<program> → <stmts>
+<stmts> → <stmt> | <stmt> ; <stmts>
+<stmt> → <var> = <expr>
+<var> → a | b | c | d
+<num> → 1 | 2 | 3
+<expr> → <term> + <expr> | <term> * <expr> | <term>
+<term> → <var> | <num>`,
+      answer: `<program> ⇒ <stmts> ⇒ <stmt> ; <stmts> ⇒ <var> = <expr> ; <stmts>
+⇒ a = <expr> ; <stmts> ⇒ a = <term> ; <stmts> ⇒ a = <var> ; <stmts>
+⇒ a = b ; <stmts> ⇒ a = b ; <stmt> ⇒ a = b ; <var> = <expr>
+⇒ a = b ; c = <expr> ⇒ a = b ; c = <term> ⇒ a = b ; c = <num> ⇒ a = b ; c = 1`,
+      points: ['<stmts> ⇒ <stmt> ; <stmts> for two statements', 'finishes the whole first statement before touching <stmts> (leftmost)', 'b via <expr> ⇒ <term> ⇒ <var> ⇒ b', 'the last <stmts> ⇒ <stmt> (one statement left)', '1 via <expr> ⇒ <term> ⇒ <num> ⇒ 1'],
+      why: 'The recursion in <stmts> is what allows any number of statements.',
+      source: 'Practice item on the Slides 4, slide 12 grammar (worked from the grammar)' },
+    { id: 'l4-cannot-a4', lecture: '4', type: 'recall',
+      prompt: 'Using this grammar, can  a = 4  be derived? Why or why not?',
+      code: `<program> → <stmts>
+<stmts> → <stmt> | <stmt> ; <stmts>
+<stmt> → <var> = <expr>
+<var> → a | b | c | d
+<num> → 1 | 2 | 3
+<expr> → <term> + <expr> | <term> * <expr> | <term>
+<term> → <var> | <num>`,
+      answer: 'No. The 4 would have to come from <term>, i.e. from <var> or <num>. <var> only gives a, b, c, d and <num> only gives 1, 2, 3, so the terminal 4 appears in no rule.',
+      points: ['No', 'the 4 must come from <var> or <num>', '<num> only produces 1, 2, 3 (and <var> only letters)'],
+      why: 'To show something cannot be derived, show that no rule can produce the missing piece.',
+      source: 'Practice item on the Slides 4, slide 12 grammar (like Post Test Translation, Q4c)' },
+    { id: 'l4-parse-tree', lecture: '4', type: 'recall',
+      prompt: 'Draw the parse tree of  c = c + 2 * a  as an indented outline.',
+      code: `<program> → <stmts>
+<stmts> → <stmt> | <stmt> ; <stmts>
+<stmt> → <var> = <expr>
+<var> → a | b | c | d
+<num> → 1 | 2 | 3
+<expr> → <term> + <expr> | <term> * <expr> | <term>
+<term> → <var> | <num>`,
+      answer: `<program>
+  <stmts>
+    <stmt>
+      <var> → c
+      =
+      <expr>
+        <term> → <var> → c
+        +
+        <expr>
+          <term> → <num> → 2
+          *
+          <expr>
+            <term> → <var> → a`,
+      points: ['root <program> → <stmts> → <stmt>', '<stmt> has three children: <var>, =, <expr>', 'the top <expr> has children <term> + <expr>', 'the inner <expr> has children <term> * <expr>', 'the leaves, read left to right, spell c = c + 2 * a'],
+      why: '* sits deeper than +, so it is evaluated first, but only because it comes later in the sentence (compare a * b + c).',
+      source: 'Slides 4, slide 13 (the slide draws the tree; outline form is ours)' },
     { id: 'l4-sample-prec', lecture: '4', type: 'typed',
       prompt: 'Using that same grammar, how is  a * b + c  grouped? Answer with brackets.',
       code: `<expr> → <term> + <expr> | <term> * <expr> | <term>
@@ -481,6 +1007,63 @@ int main(void){ int banana = 13; if (++banana - 7){ } else{ } printf("%d", banan
       points: ['+ one or more', '* zero or more', '? optional (zero or one)'],
       why: 'Same meanings as in regular expressions.',
       source: 'Slides 4, slide 19' },
+    { id: 'l4-production', lecture: '4', type: 'recall',
+      prompt: 'What is a BNF rule called, and what may appear on each side of it?',
+      answer: 'A production, written LHS → RHS. The LHS is exactly one nonterminal (in < > brackets). The RHS is a string of terminals and/or nonterminals; | separates alternatives.',
+      points: ['a production: LHS → RHS', 'LHS: one nonterminal, in < >', 'RHS: a string of terminals and/or nonterminals', '| separates alternative RHSs'],
+      why: 'A grammar is just a collection of these rules plus a start symbol.',
+      source: 'Slides 4, slide 10 (blank wording from Sebesta ch. 3; merges three slide blanks)' },
+    { id: 'l4-left-assoc', lecture: '4', type: 'recall',
+      prompt: 'Rewrite  <expr> → <expr> / <expr> | <const>  so that / is left-associative. Why does your version work?',
+      answer: '<expr> → <expr> / <const> | <const>. The recursion is only on the left, so in 60 / 12 / 4 the leftmost / ends up deepest in the parse tree and is evaluated first: (60 / 12) / 4.',
+      points: ['<expr> → <expr> / <const> | <const>', 'recursion only on the left (the right operand can no longer be an <expr>)', 'the leftmost / ends up deepest in the tree, so it is done first'],
+      why: 'Her slide’s phrase: “don’t allow as much recursion” on the right.',
+      source: 'Slides 4, slide 18 (replaces the slide-word blank)' },
+    { id: 'l4-show-ambig', lecture: '4', type: 'recall',
+      prompt: 'Show that this grammar is ambiguous, using the sentence  a + a + a.',
+      code: `<S> → <S> + <S> | a`,
+      answer: `Two distinct parse trees for one sentence:
+Tree 1, (a + a) + a:  <S> → <S> + <S>, and the LEFT <S> → <S> + <S>
+Tree 2, a + (a + a):  <S> → <S> + <S>, and the RIGHT <S> → <S> + <S>
+(Equivalently, two different leftmost derivations.) Two trees ⇒ ambiguous.`,
+      points: ['one tree groups (a + a) + a: the left <S> expands again', 'one tree groups a + (a + a): the right <S> expands again', 'two distinct parse trees for one sentence = ambiguous'],
+      why: 'Showing two derivations is not enough unless they are both leftmost (or both rightmost): every sentence has a leftmost and a rightmost derivation.',
+      source: 'Practice item applying Slides 4, slides 14-17 (Sebesta ch. 3 method)' },
+    { id: 'l4-rewrite-left', lecture: '4', type: 'recall',
+      prompt: 'Rewrite this ambiguous grammar so it is unambiguous and + is left-associative.',
+      code: `<S> → <S> + <S> | a`,
+      answer: '<S> → <S> + a | a',
+      points: ['<S> → <S> + a | a', 'recursion only on the left side of +'],
+      why: 'Each + now has a plain a on its right, so a + a + a can only group as (a + a) + a.',
+      source: 'Practice item applying Slides 4, slides 17-18' },
+    { id: 'l4-write-prec', lecture: '4', type: 'recall',
+      prompt: 'Write an unambiguous grammar for expressions over the variables a and b with + and *, where * binds tighter than + and both are left-associative.',
+      answer: `<expr> → <expr> + <term> | <term>
+<term> → <term> * <factor> | <factor>
+<factor> → a | b`,
+      points: ['+ at the top level: <expr> → <expr> + <term> | <term>', '* one level lower: <term> → <term> * <factor> | <factor>', 'operands at the bottom: <factor> → a | b', 'left recursion on both levels (left-associative)'],
+      why: 'Higher precedence = lower in the grammar = deeper in the tree = done first. Same shape as her - and / grammar on slide 16.',
+      source: 'Practice item applying Slides 4, slide 16 (standard expression grammar, Sebesta ch. 3)' },
+    { id: 'l4-write-time24', lecture: '4', type: 'recall',
+      prompt: 'Write a concise BNF grammar for 24-hour clock times from 00:00 to 23:59 (always two digits each side of the colon).',
+      answer: `<time> → <hour> : <min>
+<hour> → <d01> <digit> | 2 <d03>
+<d01> → 0 | 1
+<d03> → 0 | 1 | 2 | 3
+<min> → <d05> <digit>
+<d05> → 0 | 1 | 2 | 3 | 4 | 5
+<digit> → 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9`,
+      points: ['<time> → <hour> : <min>', 'hours 00-19: first digit 0 or 1, any second digit', 'hours 20-23 as their own case: 2 then 0-3', 'minutes: first digit 0-5, second digit 0-9'],
+      why: 'Like 4.0 in the GPA grammar, the edge (20-23) needs its own alternative so 24-29 stay out.',
+      source: 'Practice item in the style of Post Test Translation, Q4a (not from her PDFs)' },
+    { id: 'l4-write-binary', lecture: '4', type: 'recall',
+      prompt: 'Write a BNF grammar for binary numbers with no leading zeros (0 itself is allowed; 0101 is not).',
+      answer: `<bin> → 0 | 1 | 1 <rest>
+<rest> → <bit> | <bit> <rest>
+<bit> → 0 | 1`,
+      points: ['0 allowed on its own', 'every other number starts with 1', 'after the 1, any number of 0s and 1s (recursion)'],
+      why: 'Forcing the first symbol to be 1 is what keeps leading zeros out.',
+      source: 'Practice item in the style of Post Test Translation, Q4a (not from her PDFs)' },
 
     // ───────────── Lecture 5.1: names, binding, type, address ─────────────
     { id: 'l51-attrs', lecture: '5.1', type: 'recall',
@@ -498,7 +1081,7 @@ int main(void){ int banana = 13; if (++banana - 7){ } else{ } printf("%d", banan
     { id: 'l51-case', lecture: '5.1', type: 'mc',
       prompt: 'Which of these languages does NOT have case-sensitive names?',
       answer: 'Scheme', options: ['Java', 'C', 'Python'],
-      why: 'In Scheme, twoDArray and twoDarray are the same name.',
+      why: 'In Scheme (per the slides), twoDArray and twoDarray are the same name. That is true of older (R5RS-era) Scheme; modern Scheme (R6RS, R7RS, Racket) is case-sensitive.',
       source: 'Slides 5.1, slide 7; Names post-test Q1' },
     { id: 'l51-anychar', lecture: '5.1', type: 'mc',
       prompt: 'Which language allows almost any keyboard character in a name?',
@@ -518,13 +1101,37 @@ int main(void){ int banana = 13; if (++banana - 7){ } else{ } printf("%d", banan
     { id: 'l51-maxlen', lecture: '5.1', type: 'mc',
       prompt: 'Which language sets a maximum name length?',
       answer: 'C', options: ['Java', 'Python'],
-      why: 'Early Fortran allowed only short names; Java and Python allow any length.',
+      why: 'Early Fortran allowed only short names; Java and Python allow any length. Strictly, the C standard sets a minimum number of significant characters (31 in C89, 63 in C99) rather than a hard maximum; the slides call it a max length.',
       source: 'Slides 5.1, slide 9' },
     { id: 'l51-bindtimes', lecture: '5.1', type: 'order',
       prompt: 'Put the possible binding times in order, earliest first.',
       answer: ['Language design', 'Language implementation', 'Compile', 'Load', 'Run'],
       why: 'Example: * is bound to “multiply” at language design; a C static variable’s address at load time; a local’s value at run time.',
       source: 'Slides 5.1, slide 13 (examples are Sebesta’s, not the handout’s)' },
+    { id: 'l51-entities', lecture: '5.1', type: 'recall',
+      prompt: 'A name can stand for three kinds of program entity. Name each, with an example.',
+      answer: 'A variable (stuName = “Jackie”); a label, i.e. a statement location (evenNum:); a subprogram and its calls (sumToN(12)).',
+      points: ['a variable (e.g. stuName = “Jackie”)', 'a label / statement location (e.g. evenNum:)', 'a subprogram (e.g. sumToN(12))'],
+      why: 'In every case the name is an abstraction of a memory location.',
+      source: 'Slides 5.1, slide 2 (blank wording from Sebesta ch. 5; merges three slide blanks)' },
+    { id: 'l51-binding-def', lecture: '5.1', type: 'recall',
+      prompt: 'Define binding and binding time.',
+      answer: 'A binding is an association between an entity and an attribute (e.g. a variable and its type, or a symbol and its operation). Binding time is the time at which that association is made.',
+      points: ['binding: an association between an entity and an attribute', 'binding time: when that association is made'],
+      why: 'Binding times run from language design to run time.',
+      source: 'Slides 5.1, slide 12 (blank wording from Sebesta ch. 5; merges two slide blanks)' },
+    { id: 'l51-bind-classify', lecture: '5.1', type: 'recall',
+      prompt: 'In the C statement  count = count + 5;  give the binding time of: (1) the type of count, (2) the set of values count can hold, (3) the meaning of +, (4) the internal representation of 5, (5) the value of count.',
+      answer: '(1) compile time; (2) language implementation time; (3) compile time (once the operand types are known); (4) language implementation time; (5) run time.',
+      points: ['type of count: compile', 'possible values of count: language implementation', 'meaning of +: compile', 'representation of 5: language implementation', 'value of count: run'],
+      why: 'int’s range and how a literal is stored are chosen by whoever implements C; + can mean int or float addition, so the compiler picks once it knows the types.',
+      source: 'Sebesta ch. 5.4 example, mapped onto her binding-time list (Slides 5.1, slide 13)' },
+    { id: 'l51-bind-classify2', lecture: '5.1', type: 'recall',
+      prompt: 'Give the binding time of each in C: (1) the address of a global variable, (2) the address of a non-static local variable, (3) the number of bits in an int, (4) the fact that while starts a loop.',
+      answer: '(1) load time; (2) run time (each call); (3) language implementation time; (4) language design time.',
+      points: ['global’s address: load', 'non-static local’s address: run', 'bits in an int: language implementation', 'while starts a loop: language design'],
+      why: 'Static/global storage is fixed when the program is loaded; a local gets fresh stack storage on every call.',
+      source: 'Practice item using her binding-time list (Slides 5.1, slide 13) and the slide-13 example answers' },
     { id: 'l51-type-name', lecture: '5.1', type: 'mc',
       prompt: '“The type should be part of the name.” Which language does this?',
       answer: 'Perl', options: ['Python', 'C#', 'Java'],
@@ -558,10 +1165,10 @@ int main(void){ int banana = 13; if (++banana - 7){ } else{ } printf("%d", banan
       why: 'Python, Java and C are case-sensitive; Scheme is not.',
       source: 'Post Test Names & Identifiers, Q1' },
     { id: 'l51-explicit-types', lecture: '5.1', type: 'recall',
-      prompt: 'Give three advantages of declaring a variable’s type explicitly (as in Java) over just using a name (as in Python).',
+      prompt: 'Her key lists four advantages of declaring a variable’s type explicitly (as in Java) over just using a name (as in Python). Give all four.',
       answer: 'The compiler can catch spelling errors (one of the most common mistakes); the programmer has a clearer idea what the variable is for; the reader knows the intended type (in x = 5, is x an integer or a real?); the compiler can allocate the right amount of space immediately.',
       points: ['catches misspelled names', 'clearer purpose for the programmer', 'reader knows the type', 'right amount of space allocated'],
-      why: 'Any three of the four count.',
+      why: 'Her test asks for three; learning all four means any three she accepts are covered.',
       source: 'Post Test Names & Identifiers, Q2' },
     { id: 'l51-spaces', lecture: '5.1', type: 'recall',
       prompt: 'Should a language allow variable names to have spaces? Why or why not?',
@@ -572,7 +1179,7 @@ int main(void){ int banana = 13; if (++banana - 7){ } else{ } printf("%d", banan
     { id: 'l51-single', lecture: '5.1', type: 'recall',
       prompt: 'Should a language forbid single-letter variable names? Why or why not?',
       answer: 'The professor says yes: single-letter names are not readable and not searchable. The possible exception is loop indices, but numbers[row][column] is still more readable than numbers[i][j].',
-      points: ['not readable', 'not searchable', 'loop indices are the usual exception, and even there longer names read better'],
+      points: ['not readable', 'not searchable', 'the usual exception is loop indices', 'even there, longer names read better (numbers[row][column])'],
       why: 'Python allows them, though pylint flags them.',
       source: 'Pre Test Names & Identifiers, Q2' },
     { id: 'l51-name-objcode', lecture: '5.1', type: 'recall',
@@ -598,7 +1205,7 @@ int main(void){ int banana = 13; if (++banana - 7){ } else{ } printf("%d", banan
     { id: 'l52-lifetime-vs-scope', lecture: '5.2', type: 'recall',
       prompt: 'How do a variable’s lifetime and its scope differ? Use a C static local as the example.',
       answer: 'Lifetime is time: how long during execution the name is bound to a memory cell. Scope is space: the statements where the name is visible. A C static local in a function lives for the whole run (static lifetime), but it is only visible inside that function (local scope).',
-      points: ['lifetime = time bound to a memory cell', 'scope = where the name is visible', 'static local: whole-run lifetime, function-only scope'],
+      points: ['lifetime = time bound to a memory cell', 'scope = where the name is visible', 'a C static local lives for the whole run', 'but is visible only inside its function'],
       why: 'The sa example (lecture 5.2, slide 28) shows both at once.',
       source: 'Slides 5.2, slides 3-4 and 28 (the lifetime wording fills slide blanks; check it against your notes)' },
     { id: 'l52-implicit-heap', lecture: '5.2', type: 'mc',
@@ -611,12 +1218,6 @@ int main(void){ int banana = 13; if (++banana - 7){ } else{ } printf("%d", banan
       answer: 'Explicit heap', options: ['Implicit heap', 'Stack', 'Static'],
       why: 'The programmer explicitly creates them (new); in C, explicit heap items come from malloc and are freed with free.',
       source: 'Slides 5.2, slide 9' },
-    { id: 'l52-static-eg', lecture: '5.2', type: 'recall',
-      prompt: 'Give the slides’ example of a variable with static lifetime.',
-      answer: 'A static variable inside a function in C or C++.',
-      points: ['C / C++ static variable in a function'],
-      why: 'It is bound to memory before execution begins and stays bound until execution ends.',
-      source: 'Slides 5.2, slide 4' },
     { id: 'l52-block-trace', lecture: '5.2', type: 'typed',
       prompt: 'What does a call to doThis() print?',
       code: `int i = 89;
@@ -639,13 +1240,25 @@ int i = 89;
 void doThis(){ int num = 10; int i = 1; while (i < num){ int num = 0; num++; i++; printf("%d ", num); } printf("\\n%d\\n", num); }
 int main(void){ doThis(); return 0; }` } },
     { id: 'l52-block-java', lecture: '5.2', type: 'recall',
-      prompt: 'That doThis() code is legal in C and C++ but not in Java or C#. Why?',
+      prompt: 'This doThis() code is legal in C and C++ but not in Java or C#. Why?',
+      code: `int i = 89;
+void doThis(){
+   int num = 10;
+   int i = 1;
+   while (i < num){
+      int num = 0;
+      num++;
+      i++;
+      printf("%d ", num);
+   }//while
+   printf("\\n%d\\n", num);
+}//doThis`,
       answer: 'It declares a second num inside a nested block while the outer num is still in scope. Java and C# forbid a local in a nested block from hiding an enclosing local; C and C++ allow it (the inner one hides the outer one).',
       points: ['inner num redeclares a name already in scope', 'Java/C#: not allowed to hide an enclosing local', 'C/C++: allowed, the inner one hides the outer'],
       why: 'This hiding is a scope hole inside one function.',
       source: 'Slides 5.2, slide 15' },
     { id: 'l52-py-trace', lecture: '5.2', type: 'typed',
-      prompt: 'What does this Python program print? (Type the five lines; spacing doesn’t matter.)',
+      prompt: 'This Python program prints five lines. Give just the five numbers it prints, in order.',
       code: `x = 12
 y = 82
 def f(w):
@@ -664,10 +1277,13 @@ def f(w):
 
 f(x)
 print("Global, x is: ", x)`,
-      answer: 'In f top, y is: 82\nIn g, x is: 13\nIn h, x is: 55\nIn f bottom, x is: 55\nGlobal, x is: 12',
+      answer: '82 13 55 55 12',
       why: 'x = 13 inside f makes x local to f. nonlocal x makes g’s x the same variable as f’s, so g sets f’s x to 55, which h and the bottom of f both see. The global x is never touched: still 12. y in f is the global 82 (g’s parameter y is a different y).',
       source: 'Slides 5.2, slide 21 (output verified with Python 3)',
-      verify: { lang: 'python', src: `x = 12
+      verify: { lang: 'python', src: `import builtins
+_out = []
+def print(*a): _out.append(str(a[-1]))
+x = 12
 y = 82
 def f(w):
     print("In f top, y is: ", y)
@@ -682,9 +1298,28 @@ def f(w):
     g(100)
     print("In f bottom, x is: ", x)
 f(x)
-print("Global, x is: ", x)` } },
+print("Global, x is: ", x)
+builtins.print(' '.join(_out))` } },
     { id: 'l52-py-unbound', lecture: '5.2', type: 'recall',
-      prompt: 'In that Python program, what happens if the commented-out line at the top of f is uncommented? Why?',
+      prompt: 'In this Python program, what happens if the commented-out line at the top of f is uncommented? Why?',
+      code: `x = 12
+y = 82
+def f(w):
+    print("In f top, y is: ", y)
+    # print("In f top, x is: ", x)
+    def g(y):
+        nonlocal x
+        def h():
+            print("In h, x is: ", x)
+        print("In g, x is: ", x)
+        x = 55
+        h()
+    x = 13
+    g(100)
+    print("In f bottom, x is: ", x)
+
+f(x)
+print("Global, x is: ", x)`,
       answer: 'It crashes with UnboundLocalError. Because f assigns x later (x = 13), x is local to the whole body of f, so reading it on the first line means reading a local that hasn’t been bound yet. It does not fall back to the global x.',
       points: ['UnboundLocalError', 'x = 13 makes x local to all of f', 'so the read happens before the local is bound'],
       why: 'Python decides scope per function at compile time: static scoping.',
@@ -801,7 +1436,22 @@ int main() {
 void foo() { int a = 10; static int sa = 10; a += 5; sa += 5; printf("a = %d, sa = %d\\n", a, sa); }
 int main() { int i; for (i = 0; i < 10; ++i) foo(); return 0; }` } },
     { id: 'l52-sa-error', lecture: '5.2', type: 'recall',
-      prompt: 'Adding  sa = sa * 2;  to main is an error, even though sa exists for the whole run. Why?',
+      prompt: 'The line  sa = sa * 2;  in main is an error, even though sa exists for the whole run. Why?',
+      code: `void foo() {
+   int a = 10;
+   static int sa = 10;
+   a += 5;
+   sa += 5;
+   printf("a = %d, sa = %d\\n", a, sa);
+}
+
+int main() {
+   int i;
+   for (i = 0; i < 10; ++i)
+      foo();
+   sa = sa * 2;
+   printf("sa = %d\\n", sa);
+}`,
       answer: 'sa has static lifetime (it is bound to memory for the whole execution) but local scope: it is only visible inside foo. main cannot see the name, so the compiler rejects it.',
       points: ['lifetime: whole run (static)', 'scope: only inside foo', 'main cannot see the name, so it is a compile error'],
       why: 'The clearest example of lifetime and scope being different things.',
@@ -822,17 +1472,206 @@ int main() { int i; for (i = 0; i < 10; ++i) foo(); return 0; }` } },
       answer: 'readonly', options: ['const', 'internal'],
       why: 'C# const values are bound at compile time; readonly values are bound dynamically.',
       source: 'Slides 5.2, slide 31' },
-    { id: 'l52-java-final', lecture: '5.2', type: 'mc',
-      prompt: 'When are the values of Java final named constants bound?',
-      answer: 'Dynamically (at run time)', options: ['Statically (at compile time)'],
-      why: 'The slides: Java final is “all dynamic”.',
-      source: 'Slides 5.2, slide 30' },
+    { id: 'l52-const-compare', lecture: '5.2', type: 'recall',
+      prompt: 'When are named-constant values bound in C (#define, const), Java (final) and C# (const, readonly)?',
+      answer: 'C: #define is static, const is not. Java: final is all dynamic. C#: const values are bound at compile time; readonly values are bound dynamically.',
+      points: ['C: #define static, const not', 'Java: final dynamic', 'C#: const at compile time', 'C#: readonly dynamic'],
+      why: 'Per the slides. Strictly, a Java static final with a constant initializer is a compile-time constant that javac inlines; “all dynamic” is the slides’ simplification.',
+      source: 'Slides 5.2, slides 30-31 (replaces a two-option MC on Java final)' },
+
+    { id: 'l52-lifetime-def', lecture: '5.2', type: 'recall',
+      prompt: 'Define lifetime (of a variable).',
+      answer: 'The time during which a name is bound to one particular memory cell, i.e. how long that cell is occupied by the name’s value.',
+      points: ['the time a name is bound to a particular memory cell', 'how long that cell holds the name’s value'],
+      why: 'The address (storage class) decides the lifetime: static, stack-dynamic, explicit heap or implicit heap.',
+      source: 'Slides 5.1 slide 23 and 5.2 slide 3 (merges three slide blanks)' },
+    { id: 'l52-static-lifetime', lecture: '5.2', type: 'recall',
+      prompt: 'Define static lifetime.',
+      answer: 'The variable is bound to its memory cell(s) before execution begins and stays bound to the same cells until execution ends.',
+      points: ['bound before execution begins', 'stays bound to the same cells until execution ends'],
+      why: 'Example: a C or C++ static variable inside a function (sa in the foo example).',
+      source: 'Slides 5.2, slide 4 (blank wording from Sebesta ch. 5; merges two slide blanks)' },
+    { id: 'l52-static-adv', lecture: '5.2', type: 'recall',
+      prompt: 'What is the advantage of static variables, and where does it come from?',
+      answer: 'Efficiency: all addressing is direct, and there is no run-time allocation or deallocation.',
+      points: ['efficiency (speed)', 'direct addressing', 'no run-time allocation / deallocation'],
+      why: 'The address is fixed before the program runs, so the code can use it directly.',
+      source: 'Slides 5.2, slide 5 (blank wording from Sebesta ch. 5; merges two slide blanks)' },
+    { id: 'l52-static-disadv', lecture: '5.2', type: 'recall',
+      prompt: 'What are the disadvantages of static variables?',
+      answer: 'Lack of flexibility: no recursion; the size must be known before run time; storage cannot be shared among variables.',
+      points: ['lack of flexibility', 'no recursion', 'size must be known before run time', 'storage cannot be shared among variables'],
+      why: 'All three specific problems come from “one fixed cell for the whole run”.',
+      source: 'Slides 5.2, slide 5 (blank wording from Sebesta ch. 5; merges four slide blanks)' },
+    { id: 'l52-static-recursion', lecture: '5.2', type: 'recall',
+      prompt: 'Why can’t a language whose variables are all static support recursion?',
+      answer: 'Each variable has exactly one memory cell for the whole run. A second, still-active call of the same function would use the same cells and overwrite the first call’s locals.',
+      points: ['one memory cell per variable for the whole run', 'a recursive call would overwrite the active call’s locals'],
+      why: 'Stack-dynamic locals fix this: every call gets fresh cells. Fortran I subprograms could not recurse for this reason.',
+      source: 'Slides 5.2, slide 5 (the reason follows Sebesta ch. 5; replaces a blank whose reason was wrong)' },
+    { id: 'l52-decl-rules', lecture: '5.2', type: 'recall',
+      prompt: 'Compare C89/Pascal with C99/Java: where may declarations go, and what is a local variable’s scope?',
+      answer: 'C89/Pascal: all declarations at the start of the block, and a local’s scope is the whole block. C99/Java: declarations anywhere a statement can go, and a local’s scope runs from its declaration to the end of the block.',
+      points: ['C89/Pascal: declarations at the beginning of the block', 'C89/Pascal: scope is the whole block', 'C99/Java: declarations anywhere a statement can go', 'C99/Java: scope from the declaration to the end of the block'],
+      why: 'Two answers to the first scope design issue: where declarations are done.',
+      source: 'Slides 5.2, slide 17 (blank wording from Sebesta ch. 5; merges four slide blanks)' },
+    { id: 'l52-static-scope-adv', lecture: '5.2', type: 'recall',
+      prompt: 'What are the advantages of static scoping?',
+      answer: 'Most languages do it, so it is familiar; and you can tell which variable a name refers to just by looking at the program, without having to run (trace) it.',
+      points: ['most languages use it (familiar)', 'you can tell what a name refers to by reading the program, without running it'],
+      why: 'Compare dynamic scoping, where you need the call sequence.',
+      source: 'Slides 5.2, slide 25 (blank wording is a best guess at her slide; merges two slide blanks)' },
+    { id: 'l52-dynamic-disadv', lecture: '5.2', type: 'recall',
+      prompt: 'What are the disadvantages of dynamic scoping?',
+      answer: 'You can’t tell what a variable refers to by reading the program; every called subprogram can see and change its callers’ locals (less reliable); non-local access is slower; few languages use it, so it is unfamiliar and harder to learn.',
+      points: ['can’t tell what a variable is by looking at the program', 'called subprograms can see and change callers’ locals (less reliable)', 'slower non-local access', 'few languages use it (unfamiliar)'],
+      why: 'Its one advantage: a called subprogram can use its caller’s variables without parameters, which helps avoid globals.',
+      source: 'Slides 5.2, slide 26 (the first point is her slide; the rest follow Sebesta ch. 5; merges two slide blanks)' },
+    { id: 'l52-named-const', lecture: '5.2', type: 'recall',
+      prompt: 'What is a named constant, and what are its advantages?',
+      answer: 'A “variable” bound to a value only once. Advantages: readability (PI instead of 3.14159), modifiability (change the value in one place), and it is used to parameterize programs.',
+      points: ['bound to a value only once', 'readability (e.g. PI vs 3.14159)', 'modifiability: change it in one place', 'parameterizes programs'],
+      why: 'Example of parameterizing: const int MAX = 100; used for every array size and loop bound.',
+      source: 'Slides 5.2, slide 29 (two blanks filled from Sebesta ch. 5; merges two slide blanks)' },
+    { id: 'l52-manifest', lecture: '5.2', type: 'recall',
+      prompt: 'Named-constant values can be bound statically or dynamically. What are statically bound ones called, and which C construct makes one?',
+      answer: 'Manifest constants; #define.',
+      points: ['manifest constants', '#define in C'],
+      why: '#define is replaced before compilation, so its value is fixed before the program ever runs.',
+      source: 'Slides 5.2, slide 30 (blank wording from Sebesta ch. 5; merges two slide blanks)' },
+    { id: 'l52-storage-classify', lecture: '5.2', type: 'recall',
+      prompt: 'Classify the storage (lifetime) of each: (1) int g; at file scope in C, (2) static int s; inside a C function, (3) int t; inside a C function, (4) p in  int *p = malloc(sizeof(int));  inside a function, (5) the int that p points to, (6) a Python list.',
+      answer: '(1) static; (2) static; (3) stack-dynamic; (4) stack-dynamic; (5) explicit heap; (6) implicit heap.',
+      points: ['global g: static', 'static local s: static', 'plain local t: stack-dynamic', 'the pointer p itself: stack-dynamic', 'the malloc’d int: explicit heap', 'Python list: implicit heap'],
+      why: 'The pointer and what it points to have different lifetimes: p dies when the function returns, the heap int lives until free().',
+      source: 'Practice item using Slides 5.2, slides 4-12 (Sebesta ch. 5 categories)' },
+    { id: 'l52-abc-static', lecture: '5.2', type: 'typed',
+      prompt: 'Python-like syntax. What does this print under STATIC scoping?',
+      code: `x = 1
+def a():
+    print(x)
+def b():
+    x = 2
+    a()
+def c():
+    x = 3
+    b()
+c()
+a()`,
+      answer: '1 1',
+      why: 'a is written at the top level, so its x is the global x, wherever a is called from.',
+      source: 'Practice item in the style of Post Test Names Q4 (verified with Python, which is statically scoped)',
+      verify: { lang: 'python', src: `x = 1
+def a():
+    print(x)
+def b():
+    x = 2
+    a()
+def c():
+    x = 3
+    b()
+c()
+a()` } },
+    { id: 'l52-abc-dynamic', lecture: '5.2', type: 'typed',
+      prompt: 'Same program. What does it print under DYNAMIC scoping?',
+      code: `x = 1
+def a():
+    print(x)
+def b():
+    x = 2
+    a()
+def c():
+    x = 3
+    b()
+c()
+a()`,
+      answer: '2 1',
+      why: 'First call: c → b → a. Searching back up the call chain, the most recent x is b’s (2). Second call: a is called from the top level, so it finds the global x (1).',
+      source: 'Practice item in the style of Post Test Names Q4 (verified in bash, whose locals are dynamically scoped)',
+      verify: { lang: 'bash', src: `x=1
+a() { echo "$x"; }
+b() { local x=2; a; }
+c() { local x=3; b; }
+c
+a` } },
+    { id: 'l52-param-static', lecture: '5.2', type: 'typed',
+      prompt: 'Python-like syntax. What does this print under STATIC scoping?',
+      code: `n = 5
+def show():
+    print(n)
+def setup(n):
+    show()
+def run():
+    n = 7
+    setup(9)
+run()`,
+      answer: '5',
+      why: 'show is written at the top level, so its n is the global n.',
+      source: 'Practice item in the style of Post Test Names Q4 (verified with Python)',
+      verify: { lang: 'python', src: `n = 5
+def show():
+    print(n)
+def setup(n):
+    show()
+def run():
+    n = 7
+    setup(9)
+run()` } },
+    { id: 'l52-param-dynamic', lecture: '5.2', type: 'typed',
+      prompt: 'Same program. What does it print under DYNAMIC scoping?',
+      code: `n = 5
+def show():
+    print(n)
+def setup(n):
+    show()
+def run():
+    n = 7
+    setup(9)
+run()`,
+      answer: '9',
+      why: 'Call chain run → setup → show. The most recent n is setup’s parameter n, which is 9: a parameter counts as a declaration.',
+      source: 'Practice item in the style of Post Test Names Q4 (verified in bash, whose locals are dynamically scoped)',
+      verify: { lang: 'bash', src: `n=5
+show() { echo "$n"; }
+setup() { local n=$1; show; }
+run() { local n=7; setup 9; }
+run` } },
+    { id: 'l52-static-parent', lecture: '5.2', type: 'recall',
+      prompt: 'Under static scoping, what is sub2’s static parent, and what are its static ancestors?',
+      code: `def main():
+    x = 1
+    def sub1():
+        def sub2():
+            print(x)
+        sub2()
+    def sub3():
+        sub1()
+    sub3()`,
+      answer: 'Static parent: sub1. Static ancestors: sub1, then main (then the global scope). The x in sub2 is found in main.',
+      points: ['static parent: sub1', 'static ancestors: sub1 and main (then global)', 'x is found in main'],
+      why: 'Static = by where the code is written. sub3 calls sub1 but does not enclose it, so sub3 is not an ancestor.',
+      source: 'Practice item applying Slides 5.2, slide 18' },
+    { id: 'l52-dynamic-chain', lecture: '5.2', type: 'recall',
+      prompt: 'Under DYNAMIC scoping, in what order are subprograms searched for the x in sub2?',
+      code: `def main():
+    x = 1
+    def sub1():
+        def sub2():
+            print(x)
+        sub2()
+    def sub3():
+        sub1()
+    sub3()`,
+      answer: 'sub2 itself, then sub1 (its caller), then sub3, then main, where x is found.',
+      points: ['starts in sub2', 'then back along the calls: sub1, then sub3', 'then main, where x is found'],
+      why: 'Dynamic = by the order of calls (main → sub3 → sub1 → sub2), searched from the most recent. Static scoping skips sub3 entirely.',
+      source: 'Practice item applying Slides 5.2, slide 23' },
 
     // ───────────── Lecture 10: control structures ─────────────
     { id: 'l10-control-stmt', lecture: '10', type: 'recall',
       prompt: 'What is a control statement? Give two examples.',
       answer: 'Something that changes execution from the normal (sequential) order to something non-sequential. E.g. goto, for, while, if, a function call; in Scheme, sequencing and cond.',
-      points: ['changes execution from sequential to non-sequential', 'two examples'],
+      points: ['changes execution from the normal (sequential) order to a non-sequential one', 'two valid examples (goto, for, while, if, a function call; cond in Scheme)'],
       why: '',
       source: 'Slides 10, slide 2' },
     { id: 'l10-control-struct', lecture: '10', type: 'recall',
@@ -842,10 +1681,10 @@ int main() { int i; for (i = 0; i < 10; ++i) foo(); return 0; }` } },
       why: '',
       source: 'Slides 10, slide 4' },
     { id: 'l10-turing', lecture: '10', type: 'recall',
-      prompt: 'What control flow is enough for Turing completeness, and what is the catch?',
-      answer: 'Ordered statements plus a goto with a conditional (a compare): a conditional kind of repetition. The catch: it is sufficient but not structured.',
-      points: ['ordered statements', 'conditional goto (conditional repetition)', 'sufficient but not structured'],
-      why: 'This is why structured control statements exist even though goto is enough.',
+      prompt: 'Ordered statements plus a goto with a compare are enough for Turing completeness. Why do languages still provide control structures?',
+      answer: 'Goto-only code is sufficient but not structured: it cannot be read from top to bottom, so it is hard to read and maintain. Control structures give a top-to-bottom reading of the program.',
+      points: ['goto with a compare is sufficient but not structured', 'control structures let you read the program top to bottom (readability, maintainability)'],
+      why: 'The “what does Turing complete need” definition is on its own card (lecture 1).',
       source: 'Slides 10, slide 3' },
     { id: 'l10-design-q', lecture: '10', type: 'recall',
       prompt: 'What are the three design questions for any control structure?',
@@ -930,11 +1769,58 @@ int main(void){ int x = 14, y = 5, count = 20, result; result = 111; if (x > y) 
       why: 'The original goal of multi-way selection was speed, not just a chain of conditions.',
       source: 'Slides 10, slides 14-15' },
     { id: 'l10-cswitch', lecture: '10', type: 'recall',
-      prompt: 'Describe C’s design choices for switch (the answers to the five multi-way design issues).',
-      answer: 'The control expression must evaluate to an integer; segments can be statement sequences or blocks; any number of segments can execute in one run (no implicit branch at the end of a segment, so break is your friend); case values must be integers or types that convert to integers; default handles unrepresented values, and with no default the statement does nothing for them.',
-      points: ['integer control expression', 'sequences or blocks', 'falls through: no implicit branch, use break', 'integer case values', 'default for unrepresented values'],
-      why: '',
-      source: 'Slides 10, slide 17' },
+      prompt: 'Can one execution of C’s switch run more than one segment? Why?',
+      answer: 'Yes. There is no implicit branch at the end of a segment, so execution falls through into the next segment until a break (“break is your friend”).',
+      points: ['yes, any number of segments can run', 'no implicit branch at the end of a segment (falls through)', 'break stops it'],
+      why: 'This is C’s answer to the design issue “restricted to a single segment?”.',
+      source: 'Slides 10, slide 17 (split from the old five-part card)' },
+    { id: 'l10-cswitch-types', lecture: '10', type: 'recall',
+      prompt: 'In C’s switch, what types may the control expression and the case values have?',
+      answer: 'Both must be integers, or types that implicitly convert to an integer (such as char).',
+      points: ['control expression: evaluates to an integer', 'case values: integers or types that convert to integers'],
+      why: 'C# relaxes this: its switch can use a string.',
+      source: 'Slides 10, slide 17 (split from the old five-part card)' },
+    { id: 'l10-cswitch-default', lecture: '10', type: 'recall',
+      prompt: 'What does C’s switch do with a value that matches no case?',
+      answer: 'Runs the default clause if there is one; with no default, the whole statement does nothing for that value.',
+      points: ['runs default if present', 'with no default, does nothing'],
+      why: 'C’s answer to the design issue “what is done about unrepresented values?”.',
+      source: 'Slides 10, slide 17 (split from the old five-part card)' },
+    { id: 'l10-switch-why', lecture: '10', type: 'recall',
+      prompt: 'What was the original goal of multi-way selection (switch), and does every compiler achieve it?',
+      answer: 'Speed: jump straight to the right segment instead of testing a chain of conditions. Not every compiler does this; some just generate a series of if / else-ifs.',
+      points: ['goal: make selection fast', 'jump to the segment rather than test conditions one by one', 'some compilers just produce a chain of if / else-ifs'],
+      why: 'That is why switch restricts case values to constants: a jump table needs them known at compile time.',
+      source: 'Slides 10, slide 14 (the jump-table remark is Sebesta, not her slide)' },
+    { id: 'l10-csharp-switch', lecture: '10', type: 'recall',
+      prompt: 'Give two ways C#’s switch differs from C’s.',
+      answer: 'C# disallows implicitly running more than one segment: each segment must end with an unconditional branch (break or goto). And its control expression can be a string.',
+      points: ['no implicit fall-through: each segment ends with break or goto', 'the control expression can be a string'],
+      why: 'C# keeps switch’s shape but removes C’s most common switch bug.',
+      source: 'Slides 10, slide 18' },
+    { id: 'l10-selector', lecture: '10', type: 'recall',
+      prompt: 'What is a selector expression? Show how C and ML write  “m is the larger of x and y”  with one.',
+      answer: 'A selection that produces a value (an expression, not a statement). C: m = x > y ? x : y;  ML: let m = if x > y then x else y',
+      points: ['a selection that yields a value (an expression)', 'C: m = x > y ? x : y;', 'ML: let m = if x > y then x else y'],
+      why: 'In ML the if itself is an expression; C needs the separate ?: operator for this.',
+      source: 'Slides 10, slide 13' },
+    { id: 'l10-ternary-trace', lecture: '10', type: 'typed',
+      prompt: 'What does this C code print?',
+      code: `int x = 4, y = 9;
+int m = x > y ? x : y;
+int n = (m % 2 == 0) ? m / 2 : m * 3;
+printf("%d %d", m, n);`,
+      answer: '9 27',
+      why: '4 > 9 is false, so m = y = 9. 9 is odd, so n = 9 * 3 = 27.',
+      source: 'Practice item applying Slides 10, slide 13 (verified with gcc)',
+      verify: { lang: 'c', src: `#include <stdio.h>
+int main(void) { int x = 4, y = 9; int m = x > y ? x : y; int n = (m % 2 == 0) ? m / 2 : m * 3; printf("%d %d", m, n); return 0; }` } },
+    { id: 'l10-iter-design', lecture: '10', type: 'recall',
+      prompt: 'What are the design issues for iteration (loops)?',
+      answer: 'How is iteration controlled: logically, by a count, or by a data type with its own iterator? Can a loop be entered somewhere other than the top? Where is it decided whether the loop is done (top = pretest, bottom = posttest)?',
+      points: ['how is it controlled: logical, counted, or a data type’s own iterator', 'can you enter other than at the top?', 'where is the done-test: top (pretest) or bottom (posttest)?'],
+      why: 'C’s goto answers “yes” to entering anywhere; Java’s loops must be entered from the top.',
+      source: 'Slides 10, slide 22' },
     { id: 'l10-fallthrough', lecture: '10', type: 'typed',
       prompt: 'What does this C code print?',
       code: `int n = 2;
@@ -992,6 +1878,11 @@ int main(void){ int i, j, sum = 0; for(i = 0, j = 2; i < 10; sum = ++i + j, j *=
 int main(void){ int i; for(i = 0; i < 10; i++){ printf("%d ", i); i *= 5; } return 0; }` } },
     { id: 'l10-loop-compare', lecture: '10', type: 'recall',
       prompt: 'Why does  i *= 5  change how many times the C loop runs, but not the Python loop?',
+      code: `Python                       C
+for i in range(10):          for(i = 0; i < 10; i++){
+    print(i)                     printf("%d ", i);
+    i *= 5                       i *= 5;
+                             }`,
       answer: 'C’s for(exp1; exp2; exp3) is really a while loop over an ordinary variable, so changing i changes the test. Python’s for takes the next value from range() each time, so changes to i inside the body are overwritten.',
       points: ['C: the loop variable is an ordinary variable tested each pass', 'Python: each pass takes the next value from the iterator', 'so changes to i are lost in Python'],
       why: 'The intent of a counted loop is easy counting; C’s version is more general than the intent.',
@@ -1014,6 +1905,48 @@ int main(void){ int i; for(i = 0; i < 10; i++){ printf("%d ", i); i *= 5; } retu
       points: ['library creator writes the iterator (current + move to next)', 'user just writes for-each'],
       why: 'Python’s for weather in myList and Java’s for(String weather: myList) are the same idea.',
       source: 'Slides 10, slide 27' },
+
+    // ───────────── Argue a design choice ─────────────
+    // Her tests ask “Should a language allow X? Why or why not?” and mark the justification,
+    // not the side. Every card here is graded on the same four points (ARGUE).
+    ...[
+      { id: 'x-argue-goto', lecture: '10',
+        prompt: 'Should a language have goto? Argue it. (Her slide asks: is the goto the problem, or the programmer who uses it?)',
+        answer: 'No (either side can be argued). Criterion: readability and reliability. goto lets control jump into and out of the middle of structures, so the program can no longer be read top to bottom: a backwards  goto L7;  into a loop makes the flow a puzzle. Trade-off: goto is sufficient for everything and is sometimes the clearest exit from nested loops or jump to shared cleanup code in C. Java covers those uses with break, continue and labelled break, so a careful programmer loses little.',
+        source: 'Slides 10, slides 26 and 28' },
+      { id: 'x-argue-fallthrough', lecture: '10',
+        prompt: 'Should a switch statement fall through to the next case by default, as C’s does? Argue it.',
+        answer: 'No. Criterion: reliability. A forgotten break silently runs the next case:  case 1: x++;  case 2: y++;  increments y when the value is 1. Trade-off: fall-through lets several values share code ( case \'a\': case \'e\': vowels++; break; ). C# keeps that (stacked labels with no statements between them) but requires every segment with code to end in break or goto.',
+        source: 'Slides 10, slides 17-18' },
+      { id: 'x-argue-intcond', lecture: '10',
+        prompt: 'Should an if statement accept an integer (arithmetic) condition, as C does, or only a boolean, as Java does? Argue it.',
+        answer: 'Boolean only. Criterion: reliability. In C,  if (userNum = favNum)  compiles and is true for any nonzero favNum; in Java the same line is a compile-time type error. Trade-off: writeability. C idioms like  while (*endString)  and  if (count)  are shorter, and C programmers rely on them.',
+        source: 'Slides 10, slide 8; Pre Test on C, Q1d' },
+      { id: 'x-argue-dynscope', lecture: '5.2',
+        prompt: 'Should a language use dynamic scoping? Argue it.',
+        answer: 'No. Criterion: readability and reliability. In the kiwi program, the kiwi that f adds is 16 or 12 depending on who called f, so you cannot tell what a name means by reading the code, and any called function can change its callers’ locals. Trade-off: a called subprogram can use its caller’s variables without passing parameters, which makes it easier to avoid globals.',
+        source: 'Slides 5.2, slides 23-26; Post Test Names Q4' },
+      { id: 'x-argue-maxlen', lecture: '5.1',
+        prompt: 'Should a language set a maximum length for names? Argue it.',
+        answer: 'No (or only a generous one). Criterion: readability. numberOfStudentsEnrolled says what it holds; early Fortran’s 6-character limit forced names like NSTENR. Trade-off: cost. A limit made early compilers and linkers simpler (fixed-size symbol-table entries), which is why C only promises a minimum number of significant characters.',
+        source: 'Slides 5.1, slide 9 (design issue: length)' },
+      { id: 'x-argue-reserved', lecture: '5.1',
+        prompt: 'Should a language’s special words be reserved words, or keywords that are special only in context (as in Fortran)? Argue it.',
+        answer: 'Reserved. Criterion: readability. With keywords, Fortran accepts  INTEGER REAL  and  REAL INTEGER : a variable named REAL of type integer and one named INTEGER of type real. Trade-off: reserved words take names away from the programmer (no variable called class), and adding a reserved word in a later version breaks old programs that used it as a name.',
+        source: 'Slides 5.1, slide 8 (the Fortran example is Sebesta ch. 5)' },
+      { id: 'x-argue-nested', lecture: '5.2',
+        prompt: 'Should a language allow nested function definitions (as Python, JavaScript and Scheme do)? Argue it.',
+        answer: 'Yes. Criterion: writeability and support for abstraction. A helper that only one function uses can be hidden inside it and can read that function’s locals:  def area(r):  def sq(): return r * r … . Trade-off: nested static scopes are harder to read (which x is this? follow the static ancestors) and to implement; C leaves them out.',
+        source: 'Slides 5.2, slide 19 (nested methods create nested static scopes)' },
+      { id: 'x-argue-assignexpr', lecture: '10',
+        prompt: 'Should assignment be an expression with a value (as in C), or only a statement? Argue it.',
+        answer: 'Only a statement. Criterion: reliability.  if (userNum = favNum)  is legal C and is true for any nonzero favNum, a bug that looks like a comparison. Trade-off: writeability.  a = b = 0;  and  while ((c = getchar()) != EOF)  are compact idioms that need assignment to have a value.',
+        source: 'Slides 10, slide 8' },
+    ].map(c => Object.assign({
+      type: 'recall',
+      points: ARGUE,
+      why: 'Either side earns the marks if it is justified. Check your answer against the four points, not against this model argument.',
+    }, c, { source: c.source + ' (prompt is a practice item; model argument written from the course criteria)' })),
   ];
 
   // Fill-ins on the student slides. Answers are the owner's, from lecture notes.

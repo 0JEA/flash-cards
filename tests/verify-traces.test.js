@@ -8,9 +8,8 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 require('../js/grade.js');
-for (const f of ['csc370', 'softtest-a', 'softtest-b', 'softtest-c', 'softtest', 'ethics']) {
-  try { require('../decks/' + f + '.js'); } catch (e) { if (e.code !== 'MODULE_NOT_FOUND') throw e; }
-}
+// Every deck file index.html loads (a missing file fails: a skipped deck would look verified).
+for (const f of ['csc370', 'softtest-a', 'softtest-b', 'softtest-c', 'softtest', 'ethics', 'csc310-a', 'csc310-b', 'csc310']) require('../decks/' + f + '.js');
 const { grade, decks } = globalThis.FC;
 
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fc-traces-'));

@@ -1,6 +1,7 @@
 // Clear standalone questions for the CSC 370 lecture blanks (2026-10-16). The slide fragments
 // ("Orthogonality: ____ to rules") were too ambiguous to answer; each blank id maps to a
-// question whose one right answer is `answer`.
+// question whose one right answer is `answer`. Blanks listed in FC.blankRetired
+// (decks/csc370-blank-answers.js) are not studied; their questions stay for the fill-in screen.
 (function (FC) {
   FC.blankQuestions = {
     // ---- Lecture 1: Introduction / language evaluation criteria ----
@@ -14,7 +15,7 @@
     'b1-14-1frds5a': { ask: 'Syntax design: give an example of a special word.', answer: 'A reserved word such as while, class, or for' },
     'b1-14-1fj8yuf': { ask: 'Syntax design: what aspect of compound statements affects readability?', answer: 'The method of forming them (e.g. end if / end loop vs braces)' },
     'b1-14-14iqt74': { ask: 'Syntax design: what should be meaningful, so that a construct’s form indicates its purpose?', answer: 'Keywords (self-descriptive constructs)' },
-    'b1-15-17cbqtc': { ask: 'Support for abstraction: abstraction lets you define and use complex structures or operations while doing what with their details?', answer: 'Ignoring them (details can be ignored)' },
+    'b1-15-17cbqtc': { ask: 'Define support for abstraction as a language criterion.', answer: 'Being able to define complex structures or operations and then use them while ignoring their details' },
     'b1-15-7vrq6m': { ask: 'Expressivity: what does it mean for a language to be expressive (e.g. Lisp’s mapcar)?', answer: 'A short command does a lot of computation' },
     'b1-16-5s267y': { ask: 'Type checking: who or what performs the check that variables are used with correct types?', answer: 'The compiler (or the run-time system)' },
     'b1-16-1o087oo': { ask: 'Type checking: what property of each variable is checked for correct use?', answer: 'Its type (type usage)' },
@@ -58,15 +59,15 @@
     'b2-21-1n18m9z': { ask: 'Pure Lisp: which built-in function constructs a list?', answer: 'cons (also list)' },
     'b2-21-1yv7i6o': { ask: 'Pure Lisp: which built-in stops an expression from being evaluated?', answer: 'quote (\')' },
     'b2-21-17znw7t': { ask: 'Pure Lisp: which built-in forces an expression to be evaluated?', answer: 'eval' },
-    'b2-21-131ctqn': { ask: 'Pure Lisp: which built-in is used for conditions?', answer: 'cond' },
+    'b2-21-131ctqn': { ask: 'Pure Lisp: which built-in is used for conditions?', answer: 'cond (if also works)' },
     'b2-22-1sar9py': { ask: 'Lisp: how is LISP labelled as a programming language, in terms of its age and continued use?', answer: '2nd Oldest WSUT (Widely Still Used Today) Programming Language' },
     'b2-22-1nrcgpx': { ask: 'Lisp history (1959): what did Steve Russell implement on the IBM 704?', answer: 'eval, i.e. the first Lisp interpreter' },
     'b2-22-1cnplg7': { ask: 'Lisp history (1962): what did Tim Hart and Mike Levin build, the first of its kind for Lisp?', answer: 'The first Lisp compiler (written in Lisp)' },
     'b2-22-5qngrm': { ask: 'Lisp history (1973): what did Richard Greenblatt and Thomas Knight build, the first of its kind?', answer: 'The first Lisp machine (MIT)' },
     'b2-24-13lgn3q': { ask: 'Lisp current status: what is Lisp’s historical track record in its main application field?', answer: 'It dominated AI for about 25 years' },
     'b2-24-1ed7fqu': { ask: 'Lisp current status: in what field is Lisp still a leader?', answer: 'AI (artificial intelligence)' },
-    'b2-24-1jb3gcb': { ask: 'Lisp current status: what language is Lisp’s competitor?', answer: 'Python (historically Prolog)' },
-    'b2-25-g4eews': { ask: 'Algol: what tongue-in-cheek label is Algol given as a programming language?', answer: 'The Best Programming Language You’ve Never Heard Of' },
+    'b2-24-1jb3gcb': { ask: 'Lisp current status: what language is Lisp’s competitor?', answer: 'Unknown (not in her PDFs); best guess Python' },
+    'b2-25-g4eews': { ask: 'Algol: what label does her slide badge give Algol?', answer: 'Unknown: the badge text is not in her PDFs' },
     'b2-25-1i08umn': { ask: 'Algol: what was Algol’s goal?', answer: 'A universal, machine-independent language for expressing algorithms' },
     'b2-25-4ez7f5': { ask: 'Algol: who designed Algol?', answer: 'An international committee (ACM + GAMM: U.S. + Germany)' },
     'b2-25-1tp5re4': { ask: 'Algol: how are most programming languages around today related to Algol?', answer: 'They descend from (are based on) Algol' },
@@ -79,7 +80,7 @@
     'b2-29-1dxh0dq': { ask: 'Algol contributions: Algol formalized the concept of what?', answer: 'Data type' },
     'b2-29-1u3hy07': { ask: 'Algol contributions: how long could identifier names be?', answer: 'Any length' },
     'b2-29-soyamr': { ask: 'Algol contributions: how many subscripts could arrays have?', answer: 'Any number' },
-    'b2-29-wvjh0m': { ask: 'Algol contributions: by what were parameters distinguished as in or out?', answer: 'Mode (parameter mode)' },
+    'b2-29-wvjh0m': { ask: 'Algol introduced parameter modes. What is a parameter’s mode?', answer: 'Whether it carries data in to the subprogram, out of it, or both' },
     'b2-29-17ert3j': { ask: 'Algol contributions: what were array subscripts placed in?', answer: 'Brackets [ ]' },
     'b2-30-5loocb': { ask: 'Algol contributions: what kind of program structure (creating local scopes) did Algol introduce?', answer: 'Block structure' },
     'b2-30-wcesra': { ask: 'Algol contributions: what kind of clause did Algol’s IF statement have?', answer: 'An else-if clause' },
@@ -94,7 +95,7 @@
     'b2-34-d154lm': { ask: 'COBOL: how is COBOL labelled as a programming language, in terms of its age and continued use?', answer: '3rd Oldest WSUT (Widely Still Used Today) Programming Language' },
     'b2-34-1wt15e2': { ask: 'COBOL (Grace Hopper): what did Hopper want programs to move towards, away from mathematical notation?', answer: 'English' },
     'b2-34-1nex99h': { ask: 'COBOL (1959): who designed COBOL?', answer: 'A committee (CODASYL: computer makers + U.S. DoD)' },
-    'b2-34-1rw1fxo': { ask: 'COBOL: how much has COBOL influenced other languages?', answer: 'Hardly at all' },
+    'b2-34-1rw1fxo': { ask: 'COBOL: how much has COBOL influenced other languages?', answer: 'Very little, except its records (hierarchical data structures), which prompted structs in C' },
     'b2-35-1brpsfm': { ask: 'COBOL goals: what should COBOL look like?', answer: 'Simple English' },
     'b2-35-1r93pxg': { ask: 'COBOL goals: what should managers be able to do with COBOL programs?', answer: 'Read and understand them' },
     'b2-35-hq9j73': { ask: 'COBOL goals: what trade-off did COBOL make between ease of use and power?', answer: 'Easy to use, even if that means less powerful' },
@@ -114,7 +115,7 @@
     'b4-6-1pvaezd': { ask: 'Terminology: what is a lexeme (e.g. *, +, if, begin)?', answer: 'The lowest-level syntactic unit' },
     'b4-6-25409l': { ask: 'Terminology: what is a token (e.g. identifier, reserved word, operator, number)?', answer: 'A category of lexemes' },
     'b4-6-11dwxuq': { ask: 'Terminology: what is a sentence?', answer: 'A string of characters (lexemes) over the alphabet' },
-    'b4-6-a4deke': { ask: 'Terminology: a language is all possible sentences put together in all possible ways; in programming terms, what does that equal?', answer: 'All possible programs' },
+    'b4-6-a4deke': { ask: 'In translation terminology, what is a language?', answer: 'The set of all possible sentences; for a programming language, all possible programs' },
     'b4-9-1c2lc5i': { ask: 'BNF (Backus & Chomsky): what kind of language is BNF, used to describe programming languages?', answer: 'A metalanguage' },
     'b4-10-1emla9x': { ask: 'BNF: what is a BNF description (a collection of rules) called?', answer: 'A grammar' },
     'b4-10-gksina': { ask: 'Grammar: what is each BNF rule called, and what is its form?', answer: 'A production: LHS -> RHS' },
@@ -122,7 +123,7 @@
     'b4-10-zrpxqy': { ask: 'Grammar: what does the right-hand side (RHS) of a BNF rule contain?', answer: 'A string of terminals and/or nonterminals' },
     'b4-11-um78hb': { ask: 'Grammar: what is the start symbol?', answer: 'The nonterminal where every derivation starts (e.g. <program>)' },
     'b4-11-19gijsp': { ask: 'Grammar: what is a derivation?', answer: 'A sequence of rule applications from the start symbol until only terminals remain' },
-    'b4-14-1mg5y26': { ask: 'Ambiguous grammar: what is an ambiguous grammar?', answer: 'A grammar that can generate a sentence in more than one way (more than one meaning)' },
+    'b4-14-1mg5y26': { ask: 'Ambiguous grammar: what is an ambiguous grammar?', answer: 'A grammar in which some sentence has two or more distinct parse trees (equivalently, two different leftmost derivations)' },
     'b4-18-1rtsj9w': { ask: 'Associativity of operators: to make <expr> → <expr> / <expr> | <const> unambiguous and left-associative, what does the grammar allow less of?', answer: 'Recursion (keep only left recursion)' },
 
     // ---- Lecture 5.1: Names, binding time, address ----
@@ -138,7 +139,7 @@
     'b5.1-13-3wpx1n': { ask: 'Binding times: give an example of a binding made at compile time.', answer: 'A variable bound to its type (C, Java)' },
     'b5.1-13-1mvewaw': { ask: 'Binding times: give an example of a binding made at load time.', answer: 'A C static/global variable bound to a memory cell' },
     'b5.1-13-3j4dxz': { ask: 'Binding times: give an example of a binding made at run time.', answer: 'A local (non-static) variable bound to a memory cell' },
-    'b5.1-20-uo4ng': { ask: 'Value: where does a variable’s value go?', answer: 'In the memory cell (at the variable’s address)' },
+    'b5.1-20-uo4ng': { ask: 'What is a variable’s value?', answer: 'The contents of the memory cell(s) at its address, read through its type (the programmer’s meaning)' },
     'b5.1-23-512qco': { ask: 'Lifetime: lifetime is the time during which what is bound to a particular memory cell?', answer: 'A name' },
 
     // ---- Lecture 5.2: Lifetime, scope, constants ----
@@ -149,7 +150,7 @@
     'b5.2-5-1cn54g5': { ask: 'Static lifetime: what is its main advantage?', answer: 'Efficiency (fast)' },
     'b5.2-5-185j6u1': { ask: 'Static lifetime: what kind of addressing do static variables use?', answer: 'Direct addressing' },
     'b5.2-5-1apq569': { ask: 'Static lifetime: what is its main disadvantage?', answer: 'Lack of flexibility' },
-    'b5.2-5-o2oefn': { ask: 'Static lifetime: since a static variable’s memory is always in use, what programming technique is impossible?', answer: 'Recursion' },
+    'b5.2-5-o2oefn': { ask: 'Static lifetime: what programming technique is impossible if every variable is static?', answer: 'Recursion (each variable has one cell for the whole run, so a second active call would overwrite the first)' },
     'b5.2-5-qzsegc': { ask: 'Static lifetime: what must be known before run time for static allocation to work?', answer: 'The size (amount of memory needed)' },
     'b5.2-5-vfx0v2': { ask: 'Static lifetime: what becomes difficult because each static variable keeps its own memory?', answer: 'Sharing storage among variables' },
     'b5.2-7-1ioamgu': { ask: 'Stack-dynamic lifetime: when are storage bindings created?', answer: 'When their declaration statements are elaborated (reached during execution)' },
@@ -177,7 +178,7 @@
     'b5.2-18-1c3pdl9': { ask: 'Static scoping: what is the nearest enclosing scope called?', answer: 'The static parent' },
     'b5.2-20-1rd28ca': { ask: 'Scope hole: where must a same-named declaration be to hide an outer variable?', answer: 'In a closer (more local) scope' },
     'b5.2-22-1ggm1g': { ask: 'Globals: give an example of when a global is handy.', answer: 'A constant used everywhere (e.g. PI, max size)' },
-    'b5.2-22-oyg3tt': { ask: 'Globals: what must you get before using a global?', answer: 'Permission (justify it)' },
+    'b5.2-22-oyg3tt': { ask: 'Globals: what must you get before using a global?', answer: 'Unknown: the slide word is not in her PDFs' },
     'b5.2-25-1tsvhoc': { ask: 'Static scoping: what advantage does static scoping have in terms of language adoption?', answer: 'Most languages use it' },
     'b5.2-25-cfdb6p': { ask: 'Static scoping: how can you tell which variable a name refers to, without running the program?', answer: 'Just look at the program' },
     'b5.2-25-2dcfzo': { ask: 'Static scoping: as a disadvantage, what do people tend to do with variables?', answer: 'Make them global (too much access)' },

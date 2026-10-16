@@ -4,17 +4,21 @@
 
   // Collapse all whitespace (so multi-line output can be typed on one line), fold case,
   // straighten smart quotes, and drop one trailing period.
-  function normalize(s) {
-    return String(s)
+  function normalize(s, keepCase) {
+    const t = String(s)
       .replace(/[‘’]/g, "'").replace(/[“”]/g, '"')
-      .replace(/\s+/g, ' ').trim().toLowerCase()
+      .replace(/\s+/g, ' ').trim()
       .replace(/\.$/, '');
+    return keepCase ? t : t.toLowerCase();
   }
 
+  // Program output (cards whose answer was produced by running `verify`) must match
+  // exactly apart from whitespace (L3); every other short answer ignores case.
   function typed(given, card) {
-    const g = normalize(given);
+    const keepCase = !!card.verify;
+    const g = normalize(given, keepCase);
     if (!g) return false;
-    return [card.answer].concat(card.accept || []).some(a => normalize(a) === g);
+    return [card.answer].concat(card.accept || []).some(a => normalize(a, keepCase) === g);
   }
 
   // Optimal string alignment distance: insert, delete, substitute, or swap two

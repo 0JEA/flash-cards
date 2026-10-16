@@ -143,3 +143,22 @@ test('session: a correct Guess is re-asked like a miss (3-5 cards later)', () =>
   sess.record('a', { ok: 1, sure: 0, learningShort: false });
   assert.equal(sess.queue.indexOf('a'), 3);
 });
+
+test('a review answered before its due day (a stale device) does not move the schedule', () => {
+  const ev = [rev('a', 0, 1), rev('a', 0, 1), rev('a', 0, 1), rev('a', 1, 1), // step 1, due day 4
+    rev('a', 2, 1)];                                                        // early: ignored
+  const st = S.states(ev, cards)['a'];
+  assert.equal(st.step, 1);
+  assert.equal(st.due, today(4));
+});
+
+test('a re-ask just after midnight is not the next day\'s review (needs 6+ hours since the last attempt)', () => {
+  // Day 3 at 23:58 miss (due day 3 after a graduation on day 2), re-asked 4 minutes later = day 4 00:02.
+  const late = (d, h, m) => base + d * DAY + (h - 12) * 3600000 + m * 60000;
+  const ev = [rev('a', 2, 1), rev('a', 2, 1), rev('a', 2, 1),
+    { i: 'm1', t: late(3, 23, 58), k: 'r', c: 'a', ok: 0, s: 1, d: 'x' },
+    { i: 'm2', t: late(4, 0, 2), k: 'r', c: 'a', ok: 1, s: 1, d: 'x' }];
+  const st = S.states(ev, cards)['a'];
+  assert.equal(st.step, 0);                         // the 00:02 retry did not promote it
+  assert.deepEqual(S.delayedRecall(ev, today(4), 14), { right: 0, total: 1 });
+});

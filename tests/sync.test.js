@@ -97,3 +97,18 @@ test('one device alone: events added after a sync are uploaded on the next sync'
   out = await a.sync(out.concat([ev('2', OCT + 1)]));   // remote unchanged since our last write
   assert.deepEqual(log.fromJSONL(gh.files.get('log/2026-10.jsonl').text).map(e => e.i), ['1', '2']);
 });
+
+test('two tabs sharing one browser: a stale tab never deletes the other tab\'s synced events', async () => {
+  const gh = fakeGitHub();
+  const shared = memStore();                       // one browser: one sync cache
+  const A = Sync.create({ token: 'good', fetch: gh.fetch, store: shared });
+  const B = Sync.create({ token: 'good', fetch: gh.fetch, store: shared });
+  const base = [ev('x1', OCT), ev('x2', OCT + 1)];
+  const a = base.concat([1, 2, 3, 4, 5].map(k => ev('a' + k, OCT + 10 + k)));
+  await A.sync(a);                                  // remote: 7 events
+  let b = await B.sync(base.concat([ev('b1', OCT + 30)]));       // stale tab B, never pulled
+  b = await B.sync(b.concat([1, 2, 3, 4].map(k => ev('b' + (k + 1), OCT + 40 + k))));
+  const remote = log.fromJSONL(gh.files.get('log/2026-10.jsonl').text).map(e => e.i);
+  for (const k of [1, 2, 3, 4, 5]) assert.ok(remote.includes('a' + k), 'lost a' + k);
+  for (const k of [1, 2, 3, 4, 5]) assert.ok(remote.includes('b' + k), 'lost b' + k);
+});

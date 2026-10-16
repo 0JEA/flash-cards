@@ -77,7 +77,21 @@
       return (await res.json()).content.sha;
     }
 
+    // Which events a month holds, as a short fingerprint of their sorted ids.
+    function fingerprint(events) {
+      let h = 0x811c9dc5;
+      for (const id of events.map(e => e.i).sort()) {
+        for (let k = 0; k < id.length; k++) { h ^= id.charCodeAt(k); h = Math.imul(h, 0x01000193) >>> 0; }
+        h = Math.imul(h ^ 0x2c, 0x01000193) >>> 0;
+      }
+      return events.length + ':' + h.toString(36);
+    }
+
     // Pull + push in one pass. Returns the merged event list (local ∪ remote).
+    // A month is skipped only when the remote SHA and the exact set of local events
+    // both match the last sync. Otherwise the remote file is always read before it
+    // is written: never assume the local log already holds everything remote has
+    // (another tab, or cleared site data, can make that false).
     async function sync(localEvents) {
       const c = cache();
       let all = localEvents.slice();
@@ -90,23 +104,16 @@
           const sha = remote[month] || null;
           const prev = c.months[month] || {};
           let localM = all.filter(ev => byMonth(ev) === month);
-          // Nothing changed on either side since the last sync of this month.
-          if (sha && sha === prev.sha && localM.length === prev.n) continue;
-          let remoteM = [];
-          if (sha && sha !== prev.sha) {
-            remoteM = (await readMonth(month)).events;
-            all = FC.log.merge(all, remoteM);
-            localM = all.filter(ev => byMonth(ev) === month);
-          } else if (sha) {
-            remoteM = null; // remote unchanged since we last merged it: it is a subset of local
-          }
-          const remoteCount = remoteM === null ? prev.n : remoteM.length;
+          if (sha && sha === prev.sha && fingerprint(localM) === prev.fp) continue;
+          const remoteM = sha ? (await readMonth(month)).events : [];
+          all = FC.log.merge(all, remoteM);
+          localM = all.filter(ev => byMonth(ev) === month);
           let newSha = sha;
-          if (!sha || localM.length > remoteCount) {
+          if (!sha || localM.length > remoteM.length) { // local ⊇ remote after the merge
             newSha = await writeMonth(month, localM, sha);
             if (newSha === null) { stale = true; break; }
           }
-          c.months[month] = { sha: newSha, n: localM.length };
+          c.months[month] = { sha: newSha, fp: fingerprint(localM) };
         }
         saveCache(c);
         if (!stale) return all;

@@ -50,8 +50,15 @@
     }
   }
 
+  // Merge with what is stored before writing: another tab of the same browser may have
+  // saved events this tab never loaded. `events` is updated in place to the union.
   function save(events) {
-    store().setItem(EVENTS_KEY, JSON.stringify(events));
+    const merged = merge(load(), events);
+    if (merged.length !== events.length) {
+      events.length = 0;
+      for (const ev of merged) events.push(ev);
+    }
+    store().setItem(EVENTS_KEY, JSON.stringify(merged));
   }
 
   // Add one event (stamping id, time, device) and persist. Returns the event.

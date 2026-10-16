@@ -1,6 +1,6 @@
 # CSC 370 study app: design
 
-Date: 2026-10-16. Branch: `csc370` of `0JEA/flash-cards`. Status: BUILT on branch `csc370` (2026-10-16). 54 tests, plus a mutation check: 18 of 19 rule-breaking mutations are caught, and the 19th is equivalent.
+Date: 2026-10-16. Branch: `csc370` of `0JEA/flash-cards`. Status: BUILT and merged to `master` (2026-10-16). 59 tests, plus a mutation check: 18 of 19 rule-breaking mutations are caught, and the 19th is equivalent.
 
 ## What NOT to assume (read first)
 

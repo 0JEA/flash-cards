@@ -44,3 +44,11 @@ test('edit distance counts an adjacent swap as one edit', () => {
   assert.equal(G.editDistance('ab', 'ba'), 1);
   assert.equal(G.editDistance('recieve', 'receive'), 1);
 });
+
+test('typed: verified program output is case-sensitive; other answers (even beside code) are not', () => {
+  const trace = { answer: 'Hi 30', code: 'x', verify: { lang: 'python', src: '' } };
+  assert.equal(G.typed('hi 30', trace), false);
+  assert.equal(G.typed('Hi   30', trace), true);
+  assert.equal(G.typed('Identifier', { answer: 'identifier', code: 'for (int i = 0; …' }), true);
+  assert.equal(G.typed('turing completeness', { answer: 'Turing completeness' }), true);
+});

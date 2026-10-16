@@ -119,14 +119,23 @@
   }
 
   // ── Study ──────────────────────────────────────────────────────────────
-  $('studyBtn').addEventListener('click', startSession);
+  $('studyBtn').addEventListener('click', async () => {
+    // Pull first, so a card another device already reviewed today is not asked again.
+    const btn = $('studyBtn');
+    if (store.getItem(TOKEN_KEY)) {
+      btn.disabled = true; btn.textContent = 'Syncing…';
+      await Promise.race([syncNow(), new Promise(r => setTimeout(r, 5000))]); // offline: study anyway
+      btn.textContent = 'Study';
+    }
+    startSession();
+  });
   $('endBtn').addEventListener('click', () => endSession(true));
 
   function startSession() {
     const cards = allCards();
     const sts = sched.states(events, cards, { examDay: examDay() });
     const queue = sched.buildQueue(sts, cards, today(), { newPerDay: settings.newPerDay });
-    if (!queue.length) return;
+    if (!queue.length) { renderHome(); return; } // a sync may have just finished today's work
     session = new sched.Session(queue);
     session.byId = new Map(cards.map(c => [c.id, c]));
     session.firstTry = new Map(); // card id -> right on first attempt this session
@@ -250,15 +259,17 @@
       wrap.append(ta);
       read = () => ({ given: ta.value, ready: ta.value.trim().length > 0 });
       ta.addEventListener('keydown', e => {
-        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); submit(!e.shiftKey); }
+        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); e.stopPropagation(); submit(!e.shiftKey); }
       });
     } else if (card.type === 'typed' || card.type === 'cloze') {
-      const input = h('input', { type: 'text', id: 'ans', class: card.code ? 'mono' : null, 'aria-label': 'Your answer',
+      const input = h('input', { type: 'text', id: 'ans', class: card.verify ? 'mono' : null, 'aria-label': 'Your answer',
         autocomplete: 'off', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false',
-        placeholder: card.code ? 'Exact output (spacing and line breaks don’t matter)' : 'Your answer' });
+        placeholder: card.verify ? 'Exact output (spacing and line breaks don’t matter)' : 'Your answer' });
       wrap.append(input);
       read = () => ({ given: input.value, ready: input.value.trim().length > 0 });
-      input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); submit(!e.shiftKey); } });
+      // stopPropagation: the same Enter must not reach the document handler, which would
+      // see the new pending answer and skip straight past the feedback.
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); submit(!e.shiftKey); } });
     } else if (card.type === 'mc') {
       const opts = sched.shuffled([card.answer].concat(card.options));
       let chosen = null;
@@ -383,7 +394,7 @@
       if ((card.type === 'typed' || card.type === 'cloze') && p.ok === false && !p.gaveUp) {
         // Exact matching can reject a right answer worded differently; allow an honest override.
         const ov = h('button', { class: 'linkbtn', onclick: () => { p.ok = true; p.override = true; ov.remove(); paintVerdict(); } },
-          card.code ? 'I was right (only formatting differs)' : 'I was right (only wording differs)');
+          card.verify ? 'I was right (only formatting differs)' : 'I was right (only wording differs)');
         fb.append(ov);
       }
       row.append(h('button', { class: 'btn primary', id: 'contBtn', onclick: cont }, 'Continue', h('span', { class: 'kbd' }, '⏎')));
@@ -415,7 +426,7 @@
 
   // Keyboard: answer shortcuts while answering; Enter / 1 / 2 on feedback.
   document.addEventListener('keydown', e => {
-    if ($('screen-study').hidden || !current || animating) return;
+    if (e.defaultPrevented || $('screen-study').hidden || !current || animating) return;
     const typing = /^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName) && !document.activeElement.disabled;
     if (current.pending) {
       if (current.card.type === 'recall' && current.pending.ok === null && !current.pending.gaveUp) {
@@ -532,7 +543,14 @@
   }
   let pushTimer = null;
   function pushSoon() { clearTimeout(pushTimer); pushTimer = setTimeout(syncNow, 1500); }
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') syncNow(); });
+  // Push when leaving; pull when coming back (a tab left open overnight is stale).
+  document.addEventListener('visibilitychange', () => syncNow());
+  // Another tab of this browser saved events: take them in (log.save merges both ways).
+  window.addEventListener('storage', e => {
+    if (e.key !== 'fc.events') return;
+    log.save(events);
+    if (!$('screen-home').hidden) renderHome();
+  });
 
   // ── Boot ───────────────────────────────────────────────────────────────
   show('home');

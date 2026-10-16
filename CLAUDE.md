@@ -36,7 +36,7 @@ Then update the `<script>` tag in `index.html`.
 
 ## Commands
 
-- Tests (54, about 1 s; needs python3, gcc, node, bash, guile, ecl): `node --test tests/`
+- Tests (59, about 1 s; needs python3, gcc, node, bash, guile, ecl): `node --test tests/`
 - Run locally: `python3 -m http.server 8765 --bind 127.0.0.1`, then open http://127.0.0.1:8765/. Opening `index.html` directly from disk also works.
 
 ## Deployed vs repo-only

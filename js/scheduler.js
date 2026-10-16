@@ -9,6 +9,10 @@
   const LEARN_CRITERION = 3;  // correct + sure answers on the first day (Rawson & Dunlosky 2011)
   const MASTERED_STEP = 3;    // three successful relearning days
   const EXAM_FRACTION = 0.3;  // gap <= 30% of days left (Cepeda 2008: 20-40% for short horizons)
+  // An attempt only counts as a fresh review (and as delayed recall) if it comes at least
+  // this long after the card's previous attempt. Stops a re-ask at 00:02 after a miss at
+  // 23:58 from counting as "the next day's" review.
+  const MIN_REVIEW_GAP = 6 * 3600000;
 
   // Local calendar day number, so "today" flips at the learner's midnight.
   function dayOf(t) {
@@ -29,6 +33,7 @@
   // Replay one card's review events (sorted by time) into its current state.
   function replay(evs, examDay) {
     const st = { phase: 'new', step: 0, due: null, firstDay: null, lastDay: null, byDay: new Map() };
+    const gapBefore = new Map(evs.map((ev, k) => [ev, k ? ev.t - evs[k - 1].t : Infinity]));
     for (const ev of evs) {
       const day = dayOf(ev.t);
       if (!st.byDay.has(day)) st.byDay.set(day, []);
@@ -50,8 +55,12 @@
         }
         continue; // learning cards are always due until they graduate
       }
-      // Review: only the day's first attempt decides the outcome (L9).
-      const first = list[0];
+      // Review: the day's first attempt decides the outcome (L9). Ignored when the card
+      // was not due yet (a stale device asked it early) or when it is a quick re-ask
+      // rather than a delayed review (see MIN_REVIEW_GAP).
+      if (day < st.due) continue;
+      const first = list.find(ev => gapBefore.get(ev) >= MIN_REVIEW_GAP);
+      if (!first) continue;
       if (success(first)) st.step = Math.min(st.step + 1, INTERVALS.length - 1);
       else if (first.ok !== 1) st.step = 0;
       // correct but Guess: step unchanged
@@ -105,23 +114,22 @@
     return shuffle(due).concat(fresh);
   }
 
-  // Delayed recall (L12): first attempt per card per day, only when the card was last
-  // seen on an earlier day; over the `window` days ending today.
+  // Delayed recall (L12): per card per day, the first attempt made at least
+  // MIN_REVIEW_GAP after the card's previous attempt; over the `window` days ending today.
   function delayedRecall(events, today, window = 14) {
-    const lastDay = new Map();
+    const lastT = new Map();
     const counted = new Set();
     let right = 0, total = 0;
     const sorted = events.filter(e => e.k === 'r').sort((a, b) => a.t - b.t);
     for (const ev of sorted) {
       const day = dayOf(ev.t);
-      const prev = lastDay.get(ev.c);
+      const prev = lastT.get(ev.c);
       const key = ev.c + '@' + day;
-      if (prev !== undefined && prev < day && !counted.has(key)) {
+      if (prev !== undefined && ev.t - prev >= MIN_REVIEW_GAP && !counted.has(key)) {
         counted.add(key);
         if (day > today - window && day <= today) { total++; if (ev.ok === 1) right++; }
       }
-      if (prev === undefined || day >= prev) lastDay.set(ev.c, day);
-      counted.add(key); // later same-day attempts never count
+      lastT.set(ev.c, ev.t);
     }
     return { right, total };
   }

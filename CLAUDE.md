@@ -2,8 +2,9 @@
 
 ## Read this first (what an agent gets wrong)
 
-- **`master` is LIVE.** GitHub Pages serves `master` of `0JEA/flash-cards` at https://0jea.github.io/flash-cards/. Merging or pushing to `master` deploys.
-  Verify: `gh api repos/0JEA/flash-cards/pages --jq '.source,.html_url'`
+- **Pushing `master` does NOT deploy (verified 2026-10-16).** GitHub Pages is configured, but GitHub Actions are DISABLED on this repo, so Pages builds never run. The last build is from 2026-04-21, so https://0jea.github.io/flash-cards/ still serves the OLD ethics quiz. The owner chose NOT to enable Actions and to host on the VPS instead. That is PLANNED, NOT BUILT.
+  Verify: `gh api repos/0JEA/flash-cards/actions/permissions --jq .enabled` (false) and `gh api repos/0JEA/flash-cards/pages/builds/latest --jq '.commit[0:7]'`
+- **Running it today:** open `index.html` locally (`file://`). `?nocode` hides code cards, and `?all` lifts the daily learn limit.
 - **The `progress` branch is DATA, not code.** It holds the owner's review log (`log/YYYY-MM.jsonl`), written by the app through the GitHub API. Never merge it into `master`, never rebase or force-push it, never delete files on it.
   Verify: `gh api "repos/0JEA/flash-cards/contents/?ref=progress" --jq '.[].path'`
 - **The ethics quiz is retired.** `archive/ethics-questions.js` is no longer loaded. Several of its answer keys look wrong; it was left untouched on purpose.
@@ -43,5 +44,5 @@ Then update the `<script>` tag in `index.html`.
 
 ## Deployed vs repo-only
 
-- **Deployed:** whatever is on `master` (GitHub Pages).
+- **Deployed:** nothing current. See the first bullet: Pages still serves the April ethics quiz.
 - **Device-only:** the GitHub token (`localStorage['fc.token']`), settings and the local event log live in each browser. Sync makes the log converge across devices; the token never leaves the browser.

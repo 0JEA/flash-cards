@@ -17,18 +17,19 @@
     return [card.answer].concat(card.accept || []).some(a => normalize(a) === g);
   }
 
-  function levenshtein(a, b) {
-    const prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+  // Optimal string alignment distance: insert, delete, substitute, or swap two
+  // adjacent letters, each costing 1 (a swap is the most common typo).
+  function editDistance(a, b) {
+    const d = Array.from({ length: a.length + 1 }, (_, i) => [i].concat(Array(b.length).fill(0)));
+    for (let j = 1; j <= b.length; j++) d[0][j] = j;
     for (let i = 1; i <= a.length; i++) {
-      let diag = prev[0];
-      prev[0] = i;
       for (let j = 1; j <= b.length; j++) {
-        const tmp = prev[j];
-        prev[j] = Math.min(prev[j] + 1, prev[j - 1] + 1, diag + (a[i - 1] === b[j - 1] ? 0 : 1));
-        diag = tmp;
+        const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+        d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + cost);
+        if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
       }
     }
-    return prev[b.length];
+    return d[a.length][b.length];
   }
 
   // Blank answers are the learner's own wording: allow one typo per 8 characters,
@@ -36,12 +37,12 @@
   function cloze(given, expected) {
     const g = normalize(given), e = normalize(expected);
     if (!g) return false;
-    return levenshtein(g, e) <= Math.floor(e.length / 8);
+    return editDistance(g, e) <= Math.floor(e.length / 8);
   }
 
   function order(given, expected) {
     return given.length === expected.length && given.every((x, i) => x === expected[i]);
   }
 
-  FC.grade = { normalize, typed, cloze, order, levenshtein };
+  FC.grade = { normalize, typed, cloze, order, editDistance };
 })(globalThis.FC = globalThis.FC || {});

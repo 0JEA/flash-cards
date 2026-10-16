@@ -28,6 +28,8 @@ test('cloze: tolerates a small typo on longer answers, exact on short ones', () 
   assert.equal(G.cloze('6', '6'), true);
   assert.equal(G.cloze('5', '6'), false);                    // short: exact only
   assert.equal(G.cloze('IBM', 'ibm'), true);
+  // Swapped adjacent letters are the most common typo: one edit, not two.
+  assert.equal(G.cloze('a metalangauge', 'a metalanguage'), true);
 });
 
 test('order: exact sequence only', () => {
@@ -36,7 +38,9 @@ test('order: exact sequence only', () => {
   assert.equal(G.order(['a', 'b'], ['a', 'b', 'c']), false);
 });
 
-test('levenshtein', () => {
-  assert.equal(G.levenshtein('kitten', 'sitting'), 3);
-  assert.equal(G.levenshtein('', 'abc'), 3);
+test('edit distance counts an adjacent swap as one edit', () => {
+  assert.equal(G.editDistance('kitten', 'sitting'), 3);
+  assert.equal(G.editDistance('', 'abc'), 3);
+  assert.equal(G.editDistance('ab', 'ba'), 1);
+  assert.equal(G.editDistance('recieve', 'receive'), 1);
 });

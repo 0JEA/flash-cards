@@ -3,39 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ethics Mastery — Study Guide</title>
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <title>CSC 370 Study</title>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" integrity="sha384-d+vyQ0dYcymoP8ndq2hW7FGC50nqGdXUEgoOUGxbbkAJwZqL7h+jKN0GGgn9hFDS" crossorigin="anonymous"></script>
   <!-- @chenglou/pretext 0.0.9, bundled to an IIFE (global `Pretext`) so it works offline and over file:// -->
   <script src="vendor/pretext-0.0.9.min.js"></script>
   <style>
     :root {
       --bg-primary: #1a1a1a;
       --bg-secondary: #242424;
+      --bg-tertiary: #2e2e2e;
       --text-primary: #f5f5f1;
       --text-secondary: #a8a8a0;
       --accent: #0077b6;
+      --accent-bright: #3d9be0;
       --accent-muted: #005f8a;
       --correct: #2a9d8f;
       --wrong: #c4612a;
+      --warn: #d4a72c;
+      --mono: 'JetBrains Mono', ui-monospace, monospace;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html, body {
-      width: 100%;
-      height: 100%;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; min-height: 100%; }
 
     /* Reserve the scrollbar's space so content width never changes between
-       short and tall questions (Pretext measures at the current width). */
-    html {
-      scrollbar-gutter: stable;
-    }
+       short and tall cards (Pretext measures at the current width). */
+    html { scrollbar-gutter: stable; }
 
     body {
       font-family: 'Geist', sans-serif;
@@ -45,878 +39,305 @@
       overflow-x: hidden;
     }
 
-    /* Subtle background texture */
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-image:
-        repeating-linear-gradient(
-          0deg,
-          rgba(0, 0, 0, 0.03) 0px,
-          rgba(0, 0, 0, 0.03) 1px,
-          transparent 1px,
-          transparent 2px
-        );
-      pointer-events: none;
-      z-index: 1;
-    }
+    [hidden] { display: none !important; }
 
     #app {
-      position: relative;
-      z-index: 2;
       min-height: 100vh;
       min-height: 100dvh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 2rem 1.5rem;
-      padding-top: max(2rem, env(safe-area-inset-top));
+      padding: 1.25rem 1rem 2rem;
+      padding-top: max(1.25rem, env(safe-area-inset-top));
       padding-bottom: max(2rem, env(safe-area-inset-bottom));
-      padding-left: max(1.5rem, env(safe-area-inset-left));
-      padding-right: max(1.5rem, env(safe-area-inset-right));
     }
+    .container { width: 100%; max-width: 640px; }
 
-    .container {
-      width: 100%;
-      max-width: 600px;
-    }
-
-    header {
-      margin-bottom: 1.5rem;
-      text-align: center;
+    /* ── Top bar ── */
+    .topbar {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding-bottom: 0.75rem; margin-bottom: 1.25rem;
       border-bottom: 1px solid var(--accent-muted);
-      padding-bottom: 1rem;
     }
-
-    h1 {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.6rem;
-      font-weight: 700;
-      letter-spacing: -1px;
-      margin-bottom: 0.25rem;
-      color: var(--text-primary);
+    .brand { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.1rem; letter-spacing: -0.5px; margin-right: auto; background: none; border: 0; color: inherit; cursor: pointer; }
+    .navbtn {
+      background: none; border: 0; color: var(--text-secondary); cursor: pointer;
+      font-family: 'Space Grotesk', sans-serif; font-size: 0.75rem; font-weight: 600;
+      letter-spacing: 0.5px; text-transform: uppercase; padding: 0.5rem 0.25rem; min-height: 44px;
     }
+    .navbtn[aria-current="page"] { color: var(--text-primary); box-shadow: inset 0 -2px 0 var(--accent); }
+    .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-secondary); flex: none; }
+    .sync-dot.ok { background: var(--correct); }
+    .sync-dot.busy { background: var(--warn); }
+    .sync-dot.err { background: var(--wrong); }
 
-    .subtitle {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.7rem;
-      font-weight: 400;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      color: var(--text-secondary);
+    /* ── Shared bits ── */
+    .label {
+      font-family: 'Space Grotesk', sans-serif; font-size: 0.65rem; font-weight: 600;
+      letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-secondary);
     }
-
-    .stats {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 0.75rem;
-      gap: 1.5rem;
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.75rem;
+    .panel { background: var(--bg-secondary); border: 1px solid var(--accent-muted); padding: 1.25rem; margin-bottom: 1rem; }
+    .muted { color: var(--text-secondary); font-size: 0.85rem; }
+    .btn {
+      background: var(--bg-secondary); border: 1px solid var(--accent-muted); color: var(--text-primary);
+      padding: 0.7rem 1rem; min-height: 44px; cursor: pointer;
+      font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.5px;
+      -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+      transition: background 0.2s, border-color 0.2s;
     }
+    .btn:hover:not(:disabled) { background: rgba(0, 119, 182, 0.12); border-color: var(--accent); }
+    .btn:disabled { opacity: 0.35; cursor: default; }
+    .btn.primary { background: var(--accent); border-color: var(--accent); }
+    .btn.primary:hover:not(:disabled) { background: var(--accent-bright); border-color: var(--accent-bright); }
+    .btn.big { width: 100%; padding: 1rem; font-size: 1rem; }
+    .btn-row { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+    .btn-row .btn { flex: 1 1 0; }
+    .kbd { font-family: var(--mono); font-size: 0.65rem; opacity: 0.6; margin-left: 0.35rem; font-weight: 400; }
+    @media (hover: none) { .kbd, .kbd-hint { display: none; } }
+    a { color: var(--accent-bright); }
 
-    .stat {
-      display: flex;
-      flex-direction: column;
-      gap: 0.2rem;
-    }
-
-    .stat-label {
-      color: var(--text-secondary);
-      font-weight: 400;
-      font-size: 0.6rem;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-
-    .stat-value {
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--accent);
-    }
-
-    /* Progress bar */
-    .progress-track {
-      height: 2px;
-      background: var(--bg-secondary);
-      margin: 1rem 0;
-      overflow: hidden;
-    }
-
-    .progress-bar {
-      height: 100%;
-      background: var(--accent);
-      width: 0%;
-    }
-
-    /* Question card */
-    .card {
-      background: var(--bg-secondary);
-      border: 1px solid var(--accent-muted);
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      position: relative;
-      min-height: auto;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--accent), transparent);
-      opacity: 0.3;
-    }
-
-    .card-content {
-      text-align: center;
-      width: 100%;
-    }
-
-    .card-label {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.6rem;
-      font-weight: 600;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      color: var(--text-secondary);
-      margin-bottom: 0.6rem;
-      display: block;
-    }
-
-    .card-text {
-      font-size: 0.95rem;
-      line-height: 1.5;
-      color: var(--text-primary);
-    }
-
-    /* Options */
-    .options {
-      display: flex;
-      flex-direction: column;
-      gap: 0.7rem;
-      margin-bottom: 1.5rem;
-      overflow: hidden;
-    }
-
-    .opt-btn {
-      background: var(--bg-secondary);
-      border: 1px solid var(--accent-muted);
-      color: var(--text-primary);
-      padding: 0.85rem 1.2rem;
-      font-family: 'Geist', sans-serif;
-      font-size: 0.85rem;
-      text-align: left;
-      cursor: pointer;
-      transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-      position: relative;
-      overflow: hidden;
-      line-height: 1.5;
-      min-height: 44px;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-    }
-
-    .opt-btn::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      height: 100%;
-      width: 3px;
-      background: transparent;
-      transition: background 0.25s;
-    }
-
-    .opt-btn:hover:not(:disabled) {
-      background: rgba(0, 119, 182, 0.08);
-      border-color: var(--accent);
-    }
-
-    .opt-btn:hover:not(:disabled)::before {
-      background: var(--accent);
-    }
-
-    .opt-btn.correct {
-      background: rgba(42, 157, 143, 0.1);
-      border-color: var(--correct);
-      color: var(--correct);
-    }
-
-    .opt-btn.correct::before {
-      background: var(--correct);
-    }
-
-    .opt-btn.wrong {
-      background: rgba(196, 97, 42, 0.1);
-      border-color: var(--wrong);
-      color: var(--wrong);
-    }
-
-    .opt-btn.wrong::before {
-      background: var(--wrong);
-    }
-
-    .opt-btn:disabled {
-      cursor: default;
-    }
-
-    /* Navigation */
-    .nav {
-      display: flex;
-      gap: 0.75rem;
-      margin-bottom: 1rem;
-    }
-
-    .nav button {
-      flex: 1;
-      background: var(--bg-secondary);
-      border: 1px solid var(--accent-muted);
-      color: var(--text-primary);
-      padding: 0.75rem 0.8rem;
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-      min-height: 44px;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-    }
-
-    .nav button:hover:not(:disabled) {
-      background: rgba(0, 119, 182, 0.1);
-      border-color: var(--accent);
-    }
-
-    .nav button:disabled {
-      opacity: 0.3;
-      cursor: default;
-    }
-
-    /* Completion screen */
-    .done-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(26, 26, 26, 0.95);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      backdrop-filter: blur(2px);
-    }
-
-    .done-card {
-      background: var(--bg-secondary);
-      border: 1px solid var(--accent-muted);
-      padding: 2rem;
-      width: min(400px, calc(100vw - 3rem));
-      text-align: center;
-      position: relative;
-    }
-
-    .done-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--accent), transparent);
-      opacity: 0.3;
-    }
-
-    .done-card h2 {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.4rem;
-      font-weight: 700;
-      margin-bottom: 0.8rem;
-      letter-spacing: -1px;
-    }
-
-    .done-card p {
-      font-size: 0.85rem;
-      margin-bottom: 0.8rem;
-      color: var(--text-secondary);
+    input[type="text"], input[type="password"], input[type="date"], input[type="number"], textarea {
+      width: 100%; background: var(--bg-primary); color: var(--text-primary);
+      border: 1px solid var(--accent-muted); padding: 0.7rem 0.8rem;
+      font-family: 'Geist', sans-serif; font-size: 16px; /* 16px stops iOS zooming on focus */
       line-height: 1.5;
     }
+    input:focus, textarea:focus, .btn:focus-visible, .opt:focus-visible, .tile:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 1px; }
+    textarea { resize: vertical; min-height: 6rem; }
+    input.mono { font-family: var(--mono); font-size: 15px; }
 
-    .done-card .final-grade {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 2.2rem;
-      font-weight: 700;
-      color: var(--accent);
-      margin: 1rem 0;
+    /* ── Home ── */
+    .hero-stats { display: flex; gap: 1.5rem; margin: 0.25rem 0 1rem; }
+    .hero-stats .n { font-family: 'Space Grotesk', sans-serif; font-size: 2rem; font-weight: 700; line-height: 1.1; }
+    .metric { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+    .metric .n { font-family: 'Space Grotesk', sans-serif; font-size: 1.6rem; font-weight: 700; color: var(--accent-bright); }
+    .lec { padding: 0.65rem 0; border-top: 1px solid var(--bg-tertiary); }
+    .lec:first-of-type { border-top: 0; }
+    .lec-head { font-size: 0.9rem; }
+    .lec-sub { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.3rem; }
+    .bar { height: 6px; background: var(--bg-tertiary); margin-top: 0.4rem; display: flex; overflow: hidden; }
+    .bar i { display: block; height: 100%; }
+    .bar .m { background: var(--correct); }
+    .bar .l { background: var(--accent); }
+    .bar .s { background: repeating-linear-gradient(135deg, var(--text-secondary) 0 2px, transparent 2px 5px); opacity: 0.5; }
+    .legend { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.6rem; font-size: 0.72rem; color: var(--text-secondary); }
+    .legend i { display: inline-block; width: 8px; height: 8px; margin-right: 0.3rem; }
+
+    /* ── Study ── */
+    .study-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+    .qcard {
+      background: var(--bg-secondary); border: 1px solid var(--accent-muted);
+      padding: 1.25rem; margin-bottom: 1rem; position: relative; overflow: hidden;
     }
-
-    .done-card button {
-      background: var(--bg-primary);
-      border: 1px solid var(--accent-muted);
-      color: var(--text-primary);
-      padding: 0.75rem 1.5rem;
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-      min-height: 44px;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
+    .qcard-inner { position: relative; }
+    .prompt { font-size: 1rem; line-height: 1.55; margin-top: 0.5rem; white-space: pre-wrap; }
+    pre.code {
+      font-family: var(--mono); font-size: 0.8rem; line-height: 1.5;
+      background: var(--bg-primary); border: 1px solid var(--bg-tertiary);
+      padding: 0.75rem; margin-top: 0.85rem;
+      white-space: pre-wrap; overflow-wrap: anywhere;
     }
+    /* Always-present, invisible copy used as Pretext's style and width reference. */
+    pre.code.ref { position: absolute; visibility: hidden; left: 0; right: 0; top: 0; margin: 0; pointer-events: none; }
 
-    .done-card button:hover {
-      background: rgba(0, 119, 182, 0.1);
-      border-color: var(--accent);
+    .answer-area > * + *, .answer-area-inner > * + * { margin-top: 0.75rem; }
+    .opt {
+      display: block; width: 100%; text-align: left; cursor: pointer;
+      background: var(--bg-secondary); border: 1px solid var(--accent-muted); color: var(--text-primary);
+      padding: 0.8rem 1rem; min-height: 44px; font: inherit; font-size: 0.92rem; line-height: 1.45;
+      -webkit-tap-highlight-color: transparent; touch-action: manipulation;
     }
-
-    /* Initial states set via gsap.set() in JS — not CSS — so dynamically created elements don't inherit them */
-
-    .progress-track {
-      transform-origin: left;
+    .opt + .opt { margin-top: 0.55rem; }
+    .opt[aria-pressed="true"] { border-color: var(--accent-bright); background: rgba(0, 119, 182, 0.18); }
+    .opt.correct { border-color: var(--correct); color: var(--correct); }
+    .opt.wrong { border-color: var(--wrong); color: var(--wrong); }
+    .tiles { display: flex; flex-direction: column; gap: 0.45rem; min-height: 3rem; padding: 0.5rem; border: 1px dashed var(--accent-muted); }
+    .tiles.pool { border-style: solid; border-color: var(--bg-tertiary); }
+    .tile {
+      text-align: left; cursor: pointer; background: var(--bg-tertiary); color: var(--text-primary);
+      border: 1px solid transparent; padding: 0.55rem 0.75rem; min-height: 44px;
+      font-family: var(--mono); font-size: 0.8rem; line-height: 1.4;
+      -webkit-tap-highlight-color: transparent; touch-action: manipulation;
     }
+    .tile .num { color: var(--accent-bright); margin-right: 0.5rem; }
+    .tiles-empty { color: var(--text-secondary); font-size: 0.8rem; padding: 0.4rem; }
+    .kbd-hint { font-size: 0.72rem; color: var(--text-secondary); }
 
-    .done-overlay {
-      opacity: 0;
-    }
+    .feedback { border-left: 3px solid var(--accent); padding: 0.9rem 1rem; background: var(--bg-secondary); }
+    .feedback.good { border-left-color: var(--correct); }
+    .feedback.bad { border-left-color: var(--wrong); }
+    .verdict { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.05rem; }
+    .feedback.good .verdict { color: var(--correct); }
+    .feedback.bad .verdict { color: var(--wrong); }
+    .alert { color: var(--warn); font-size: 0.85rem; font-weight: 600; margin-top: 0.25rem; }
+    .fb-block { margin-top: 0.75rem; }
+    .fb-block .val { margin-top: 0.15rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .fb-block .val.mono { font-family: var(--mono); font-size: 0.82rem; }
+    .points { margin: 0.3rem 0 0 1.1rem; }
+    .points li { margin-top: 0.15rem; }
+    .why { margin-top: 0.75rem; font-size: 0.9rem; }
+    .source { margin-top: 0.6rem; font-size: 0.72rem; color: var(--text-secondary); }
+    .linkbtn { background: none; border: 0; color: var(--accent-bright); cursor: pointer; font: inherit; font-size: 0.85rem; text-decoration: underline; padding: 0.4rem 0; min-height: 44px; }
 
-    /* Mobile */
+    /* ── Blanks ── */
+    .tabs { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .tabs .btn { flex: 0 0 auto; padding: 0.5rem 0.8rem; }
+    .tabs .btn[aria-pressed="true"] { border-color: var(--accent-bright); background: rgba(0, 119, 182, 0.18); }
+    .blank { padding: 0.75rem 0; border-top: 1px solid var(--bg-tertiary); }
+    .blank label { display: block; font-size: 0.9rem; margin-bottom: 0.35rem; }
+    .blank .slide { color: var(--text-secondary); font-family: var(--mono); font-size: 0.72rem; margin-right: 0.4rem; }
+    .blank.filled input { border-color: var(--correct); }
+
+    /* ── Settings ── */
+    .field + .field { margin-top: 1rem; }
+    .field > label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.3rem; }
+    .field .muted { margin-top: 0.3rem; }
+    .status { font-size: 0.85rem; margin-top: 0.4rem; }
+    .status.ok { color: var(--correct); }
+    .status.err { color: var(--wrong); }
+    ol.steps { margin: 0.4rem 0 0 1.2rem; font-size: 0.85rem; color: var(--text-secondary); }
+
     @media (max-width: 480px) {
-      #app {
-        justify-content: flex-start;
-        padding-top: max(1.25rem, env(safe-area-inset-top));
-      }
-
-      h1 {
-        font-size: 1.3rem;
-      }
-
-      .subtitle {
-        font-size: 0.6rem;
-      }
-
-      .stats {
-        gap: 0;
-        justify-content: space-between;
-      }
-
-      .stat {
-        align-items: center;
-        min-width: 0;
-      }
-
-      .stat-label {
-        font-size: 0.55rem;
-      }
-
-      .stat-value {
-        font-size: 0.9rem;
-      }
-
-      header {
-        margin-bottom: 1rem;
-        padding-bottom: 0.75rem;
-      }
-
-      .card {
-        padding: 1.1rem;
-        margin-bottom: 1rem;
-      }
-
-      .card-text {
-        font-size: 0.9rem;
-      }
-
-      .options {
-        gap: 0.55rem;
-        margin-bottom: 1rem;
-      }
-
-      .opt-btn {
-        font-size: 0.82rem;
-        padding: 0.9rem 1rem;
-      }
-
-      .nav {
-        margin-bottom: 0.5rem;
-      }
-
-      .done-card {
-        padding: 1.5rem 1.25rem;
-      }
-
-      .done-card h2 {
-        font-size: 1.2rem;
-      }
-
-      .done-card .final-grade {
-        font-size: 1.9rem;
-      }
+      .qcard { padding: 1rem; }
+      .panel { padding: 1rem; }
+      .hero-stats .n { font-size: 1.7rem; }
+      pre.code { font-size: 0.74rem; padding: 0.6rem; }
     }
   </style>
 </head>
 <body>
   <div id="app">
     <div class="container">
-      <header>
-        <h1>Ethics Mastery</h1>
-        <p class="subtitle">Software Engineering Code of Ethics</p>
-        <div class="stats">
-          <div class="stat">
-            <span class="stat-label">Current</span>
-            <span class="stat-value" id="question-progress">1 / 41</span>
-          </div>
-          <div class="stat">
-            <span class="stat-label">Grade</span>
-            <span class="stat-value" id="current-grade">—</span>
-          </div>
-          <div class="stat">
-            <span class="stat-label">Progress</span>
-            <span class="stat-value" id="progress-pct">0%</span>
-          </div>
-          <div class="stat">
-            <span class="stat-label">Time</span>
-            <span class="stat-value" id="timer">0:00</span>
+      <nav class="topbar" aria-label="Main">
+        <button class="brand" data-nav="home">CSC 370</button>
+        <button class="navbtn" data-nav="home">Home</button>
+        <button class="navbtn" data-nav="blanks">Fill blanks</button>
+        <button class="navbtn" data-nav="settings">Settings</button>
+        <span class="sync-dot" id="syncDot" role="img" aria-label="Sync status"></span>
+      </nav>
+
+      <!-- Home -->
+      <section id="screen-home" aria-labelledby="home-title">
+        <h1 class="label" id="home-title">Today</h1>
+        <div class="hero-stats">
+          <div><div class="n" id="dueCount">0</div><div class="muted">due</div></div>
+          <div><div class="n" id="newCount">0</div><div class="muted">new</div></div>
+        </div>
+        <button class="btn primary big" id="studyBtn">Study</button>
+        <p class="muted" id="studyNote" style="margin-top:0.5rem"></p>
+
+        <div class="panel" style="margin-top:1.25rem">
+          <div class="metric">
+            <div>
+              <div class="label">Delayed recall · last 14 days</div>
+              <div class="muted" id="recallNote"></div>
+            </div>
+            <div class="n" id="recallPct">—</div>
           </div>
         </div>
-      </header>
 
-      <div class="progress-track">
-        <div class="progress-bar" id="progress"></div>
-      </div>
-
-      <div class="card" id="qcard">
-        <div class="card-content">
-          <span class="card-label">Question</span>
-          <div class="card-text" id="qtext"></div>
+        <div class="panel">
+          <div class="label" style="margin-bottom:0.4rem">Lectures</div>
+          <div id="lectureList"></div>
+          <div class="legend">
+            <span><i style="background:var(--correct)"></i>mastered</span>
+            <span><i style="background:var(--accent)"></i>learning / in review</span>
+            <span><i style="background:repeating-linear-gradient(135deg,var(--text-secondary) 0 2px,transparent 2px 5px);opacity:.5"></i>blanks to fill</span>
+          </div>
         </div>
-      </div>
+        <p class="muted" id="examLine"></p>
+      </section>
 
-      <div class="options" id="opts"></div>
+      <!-- Study -->
+      <section id="screen-study" hidden aria-label="Study">
+        <div class="study-top">
+          <span class="label" id="leftCount"></span>
+          <button class="btn" id="endBtn">End session</button>
+        </div>
+        <div class="qcard" id="qcard">
+          <div class="qcard-inner" id="qinner">
+            <!-- Invisible Pretext reference. Inside .qcard-inner (no padding) so its
+                 left:0/right:0 box is exactly the code block's width. -->
+            <pre class="code ref" id="codeRef" aria-hidden="true"></pre>
+            <span class="label" id="qlabel"></span>
+            <div class="prompt" id="qprompt"></div>
+            <pre class="code" id="qcode" hidden></pre>
+          </div>
+        </div>
+        <div class="answer-area" id="answerArea"></div>
+      </section>
 
-      <div class="nav">
-        <button id="prevBtn" onclick="move(-1)">← Previous</button>
-        <button id="nextBtn" onclick="move(1)">Next →</button>
-      </div>
+      <!-- Session done -->
+      <section id="screen-done" hidden aria-labelledby="done-title">
+        <div class="panel">
+          <h2 class="label" id="done-title">Session done</h2>
+          <div class="hero-stats" style="margin-top:0.5rem">
+            <div><div class="n" id="doneCards">0</div><div class="muted">cards</div></div>
+            <div><div class="n" id="doneFirst">—</div><div class="muted">right first try</div></div>
+          </div>
+          <p class="muted" id="doneNext"></p>
+          <p class="muted" style="margin-top:0.5rem">If that felt hard, it is working: spaced, effortful recall feels worse during practice and lasts longer.</p>
+        </div>
+        <button class="btn primary big" data-nav="home">Back to home</button>
+      </section>
+
+      <!-- Fill blanks -->
+      <section id="screen-blanks" hidden aria-labelledby="blanks-title">
+        <h1 class="label" id="blanks-title">Fill the lecture blanks</h1>
+        <p class="muted" style="margin:0.4rem 0 1rem">Fill these from your lecture notes with the slide open. Each blank you fill becomes a card, checked against your own answer. Writing them yourself is part of learning them.</p>
+        <div class="tabs" id="blankTabs" role="group" aria-label="Lecture"></div>
+        <p class="muted" id="blankCount"></p>
+        <div id="blankList"></div>
+      </section>
+
+      <!-- Settings -->
+      <section id="screen-settings" hidden aria-labelledby="settings-title">
+        <h1 class="label" id="settings-title">Settings</h1>
+        <div class="panel" style="margin-top:0.75rem">
+          <div class="field">
+            <label for="examDate">Exam date</label>
+            <input type="date" id="examDate">
+            <p class="muted">Optional. Review gaps are capped at 30% of the days left, so everything gets reviewed again before the exam.</p>
+          </div>
+          <div class="field">
+            <label for="newPerDay">New cards per day</label>
+            <input type="number" id="newPerDay" min="0" max="60" step="1" inputmode="numeric">
+            <p class="muted">Each new card needs 3 correct answers today, so 10 new cards is about 30+ answers.</p>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="field">
+            <label for="token">GitHub token (for syncing phone and laptop)</label>
+            <input type="password" id="token" autocomplete="off" spellcheck="false" placeholder="github_pat_…">
+            <ol class="steps">
+              <li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Create a fine-grained token</a></li>
+              <li>Repository access: <b>Only select repositories</b> → <b>0JEA/flash-cards</b></li>
+              <li>Permissions → Repository → <b>Contents: Read and write</b></li>
+              <li>Paste it here on each device. It stays in this browser only.</li>
+            </ol>
+            <div class="btn-row" style="margin-top:0.75rem">
+              <button class="btn" id="saveToken">Save &amp; test</button>
+              <button class="btn" id="syncNow">Sync now</button>
+            </div>
+            <p class="status" id="syncStatus" role="status"></p>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="field">
+            <label>Backup</label>
+            <button class="btn" id="exportBtn">Download review log (JSON)</button>
+            <p class="muted" id="logSize"></p>
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 
-  <script src="questions.js"></script>
-  <script>
-    // Quiz State
-    let idx = 0;
-    let correct = 0;
-    let wrong = 0;
-    let seconds = 0;
-    let isAnimating = false;
-    let isInitialized = false;
-    const answered = new Array(questions.length).fill(null);
-    const wrongCounts = new Array(questions.length).fill(0);
-
-    // Timer
-    function formatTime(sec) {
-      const mins = Math.floor(sec / 60);
-      const secs = sec % 60;
-      return `${mins}:${secs.toString().padStart(2, '0')}`;
-    }
-
-    setInterval(() => {
-      seconds++;
-      document.getElementById('timer').textContent = formatTime(seconds);
-    }, 1000);
-
-    // Text measurement with Pretext: size the card and options for the incoming
-    // question before its text is in the DOM, so heights tween instead of jumping.
-    const prepared = new Map();
-
-    // Measurements taken before the web font loads are for the fallback font.
-    document.fonts.ready.then(() => { prepared.clear(); Pretext.clearCache(); });
-
-    // Height of `text` laid out at `width`, in the font and line-height of `styleEl`.
-    function textHeight(text, styleEl, width) {
-      const s = getComputedStyle(styleEl);
-      const font = `${s.fontWeight} ${s.fontSize} ${s.fontFamily}`;
-      const key = font + '\n' + text;
-      if (!prepared.has(key)) prepared.set(key, Pretext.prepare(text, font));
-      return Pretext.layout(prepared.get(key), width, parseFloat(s.lineHeight)).height;
-    }
-
-    // Predicted heights of the card and options block for question `q`,
-    // using the elements currently on screen as style references.
-    function measureQuestion(q) {
-      if (!window.Pretext) return null;
-      try {
-        const card = document.getElementById('qcard');
-        const qtext = document.getElementById('qtext');
-        const cardHeight = card.offsetHeight - qtext.offsetHeight + textHeight(q.q, qtext, qtext.getBoundingClientRect().width);
-
-        const ref = document.querySelector('.opt-btn');
-        const optsDiv = document.getElementById('opts');
-        const bs = getComputedStyle(ref);
-        // Subpixel content width: clientWidth rounds, and a line at the wrap
-        // boundary breaks differently at 279 vs 278.6px.
-        const textW = ref.getBoundingClientRect().width
-                    - parseFloat(bs.paddingLeft) - parseFloat(bs.paddingRight)
-                    - parseFloat(bs.borderLeftWidth) - parseFloat(bs.borderRightWidth);
-        const chrome = parseFloat(bs.paddingTop) + parseFloat(bs.paddingBottom)
-                     + parseFloat(bs.borderTopWidth) + parseFloat(bs.borderBottomWidth);
-        const minH = parseFloat(bs.minHeight) || 0;
-        const gap = parseFloat(getComputedStyle(optsDiv).rowGap) || 0;
-        const optsHeight = q.opts.reduce((sum, opt) =>
-          sum + Math.max(minH, textHeight(opt, ref, textW) + chrome), 0)
-          + gap * (q.opts.length - 1);
-
-        return { cardHeight, optsHeight };
-      } catch (e) {
-        console.warn('Pretext measurement failed', e);
-        return null;
-      }
-    }
-
-    function shuffle(arr) {
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-      return arr;
-    }
-
-    const quizQuestions = shuffle(
-      questions.map(q => ({
-        ...q,
-        opts: shuffle([...q.opts])
-      }))
-    );
-
-    function updateStats() {
-      const total = correct + wrong;
-      const grade = total > 0 ? Math.round((correct / total) * 100) : 0;
-      const pct = Math.round((total / quizQuestions.length) * 100);
-
-      document.getElementById('question-progress').textContent = `${idx + 1} / ${quizQuestions.length}`;
-      document.getElementById('current-grade').textContent = grade > 0 ? `${grade}%` : '—';
-      document.getElementById('progress-pct').textContent = `${pct}%`;
-    }
-
-    function renderContent(q) {
-      // Pure DOM update, no animations
-      document.getElementById('qtext').textContent = q.q;
-      const cardLabel = document.querySelector('.card-label');
-      if (cardLabel) cardLabel.textContent = wrongCounts[idx] > 0 ? 'Needs Review' : 'Question';
-      updateStats();
-
-      const optsDiv = document.getElementById('opts');
-      optsDiv.innerHTML = '';
-      const wasAnswered = answered[idx];
-
-      q.opts.forEach((opt) => {
-        const btn = document.createElement('button');
-        btn.className = 'opt-btn';
-        btn.textContent = opt;
-
-        if (wasAnswered !== null) {
-          btn.disabled = true;
-          if (opt === q.correct) btn.classList.add('correct');
-          if (wasAnswered === opt && opt !== q.correct) btn.classList.add('wrong');
-        } else {
-          btn.onclick = () => selectAnswer(opt);
-        }
-
-        optsDiv.appendChild(btn);
-      });
-
-      document.getElementById('prevBtn').disabled = idx === 0;
-      document.getElementById('nextBtn').textContent = idx === quizQuestions.length - 1 ? 'Finish' : 'Next →';
-    }
-
-    function introAnimation() {
-      // Set initial hidden states here, not in CSS, so dynamically created elements don't inherit them
-      gsap.set(['h1', '.subtitle'], { opacity: 0, y: -12 });
-      gsap.set('.stat', { opacity: 0, y: 8 });
-      gsap.set('.progress-track', { scaleX: 0 });
-      gsap.set('.card', { opacity: 0, y: 16 });
-      gsap.set('.opt-btn', { opacity: 0, y: 8 });
-      gsap.set('.nav button', { opacity: 0 });
-
-      const tl = gsap.timeline();
-
-      tl.to(['h1', '.subtitle'], { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }, 0)
-        .to('.stat', { opacity: 1, y: 0, duration: 0.4, stagger: 0.08, ease: 'power2.out' }, 0.15)
-        .to('.progress-track', { scaleX: 1, duration: 0.5, ease: 'power2.inOut' }, 0.3)
-        .to('.card', { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }, 0.4)
-        .to('.opt-btn', { opacity: 1, y: 0, duration: 0.3, stagger: 0.05, ease: 'power2.out' }, 0.55)
-        .to('.nav button', { opacity: 1, duration: 0.3, ease: 'power2.out' }, 0.7);
-
-      return tl;
-    }
-
-    function transitionTo(dir) {
-      if (isAnimating) return;
-      isAnimating = true;
-
-      const oldIdx = idx;
-      idx = Math.max(0, Math.min(quizQuestions.length - 1, idx + dir));
-      if (idx === oldIdx) { isAnimating = false; return; }
-
-      const outPct = dir > 0 ? -110 : 110;
-      const inPct  = dir > 0 ?  110 : -110;
-      const DUR = 0.22;
-
-      const oldContent = document.querySelector('.card-content');
-      const oldButtons = [...document.querySelectorAll('.opt-btn')];
-      const card = document.getElementById('qcard');
-      const optsDiv = document.getElementById('opts');
-
-      // Kill any lingering tweens so nothing conflicts mid-swap
-      gsap.killTweensOf([oldContent, ...oldButtons, card, optsDiv]);
-
-      // Tween card + options to the incoming question's measured size while the
-      // content slides, then hand height back to CSS so resizing still works.
-      const target = measureQuestion(quizQuestions[idx]);
-      if (target) {
-        gsap.set(card, { height: card.offsetHeight });
-        gsap.set(optsDiv, { height: optsDiv.offsetHeight });
-        // ~0.1% of lines sit within a fraction of a pixel of the wrap point, where
-        // canvas and DOM text widths disagree; settle into the real height, don't snap.
-        const settle = () => gsap.to([card, optsDiv], {
-          height: 'auto', duration: 0.12, ease: 'power1.out',
-          onComplete: () => gsap.set([card, optsDiv], { clearProps: 'height' })
-        });
-        gsap.timeline({ onComplete: settle })
-          .to(card, { height: target.cardHeight, duration: DUR * 2, ease: 'power2.inOut' }, 0)
-          .to(optsDiv, { height: target.optsHeight, duration: DUR * 2, ease: 'power2.inOut' }, 0);
-      }
-
-      // Slide everything out together (no stagger — timeline ends cleanly when all done)
-      gsap.timeline({
-        onComplete() {
-          renderContent(quizQuestions[idx]);
-
-          const newContent = document.querySelector('.card-content');
-          const newButtons = [...document.querySelectorAll('.opt-btn')];
-
-          gsap.set(newContent, { xPercent: inPct, opacity: 0 });
-          gsap.set(newButtons, { xPercent: inPct, opacity: 0 });
-
-          gsap.timeline({ onComplete: () => { isAnimating = false; } })
-            .to(newContent, { xPercent: 0, opacity: 1, duration: DUR, ease: 'power2.out' }, 0)
-            .to(newButtons, { xPercent: 0, opacity: 1, duration: DUR, stagger: 0.03, ease: 'power2.out' }, 0.02);
-        }
-      })
-      .to(oldContent, { xPercent: outPct, opacity: 0, duration: DUR, ease: 'power2.in' }, 0)
-      .to(oldButtons, { xPercent: outPct, opacity: 0, duration: DUR, ease: 'power2.in' }, 0);
-    }
-
-    function render() {
-      const q = quizQuestions[idx];
-      renderContent(q);
-
-      if (!isInitialized) {
-        isInitialized = true;
-        introAnimation();
-      }
-    }
-
-    function selectAnswer(opt) {
-      const q = quizQuestions[idx];
-      answered[idx] = opt;
-      const isCorrect = opt === q.correct;
-
-      if (isCorrect) correct++;
-      else { wrong++; wrongCounts[idx]++; }
-
-      // Update stats immediately
-      updateStats();
-
-      const total = correct + wrong;
-      const pct = Math.round((total / quizQuestions.length) * 100);
-      const grade = Math.round((correct / total) * 100);
-
-      const tl = gsap.timeline();
-      const buttons = document.querySelectorAll('.opt-btn');
-
-      buttons.forEach((btn) => btn.disabled = true);
-
-      if (isCorrect) {
-        // Winning button pulses, others dim
-        buttons.forEach((btn) => {
-          if (btn.textContent === opt) {
-            btn.classList.add('correct');
-            tl.to(btn, { scale: 1.02, duration: 0.12, ease: 'back.out' }, 0);
-            tl.to(btn, { scale: 1, duration: 0.12, ease: 'back.in' }, 0.12);
-          } else {
-            tl.to(btn, { opacity: 0.35, duration: 0.2 }, 0);
-          }
-        });
-
-        // Progress bar elastic fill
-        tl.to('#progress', { width: pct + '%', duration: 0.6, ease: 'elastic.out(1, 0.5)' }, 0.1);
-
-        // Grade counts up to new value
-        const prevGrade = total > 1 ? Math.round(((correct - 1) / (total - 1)) * 100) : 0;
-        tl.to({ val: prevGrade }, { val: grade, duration: 0.5, ease: 'power2.out', onUpdate: function() {
-          document.getElementById('current-grade').textContent = Math.round(this.targets()[0].val) + '%';
-        }}, 0.1);
-      } else {
-        // Wrong button shakes, then correct is revealed
-        buttons.forEach((btn) => {
-          if (btn.textContent === opt) {
-            btn.classList.add('wrong');
-            tl.to(btn, { x: 5, duration: 0.05, repeat: 5, yoyo: true, ease: 'power2.inOut' }, 0);
-          } else if (btn.textContent === q.correct) {
-            btn.classList.add('correct');
-            tl.fromTo(btn, { opacity: 0.2 }, { opacity: 1, duration: 0.4, ease: 'power2.out' }, 0.2);
-          } else {
-            tl.to(btn, { opacity: 0.35, duration: 0.2 }, 0);
-          }
-        });
-
-        // Screen shake
-        tl.to('#app', { x: 5, duration: 0.05, repeat: 5, yoyo: true, ease: 'power2.inOut' }, 0);
-      }
-
-      // Update nav state without rebuilding buttons
-      tl.call(() => {
-        document.getElementById('prevBtn').disabled = idx === 0;
-        document.getElementById('nextBtn').textContent = idx === quizQuestions.length - 1 ? 'Finish' : 'Next →';
-        if (idx === quizQuestions.length - 1) setTimeout(showDone, 700);
-      });
-    }
-
-    function move(dir) {
-      transitionTo(dir);
-    }
-
-    function startReviewMode() {
-      const missed = quizQuestions.filter((_, i) => wrongCounts[i] > 0);
-      if (!missed.length) return;
-
-      // Remove overlay and reset state
-      const overlay = document.querySelector('.done-overlay');
-      if (overlay) overlay.remove();
-
-      quizQuestions.length = 0;
-      shuffle(missed).forEach(q => quizQuestions.push(q));
-
-      idx = 0;
-      correct = 0;
-      wrong = 0;
-      wrongCounts.fill(0);
-      answered.fill(null);
-      isInitialized = false;
-      isAnimating = false;
-
-      render();
-    }
-
-    function showDone() {
-      const grade = Math.round((correct / quizQuestions.length) * 100);
-      let message = '';
-
-      if (grade === 100) {
-        message = 'Mastery achieved. Exemplary understanding of software engineering ethics.';
-      } else if (grade >= 90) {
-        message = 'Excellent performance. You demonstrate strong ethical understanding.';
-      } else if (grade >= 80) {
-        message = 'Very good. Solid grasp of the core principles.';
-      } else if (grade >= 70) {
-        message = 'Good. You understand the fundamental concepts.';
-      } else if (grade >= 60) {
-        message = 'Passing. Consider reviewing the material again.';
-      } else {
-        message = 'Study the material and try again.';
-      }
-
-      const missedCount = quizQuestions.filter((_, i) => wrongCounts[i] > 0).length;
-      const reviewMissedBtn = missedCount > 0
-        ? `<button style="opacity: 0; transform: scale(0.9);" id="reviewMissedBtn">Review Missed (${missedCount})</button>`
-        : '';
-
-      const overlay = document.createElement('div');
-      overlay.className = 'done-overlay';
-      overlay.innerHTML = `
-        <div class="done-card">
-          <h2 style="opacity: 0; transform: translateY(12px);">Assessment Complete</h2>
-          <p style="opacity: 0; transform: translateY(12px);">${message}</p>
-          <div class="final-grade" style="opacity: 0; transform: translateY(12px);">0%</div>
-          <p style="opacity: 0; transform: translateY(12px); font-size: 0.85rem;">${correct} of ${quizQuestions.length} correct</p>
-          <p style="opacity: 0; transform: translateY(12px); font-size: 0.8rem; color: var(--text-secondary); margin-top: 1rem;">Time: ${formatTime(seconds)}</p>
-          <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
-            <button style="opacity: 0; transform: scale(0.9);" onclick="location.reload()">Review Again</button>
-            ${reviewMissedBtn}
-          </div>
-        </div>
-      `;
-      document.body.appendChild(overlay);
-
-      if (missedCount > 0) {
-        overlay.querySelector('#reviewMissedBtn').addEventListener('click', startReviewMode);
-      }
-
-      const tl = gsap.timeline();
-
-      // Fade in overlay
-      tl.to(overlay, { opacity: 1, duration: 0.25, ease: 'power2.inOut' }, 0);
-
-      // Card slides up from bottom with bounce
-      tl.fromTo(
-        '.done-card',
-        { y: 60, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.5, ease: 'back.out(1.2)' },
-        0.1
-      );
-
-      // Stagger inner elements
-      const card = document.querySelector('.done-card');
-      const h2El = card.querySelector('h2');
-      const pEls = card.querySelectorAll('p');
-      const gradeElement = card.querySelector('.final-grade');
-      const btnEls = card.querySelectorAll('button');
-
-      tl.to(h2El, { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }, 0.3);
-      tl.to(pEls[0], { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }, 0.4);
-
-      // Grade counts up
-      tl.to({ val: 0 }, {
-        val: grade,
-        duration: 0.8,
-        ease: 'power2.out',
-        onUpdate: function() {
-          gradeElement.textContent = Math.round(this.targets()[0].val) + '%';
-        }
-      }, 0.45);
-      tl.to(gradeElement, { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }, 0.45);
-
-      tl.to(pEls[1], { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }, 0.65);
-      tl.to(pEls[2], { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' }, 0.75);
-      tl.to(btnEls, { opacity: 1, scale: 1, duration: 0.3, stagger: 0.08, ease: 'power2.out' }, 0.85);
-    }
-
-    // Keyboard navigation
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') move(1);
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') move(-1);
-    });
-
-    // Initialize
-    render();
-  </script>
+  <script src="js/log.js"></script>
+  <script src="js/scheduler.js"></script>
+  <script src="js/grade.js"></script>
+  <script src="js/sync.js"></script>
+  <script src="decks/csc370.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>

@@ -6,7 +6,8 @@
   <title>Ethics Mastery — Study Guide</title>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/pretext@latest/dist/pretext.min.js"></script>
+  <!-- @chenglou/pretext 0.0.9, bundled to an IIFE (global `Pretext`) so it works offline and over file:// -->
+  <script src="vendor/pretext-0.0.9.min.js"></script>
   <style>
     :root {
       --bg-primary: #1a1a1a;
@@ -28,6 +29,12 @@
     html, body {
       width: 100%;
       height: 100%;
+    }
+
+    /* Reserve the scrollbar's space so content width never changes between
+       short and tall questions (Pretext measures at the current width). */
+    html {
+      scrollbar-gutter: stable;
     }
 
     body {
@@ -535,24 +542,50 @@
       document.getElementById('timer').textContent = formatTime(seconds);
     }, 1000);
 
-    // Text measurement with Pretext
-    function getCardHeight(text) {
+    // Text measurement with Pretext: size the card and options for the incoming
+    // question before its text is in the DOM, so heights tween instead of jumping.
+    const prepared = new Map();
+
+    // Measurements taken before the web font loads are for the fallback font.
+    document.fonts.ready.then(() => { prepared.clear(); Pretext.clearCache(); });
+
+    // Height of `text` laid out at `width`, in the font and line-height of `styleEl`.
+    function textHeight(text, styleEl, width) {
+      const s = getComputedStyle(styleEl);
+      const font = `${s.fontWeight} ${s.fontSize} ${s.fontFamily}`;
+      const key = font + '\n' + text;
+      if (!prepared.has(key)) prepared.set(key, Pretext.prepare(text, font));
+      return Pretext.layout(prepared.get(key), width, parseFloat(s.lineHeight)).height;
+    }
+
+    // Predicted heights of the card and options block for question `q`,
+    // using the elements currently on screen as style references.
+    function measureQuestion(q) {
       if (!window.Pretext) return null;
-
-      const cardText = document.getElementById('qtext');
-      const containerWidth = cardText.parentElement.offsetWidth - 40;
-
       try {
-        const result = Pretext.prepare({
-          text: text,
-          fontFamily: 'Geist, sans-serif',
-          fontSize: '0.95rem',
-          lineHeight: '1.5',
-          maxWidth: containerWidth,
-          whiteSpace: 'normal'
-        });
-        return (result.height || 40) + 48; // content height + padding
+        const card = document.getElementById('qcard');
+        const qtext = document.getElementById('qtext');
+        const cardHeight = card.offsetHeight - qtext.offsetHeight + textHeight(q.q, qtext, qtext.getBoundingClientRect().width);
+
+        const ref = document.querySelector('.opt-btn');
+        const optsDiv = document.getElementById('opts');
+        const bs = getComputedStyle(ref);
+        // Subpixel content width: clientWidth rounds, and a line at the wrap
+        // boundary breaks differently at 279 vs 278.6px.
+        const textW = ref.getBoundingClientRect().width
+                    - parseFloat(bs.paddingLeft) - parseFloat(bs.paddingRight)
+                    - parseFloat(bs.borderLeftWidth) - parseFloat(bs.borderRightWidth);
+        const chrome = parseFloat(bs.paddingTop) + parseFloat(bs.paddingBottom)
+                     + parseFloat(bs.borderTopWidth) + parseFloat(bs.borderBottomWidth);
+        const minH = parseFloat(bs.minHeight) || 0;
+        const gap = parseFloat(getComputedStyle(optsDiv).rowGap) || 0;
+        const optsHeight = q.opts.reduce((sum, opt) =>
+          sum + Math.max(minH, textHeight(opt, ref, textW) + chrome), 0)
+          + gap * (q.opts.length - 1);
+
+        return { cardHeight, optsHeight };
       } catch (e) {
+        console.warn('Pretext measurement failed', e);
         return null;
       }
     }
@@ -648,9 +681,28 @@
 
       const oldContent = document.querySelector('.card-content');
       const oldButtons = [...document.querySelectorAll('.opt-btn')];
+      const card = document.getElementById('qcard');
+      const optsDiv = document.getElementById('opts');
 
       // Kill any lingering tweens so nothing conflicts mid-swap
-      gsap.killTweensOf([oldContent, ...oldButtons]);
+      gsap.killTweensOf([oldContent, ...oldButtons, card, optsDiv]);
+
+      // Tween card + options to the incoming question's measured size while the
+      // content slides, then hand height back to CSS so resizing still works.
+      const target = measureQuestion(quizQuestions[idx]);
+      if (target) {
+        gsap.set(card, { height: card.offsetHeight });
+        gsap.set(optsDiv, { height: optsDiv.offsetHeight });
+        // ~0.1% of lines sit within a fraction of a pixel of the wrap point, where
+        // canvas and DOM text widths disagree; settle into the real height, don't snap.
+        const settle = () => gsap.to([card, optsDiv], {
+          height: 'auto', duration: 0.12, ease: 'power1.out',
+          onComplete: () => gsap.set([card, optsDiv], { clearProps: 'height' })
+        });
+        gsap.timeline({ onComplete: settle })
+          .to(card, { height: target.cardHeight, duration: DUR * 2, ease: 'power2.inOut' }, 0)
+          .to(optsDiv, { height: target.optsHeight, duration: DUR * 2, ease: 'power2.inOut' }, 0);
+      }
 
       // Slide everything out together (no stagger — timeline ends cleanly when all done)
       gsap.timeline({

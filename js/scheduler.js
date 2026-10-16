@@ -102,8 +102,8 @@
     return a;
   }
 
-  // Today's queue: due cards (shuffled, L11), then new cards in deck order up to the
-  // daily limit, counting new cards already started today.
+  // Today's queue: due cards plus new cards (taken in deck order up to the daily limit,
+  // counting new cards already started today), all shuffled together.
   function buildQueue(sts, cards, today, opts = {}) {
     const newPerDay = opts.newPerDay ?? 10;
     const shuffle = opts.shuffle || shuffled;
@@ -111,7 +111,9 @@
     const startedToday = cards.filter(c => sts[c.id].firstDay === today).length;
     const fresh = cards.filter(c => sts[c.id].phase === 'new')
       .slice(0, Math.max(0, newPerDay - startedToday)).map(c => c.id);
-    return shuffle(due).concat(fresh);
+    // Owner's call (2026-10-16): every session is fully shuffled, new cards included.
+    // Which new cards are taken still follows deck (lecture) order under a daily limit.
+    return shuffle(due.concat(fresh));
   }
 
   // Delayed recall (L12): per card per day, the first attempt made at least

@@ -62,3 +62,13 @@ test('every lecture blank has a supplied answer with a known source', () => {
   }
   assert.deepEqual(Object.keys(A).filter(k => !deck.blanks.some(b => b.id === k)), [], 'answers for blanks that no longer exist');
 });
+
+test('no study card sends you to a slide position ("third point", "the box on slide 25")', () => {
+  require('../decks/csc370-blank-answers.js');
+  const { blankGroups, blankAsk } = globalThis.FC;
+  const grouped = new Set(blankGroups.flatMap(g => g.ids));
+  for (const g of blankGroups) for (const id of g.ids) assert.ok(deck.blanks.some(b => b.id === id), `group id ${id} does not exist`);
+  const shown = deck.blanks.filter(b => !grouped.has(b.id)).map(b => blankAsk[b.id] || b.prompt).concat(blankGroups.map(g => g.ask));
+  const positional = /slide \d|sub-point|\d(st|nd|rd|th) item|(first|second|third|fourth|fifth) (point|blank|bullet)|the box|advantage \d/i;
+  assert.deepEqual(shown.filter(p => positional.test(p)), []);
+});

@@ -162,3 +162,8 @@ test('a re-ask just after midnight is not the next day\'s review (needs 6+ hours
   assert.equal(st.step, 0);                         // the 00:02 retry did not promote it
   assert.deepEqual(S.delayedRecall(ev, today(4), 14), { right: 0, total: 1 });
 });
+
+test('queue: the whole session (new cards too) goes through the shuffle', () => {
+  const q = S.buildQueue(S.states([], cards), cards, today(0), { newPerDay: 10, shuffle: x => x.slice().reverse() });
+  assert.deepEqual(q, ['c', 'b', 'a']);
+});

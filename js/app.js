@@ -59,15 +59,27 @@
     const mine = log.blankAnswers(events);
     const supplied = FC.blankAnswers || {};
     const rank = new Map(deck.lectures.map((l, i) => [l.n, i]));
-    const blanks = deck.blanks.filter(b => mine[b.id] || supplied[b.id]).map(b => {
+    // Position-defined blanks are merged into one question per list (see the answers file).
+    const groups = FC.blankGroups || [], asks = FC.blankAsk || {};
+    const grouped = new Set(groups.flatMap(g => g.ids));
+    const byId = new Map(deck.blanks.map(b => [b.id, b]));
+    const groupCards = groups.filter(g => byId.has(g.ids[0])).map(g => {
+      const first = byId.get(g.ids[0]);
+      return {
+        id: 'blank:' + g.ids[0], lecture: first.lecture, type: 'recall', blank: true, prompt: g.ask,
+        answer: g.answer, points: [g.answer], basis: g.basis, why: g.note || '',
+        source: `Lecture ${first.lecture}, slide ${first.slide} · ` + (BASIS[g.basis] || 'supplied'),
+      };
+    });
+    const blanks = groupCards.concat(deck.blanks.filter(b => !grouped.has(b.id) && (mine[b.id] || supplied[b.id])).map(b => {
       const own = mine[b.id], sup = supplied[b.id] || {};
       return {
-        id: 'blank:' + b.id, lecture: b.lecture, type: 'recall', blank: true, prompt: b.prompt,
+        id: 'blank:' + b.id, lecture: b.lecture, type: 'recall', blank: true, prompt: asks[b.id] || b.prompt,
         answer: own || sup.answer, points: [own || sup.answer], basis: own ? 'mine' : sup.basis,
         why: own ? '' : (sup.note || ''),
         source: `Lecture ${b.lecture}, slide ${b.slide} · ` + (own ? 'your own answer' : BASIS[sup.basis] || 'supplied'),
       };
-    });
+    }));
     return blanks.concat(deck.cards)
       .filter(c => !(NO_CODE && c.code))
       .map((c, i) => [c, i])

@@ -908,3 +908,52 @@
  }
 };
 })(globalThis.FC = globalThis.FC || {});
+
+// Cards must make sense without the slide in front of you. Blanks that were defined by
+// their position ("third point", "the box on slide 25") are either merged into one
+// question about the whole list (blankGroups) or reworded around their content (blankAsk).
+(function (FC) {
+  FC.blankGroups = [
+    { ids: ['b1-5-1s832o7', 'b1-5-fngtn3', 'b1-5-10haett', 'b1-5-7m32oy', 'b1-5-s7pz3a', 'b1-5-182gwm3', 'b1-5-4eparh'],
+      ask: 'What does a language need to be Turing complete?',
+      answer: 'Ordered (sequential) instructions that read from and write to memory; a conditional jump (goto with a compare) so instructions can repeat conditionally; and memory, so information is stored and can be changed later.',
+      basis: 'inferred', note: 'Her slide 5 lists these as blanks; her Control Structures slides confirm “ordered statements plus a conditional kind of repetition (goto with compare) is sufficient”.' },
+    { ids: ['b2-13-rcmyge', 'b2-13-1lkuwux', 'b2-13-184z91j'],
+      ask: 'What did Fortran 77 add? (It was also an ANSI standard, 1978, with logical loop control.)',
+      answer: 'Character string handling and the IF-THEN-ELSE statement (also: lowercase letters could be used for the first time, a best guess).',
+      basis: 'sebesta', note: 'The lowercase-letters item is a guess at one blank; the rest is Sebesta.' },
+    { ids: ['b2-14-1q9irl6', 'b2-14-1ki8wyr', 'b2-14-1dhnq6a', 'b2-14-m9s88n', 'b2-14-fu1s9p'],
+      ask: 'What did Fortran 90 add (besides modules)?',
+      answer: 'Dynamic arrays, pointers, recursion, a CASE statement, and parameter type checking.',
+      basis: 'sebesta' },
+    { ids: ['b2-15-ksgz9q', 'b2-15-5d957n'],
+      ask: 'Fortran today: what is it still used for, and what are its main competitors?',
+      answer: 'Still widely used, mainly for scientific / numerical (high-performance) computing; its main competitors are C and C++.',
+      basis: 'inferred' },
+    { ids: ['b2-17-1upkq0w', 'b2-17-4xn65v'],
+      ask: 'LISP came from AI research. What two kinds of processing did that need?',
+      answer: 'Processing data in lists (rather than arrays) and symbolic computation (rather than numeric).',
+      basis: 'sebesta' },
+    { ids: ['b2-19-sv918w', 'b2-19-1wor3hx'],
+      ask: 'Pure Lisp has exactly two kinds of data. What are they? (e.g. grizzly vs (lynx (grizzly black) moose))',
+      answer: 'Atoms (like grizzly) and lists (like (lynx (grizzly black) moose)).',
+      basis: 'sebesta' },
+    { ids: ['b2-20-1ugwahe', 'b2-20-4euqdy', 'b2-20-k9tt2n'],
+      ask: 'Pure Lisp has no loops. Why is it still Turing complete?',
+      answer: 'Repetition comes from recursion; selection comes from conditional expressions (cond); data/memory is held in lists and function parameters.',
+      basis: 'inferred', note: 'Recursion as the source of repetition is from her History post-test; the other two points are best guesses.' },
+    { ids: ['b5.2-8-1ru0447', 'b5.2-8-7nh2ae', 'b5.2-8-1r4q93h'],
+      ask: 'What are the advantages of stack-dynamic variables?',
+      answer: 'They allow recursion; they conserve storage (memory is reused across calls); and they are freed automatically when the function returns.',
+      basis: 'sebesta', note: 'The third point is a best guess at her wording.' },
+  ];
+  FC.blankAsk = {
+    'b2-9-6xyr4a': 'Her label for FORTRAN: “____ Programming Language”',
+    'b2-22-1sar9py': 'Her label for LISP: “____ Programming Language”',
+    'b2-25-g4eews': 'Her label for Algol (words before and after “Programming Language”): ____',
+    'b2-34-d154lm': 'Her label for COBOL: “____ Programming Language”',
+    'b2-9-ic8frt': 'What was Fortran I (1957)?',
+    'b2-8-1e39jm4': 'What was the 1954 “Fortran on paper”, and was it implemented?',
+    'b4-14-1mg5y26': 'Define an ambiguous grammar.',
+  };
+})(globalThis.FC = globalThis.FC || {});

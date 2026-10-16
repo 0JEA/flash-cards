@@ -1239,7 +1239,7 @@ int main(void){ int i; for(i = 0; i < 10; i++){ printf("%d ", i); i *= 5; } retu
 
   (FC.decks = FC.decks || {}).csc370 = {
     id: 'csc370',
-    title: 'CSC 370 · Programming Languages',
+    title: 'CSC 370 · Programming Languages', short: 'CSC 370',
     lectures: [
       { n: '1', title: 'Intro: what makes a language good' },
       { n: '2', title: 'History of programming languages' },

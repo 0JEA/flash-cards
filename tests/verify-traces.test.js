@@ -8,7 +8,9 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 require('../js/grade.js');
-require('../decks/csc370.js');
+for (const f of ['csc370', 'softtest-a', 'softtest-b', 'softtest-c', 'softtest', 'ethics']) {
+  try { require('../decks/' + f + '.js'); } catch (e) { if (e.code !== 'MODULE_NOT_FOUND') throw e; }
+}
 const { grade, decks } = globalThis.FC;
 
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fc-traces-'));
@@ -19,12 +21,16 @@ const run = {
   guile: f => execFileSync('guile', ['--no-auto-compile', '-s', f], { stdio: ['ignore', 'pipe', 'ignore'] }),
   ecl: f => execFileSync('ecl', ['--norc', '--shell', f]),
   c: f => { execFileSync('gcc', ['-w', '-o', f + '.out', f]); return execFileSync(f + '.out'); },
+  java: f => { const d = path.dirname(f); execFileSync('javac', ['-d', d, f], { stdio: ['ignore', 'pipe', 'ignore'] }); return execFileSync('java', ['-cp', d, 'Main'], { stdio: ['ignore', 'pipe', 'ignore'] }); },
 };
-const ext = { python: '.py', node: '.js', bash: '.sh', guile: '.scm', ecl: '.lisp', c: '.c' };
+const ext = { python: '.py', node: '.js', bash: '.sh', guile: '.scm', ecl: '.lisp', c: '.c', java: '.java' };
 
-for (const card of decks.csc370.cards.filter(c => c.verify)) {
+const all = Object.values(decks).flatMap(d => d.cards);
+for (const card of all.filter(c => c.verify)) {
   test(`${card.id} (${card.verify.lang}) prints its answer`, () => {
-    const file = path.join(dir, card.id + ext[card.verify.lang]);
+    // Java needs the file named after its public class (Main), so give each card its own folder.
+    const sub = fs.mkdtempSync(path.join(dir, card.id.replace(/[^\w-]/g, '_') + '-'));
+    const file = path.join(sub, card.verify.lang === 'java' ? 'Main.java' : 'card' + ext[card.verify.lang]);
     fs.writeFileSync(file, card.verify.src + '\n');
     let out = run[card.verify.lang](file).toString();
     if (card.verify.pick === 'last') out = out.trim().split('\n').pop();

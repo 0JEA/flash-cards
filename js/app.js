@@ -1,27 +1,30 @@
-// UI controller: Home, Study, Settings. All card text goes through
-// textContent (never innerHTML): the page holds a GitHub token.
+// UI controller: Classes (launch), Class (topic toggles), Mix, Study, Settings.
+// All card text goes through textContent (never innerHTML): the page holds a GitHub token.
 (function (FC) {
   'use strict';
 
   const { log, sched, grade } = FC;
-  const deck = FC.decks.csc370;
   const $ = id => document.getElementById(id);
-  const DAY_MS = sched.DAY;
+  // Every class the app knows, in launch-list order. A deck file that failed to load is skipped.
+  const DECKS = ['csc370', 'softtest', 'ethics'].map(id => FC.decks[id]).filter(Boolean);
+  const deckById = new Map(DECKS.map(d => [d.id, d]));
 
   // ── State ──────────────────────────────────────────────────────────────
   let events = log.load();
   const SETTINGS_KEY = 'fc.settings', TOKEN_KEY = 'fc.token';
   const store = log._store();
-  let settings = Object.assign({ newPerDay: 10, examDate: '' }, readJSON(SETTINGS_KEY));
+  let settings = Object.assign({ newLimit: 20, exams: {}, off: {}, mix: { total: 30, pct: {} } }, readJSON(SETTINGS_KEY));
+  // Older settings (single class): carry the exam date over to CSC 370.
+  if (settings.examDate && !settings.exams.csc370) settings.exams.csc370 = settings.examDate;
+  delete settings.examDate; delete settings.newPerDay;
   let session = null;   // sched.Session plus bookkeeping
   let current = null;   // { card, pending } for the card on screen
-  // ?nocode hides every card that shows code; ?all lifts the new-cards-per-day limit.
-  const params = new URLSearchParams(location.search);
-  const NO_CODE = params.has('nocode'), ALL_NEW = params.has('all');
-  const newPerDay = () => (ALL_NEW ? 1e9 : settings.newPerDay);
+  let openDeck = DECKS[0] ? DECKS[0].id : null;
+  const expanded = new Map(); // class id -> set of topic groups showing their subgroups
 
   function readJSON(key) { try { return JSON.parse(store.getItem(key)) || {}; } catch (e) { return {}; } }
   function saveSettings() { store.setItem(SETTINGS_KEY, JSON.stringify(settings)); }
+  const newLimit = () => (settings.newLimit === 'all' ? 1e9 : +settings.newLimit || 20);
 
   // DOM helper: h('div', { class: 'x', onclick }, 'text', child)
   function h(tag, attrs, ...kids) {
@@ -40,125 +43,248 @@
   }
 
   const today = () => sched.dayOf(Date.now());
-  function examDay() {
-    if (!settings.examDate) return null;
-    const [y, m, d] = settings.examDate.split('-').map(Number);
+  function examDay(deckId) {
+    const date = settings.exams[deckId];
+    if (!date) return null;
+    const [y, m, d] = date.split('-').map(Number);
     return sched.dayOf(new Date(y, m - 1, d, 12).getTime());
   }
 
-  // Deck cards plus one "fill the blank" card per lecture blank. Blank answers come
-  // from decks/csc370-blank-answers.js (each labelled with where it came from); an
-  // answer the owner typed in an older version of the app wins over the supplied one.
+  // ── Cards ──────────────────────────────────────────────────────────────
+  // CSC 370 lecture blanks become "fill the blank" cards. Answers come from
+  // decks/csc370-blank-answers.js (each labelled with where it came from), questions from
+  // decks/csc370-blank-questions.js; an answer the owner typed in an older version wins.
   const BASIS = {
     slides: 'from her own slides/tests',
     sebesta: 'from Sebesta, the course textbook (not her slide)',
     history: 'historical fact (not her slide)',
     inferred: 'best guess: check it against your class notes',
   };
-  function allCards() {
+  function blankCards(deck) {
+    if (!deck.blanks || !deck.blanks.length) return [];
     const mine = log.blankAnswers(events);
-    const supplied = FC.blankAnswers || {};
-    const rank = new Map(deck.lectures.map((l, i) => [l.n, i]));
-    // Position-defined blanks are merged into one question per list (see the answers file).
+    const supplied = FC.blankAnswers || {}, questions = FC.blankQuestions || {};
     const groups = FC.blankGroups || [], asks = FC.blankAsk || {};
     const grouped = new Set(groups.flatMap(g => g.ids));
     const byId = new Map(deck.blanks.map(b => [b.id, b]));
     const groupCards = groups.filter(g => byId.has(g.ids[0])).map(g => {
       const first = byId.get(g.ids[0]);
       return {
-        id: 'blank:' + g.ids[0], lecture: first.lecture, type: 'recall', blank: true, prompt: g.ask,
+        id: 'blank:' + g.ids[0], lecture: first.lecture, blankRef: first, type: 'recall', blank: true, prompt: g.ask,
         answer: g.answer, points: [g.answer], basis: g.basis, why: g.note || '',
         source: `Lecture ${first.lecture}, slide ${first.slide} · ` + (BASIS[g.basis] || 'supplied'),
       };
     });
-    const blanks = groupCards.concat(deck.blanks.filter(b => !grouped.has(b.id) && (mine[b.id] || supplied[b.id])).map(b => {
-      const own = mine[b.id], sup = supplied[b.id] || {};
+    return groupCards.concat(deck.blanks.filter(b => !grouped.has(b.id) && (mine[b.id] || supplied[b.id])).map(b => {
+      const own = mine[b.id], sup = supplied[b.id] || {}, q = questions[b.id];
+      const answer = own || (q && q.answer) || sup.answer;
       return {
-        id: 'blank:' + b.id, lecture: b.lecture, type: 'recall', blank: true, prompt: asks[b.id] || b.prompt,
-        answer: own || sup.answer, points: [own || sup.answer], basis: own ? 'mine' : sup.basis,
+        id: 'blank:' + b.id, lecture: b.lecture, blankRef: b, type: 'recall', blank: true,
+        prompt: (q && q.ask) || asks[b.id] || b.prompt,
+        answer, points: [answer], basis: own ? 'mine' : sup.basis,
         why: own ? '' : (sup.note || ''),
         source: `Lecture ${b.lecture}, slide ${b.slide} · ` + (own ? 'your own answer' : BASIS[sup.basis] || 'supplied'),
       };
     }));
-    return blanks.concat(deck.cards)
-      .filter(c => !(NO_CODE && c.code))
+  }
+
+  // All of a class's cards, each tagged with its deck and topic (cat / sub), in lecture order.
+  const cardCache = new Map();
+  function cardsFor(deckId) {
+    const deck = deckById.get(deckId);
+    const key = deckId + ':' + events.length;
+    if (cardCache.has(key)) return cardCache.get(key);
+    const rank = new Map(deck.lectures.map((l, i) => [l.n, i]));
+    const topic = FC.topics && FC.topics[deckId];
+    const cards = blankCards(deck).concat(deck.cards)
       .map((c, i) => [c, i])
-      .sort((a, b) => rank.get(a[0].lecture) - rank.get(b[0].lecture) || a[1] - b[1])
-      .map(x => x[0]);
+      .sort((a, b) => (rank.get(a[0].lecture) ?? 99) - (rank.get(b[0].lecture) ?? 99) || a[1] - b[1])
+      .map(([c]) => Object.assign({}, c, { deck: deckId }, topic ? topic(c) : { cat: c.cat || 'General', sub: c.sub || 'General' }));
+    cardCache.set(key, cards);
+    return cards;
+  }
+
+  // Topic toggles: settings.off[deckId] lists switched-off "cat" or "cat/sub" keys.
+  const offSet = deckId => new Set(settings.off[deckId] || []);
+  const isOn = (off, c) => !off.has(c.cat) && !off.has(c.cat + '/' + c.sub);
+  const activeCards = deckId => { const off = offSet(deckId); return cardsFor(deckId).filter(c => isOn(off, c)); };
+
+  // Card states, each class with its own exam date.
+  function statesFor(cards) {
+    const out = {};
+    const byDeck = new Map();
+    for (const c of cards) { if (!byDeck.has(c.deck)) byDeck.set(c.deck, []); byDeck.get(c.deck).push(c); }
+    for (const [deckId, list] of byDeck) Object.assign(out, sched.states(events, list, { examDay: examDay(deckId) }));
+    return out;
+  }
+  function queueFor(cards, sts, opts) { return sched.buildQueue(sts, cards, today(), Object.assign({ newPerDay: newLimit() }, opts)); }
+
+  function counts(cards) {
+    const sts = statesFor(cards);
+    const q = queueFor(cards, sts, { shuffle: x => x });
+    const review = q.filter(id => sts[id].phase !== 'new').length;
+    return { review, learn: q.length - review, total: cards.length,
+      mastered: cards.filter(c => sts[c.id].mastered).length,
+      started: cards.filter(c => sts[c.id].phase !== 'new' && !sts[c.id].mastered).length, sts };
   }
 
   // ── Navigation ─────────────────────────────────────────────────────────
-  const screens = ['home', 'study', 'done', 'settings'];
+  const screens = ['classes', 'class', 'mix', 'study', 'done', 'settings'];
   function show(name) {
     document.body.classList.remove('studying');
     if (name !== 'study' && session) endSession(false);
     for (const s of screens) $('screen-' + s).hidden = s !== name;
     document.querySelectorAll('.navbtn').forEach(b => b.setAttribute('aria-current', b.dataset.nav === name ? 'page' : 'false'));
-    if (name === 'home') renderHome();
+    if (name === 'classes') renderClasses();
+    if (name === 'class') renderClass();
+    if (name === 'mix') renderMix();
     if (name === 'settings') renderSettings();
-    window.scrollTo(0, 0);
   }
   document.querySelectorAll('[data-nav]').forEach(b => b.addEventListener('click', () => show(b.dataset.nav)));
 
-  // ── Home ───────────────────────────────────────────────────────────────
-  function renderHome() {
-    const cards = allCards();
-    const t = today();
-    const sts = sched.states(events, cards, { examDay: examDay() });
-    const queue = sched.buildQueue(sts, cards, t, { newPerDay: newPerDay(), shuffle: x => x });
-    const due = queue.filter(id => sts[id].phase !== 'new').length;
-    const fresh = queue.length - due;
-    $('dueCount').textContent = due;
-    $('newCount').textContent = fresh;
-    $('studyBtn').disabled = queue.length === 0;
-    const left = cards.filter(c => sts[c.id].phase === 'new').length;
-    $('studyNote').textContent = queue.length ? ''
-      : left ? 'All done for today. More cards to learn unlock tomorrow (or raise the daily limit in Settings).'
-      : 'All done for today: you have started every card.';
+  function bar(mastered, started, total) {
+    const pct = n => total ? (100 * n / total) + '%' : '0%';
+    return h('div', { class: 'bar', role: 'img', 'aria-label': `${mastered} mastered, ${started} started, of ${total} cards` },
+      h('i', { class: 'm', style: `width:${pct(mastered)}` }), h('i', { class: 'l', style: `width:${pct(started)}` }));
+  }
 
-    const r = sched.delayedRecall(events, t, 14);
+  // ── Classes (launch screen) ────────────────────────────────────────────
+  function renderClasses() {
+    const list = $('classList');
+    list.replaceChildren(...DECKS.map(d => {
+      const k = counts(activeCards(d.id));
+      return h('button', { class: 'class-row', onclick: () => { openDeck = d.id; show('class'); } },
+        h('div', { class: 'class-title' }, d.title),
+        h('div', { class: 'class-sub' }, `${k.review} to review · ${k.learn} to learn · ${k.total} cards`),
+        bar(k.mastered, k.started, k.total));
+    }));
+    const r = sched.delayedRecall(events, today(), 14);
     $('recallPct').textContent = r.total ? Math.round(100 * r.right / r.total) + '%' : '—';
     $('recallNote').textContent = r.total
       ? `You got ${r.right} of ${r.total} right when a card came back hours or days later`
       : 'Starts tomorrow: it counts how many cards you still remember when they come back.';
+  }
 
-    const list = $('lectureList');
-    list.replaceChildren();
-    for (const lec of deck.lectures) {
-      const lc = cards.filter(c => c.lecture === lec.n);
-      const mastered = lc.filter(c => sts[c.id].mastered).length;
-      const started = lc.filter(c => sts[c.id].phase !== 'new' && !sts[c.id].mastered).length;
-      const pct = n => lc.length ? (100 * n / lc.length) + '%' : '0%';
-      list.append(h('div', { class: 'lec' },
-        h('div', { class: 'lec-head' }, `${lec.n} · ${lec.title}`),
-        h('div', { class: 'bar', role: 'img', 'aria-label': `${mastered} mastered, ${started} started, of ${lc.length} cards` },
-          h('i', { class: 'm', style: `width:${pct(mastered)}` }),
-          h('i', { class: 'l', style: `width:${pct(started)}` })),
-        h('div', { class: 'lec-sub' }, `${lc.length} cards · ${started} started · ${mastered} mastered`)));
+  // ── Class screen: topic toggles, then Study ────────────────────────────
+  function renderClass() {
+    const d = deckById.get(openDeck);
+    $('classTitle').textContent = d.title;
+    const all = cardsFor(d.id), off = offSet(d.id);
+    const k = counts(activeCards(d.id));
+    $('dueCount').textContent = k.review;
+    $('newCount').textContent = k.learn;
+    $('studyBtn').disabled = k.review + k.learn === 0;
+    $('studyNote').textContent = k.review + k.learn ? ''
+      : k.total === 0 ? 'Every topic is switched off.' : 'Nothing left for today with these topics.';
+    $('examDate').value = settings.exams[d.id] || '';
+    $('newLimit').value = String(settings.newLimit);
+
+    // Topics in the deck's preferred order, each with its subgroups as chips.
+    const order = (FC.topics && FC.topics[d.id + 'Order']) || d.catOrder || [];
+    const cats = [...new Set(order.concat(all.map(c => c.cat)))].filter(cat => all.some(c => c.cat === cat));
+    const tree = $('topicTree');
+    // Few subgroups: show every chip. Many (Software Testing has ~90): groups start
+    // collapsed so the screen still fits, and you open the one you want to fine-tune.
+    const totalSubs = new Set(all.map(c => c.cat + '/' + c.sub)).size;
+    if (!expanded.has(d.id)) expanded.set(d.id, new Set(totalSubs <= 30 ? cats : []));
+    const open = expanded.get(d.id);
+    tree.replaceChildren(...cats.map(cat => {
+      const inCat = all.filter(c => c.cat === cat);
+      const subOrder = (FC.topics && FC.topics[d.id + 'SubOrder']) || [];
+      const rankOf = sub => { const i = subOrder.indexOf(sub); return i < 0 ? 999 : i; };
+      const subs = [...new Set(inCat.map(c => c.sub))].sort((a, b) => rankOf(a) - rankOf(b));
+      const catOn = !off.has(cat);
+      const isOpen = open.has(cat);
+      const offSubs = subs.filter(sub => off.has(cat + '/' + sub)).length;
+      return h('div', { class: 'topic' },
+        h('div', { class: 'topic-row' },
+          h('label', { class: 'topic-head' },
+            h('input', { type: 'checkbox', checked: catOn, onchange: e => toggle(d.id, cat, e.target.checked) }),
+            h('span', null, cat), h('span', { class: 'muted' }, ` ${inCat.length}`)),
+          h('button', { class: 'linkbtn expand', 'aria-expanded': String(isOpen),
+            onclick: () => { if (isOpen) open.delete(cat); else open.add(cat); renderClass(); } },
+            `${subs.length} topics${offSubs ? ` (${offSubs} off)` : ''} ${isOpen ? '▾' : '▸'}`)),
+        isOpen && h('div', { class: 'chips' }, subs.map(sub => {
+          const on = catOn && !off.has(cat + '/' + sub);
+          return h('button', { class: 'chip', 'aria-pressed': String(on), disabled: !catOn,
+            onclick: () => toggle(d.id, cat + '/' + sub, !on) }, sub, h('span', { class: 'n' }, ` ${inCat.filter(c => c.sub === sub).length}`));
+        })));
+    }));
+  }
+  function toggle(deckId, key, on) {
+    const off = offSet(deckId);
+    if (on) off.delete(key); else off.add(key);
+    settings.off[deckId] = [...off];
+    saveSettings();
+    renderClass();
+  }
+  $('examDate').addEventListener('change', e => { settings.exams[openDeck] = e.target.value; saveSettings(); renderClass(); });
+  $('newLimit').addEventListener('change', e => { settings.newLimit = e.target.value === 'all' ? 'all' : +e.target.value; saveSettings(); renderClass(); });
+  $('studyBtn').addEventListener('click', () => withSync($('studyBtn'), () => startSession(activeCards(openDeck))));
+
+  // ── Mix: cards from several classes, by percentage ─────────────────────
+  function mixPct() {
+    const pct = Object.assign({}, settings.mix.pct);
+    for (const d of DECKS) if (pct[d.id] == null) pct[d.id] = Math.round(100 / DECKS.length);
+    return pct;
+  }
+  function renderMix() {
+    $('mixTotal').value = settings.mix.total;
+    const pct = mixPct();
+    const sum = DECKS.reduce((t, d) => t + (+pct[d.id] || 0), 0);
+    $('mixRows').replaceChildren(...DECKS.map(d => {
+      const k = counts(activeCards(d.id));
+      return h('div', { class: 'mix-row' },
+        h('label', { for: 'mix-' + d.id }, d.title, h('span', { class: 'muted' }, ` · ${k.review + k.learn} available`)),
+        h('div', { class: 'mix-input' },
+          h('input', { type: 'number', id: 'mix-' + d.id, min: '0', max: '100', step: '5', inputmode: 'numeric', value: String(pct[d.id]),
+            onchange: e => { settings.mix.pct = Object.assign(mixPct(), { [d.id]: Math.max(0, Math.min(100, +e.target.value || 0)) }); saveSettings(); renderMix(); } }),
+          h('span', null, '%')));
+    }));
+    $('mixSum').textContent = sum === 100 ? 'Adds up to 100%.' : `Adds up to ${sum}%: the split is scaled to 100%.`;
+    $('mixStart').disabled = sum === 0 || settings.mix.total < 1;
+  }
+  $('mixTotal').addEventListener('change', e => { settings.mix.total = Math.max(1, Math.min(500, Math.round(+e.target.value || 0))); saveSettings(); renderMix(); });
+  $('mixStart').addEventListener('click', () => withSync($('mixStart'), () => {
+    // Each class's share of the total, from its own queue (due cards come first, then new),
+    // after its topic toggles. Classes with fewer cards than their share give what they have.
+    const pct = mixPct();
+    const sum = DECKS.reduce((t, d) => t + (+pct[d.id] || 0), 0) || 1;
+    const picked = [];
+    for (const d of DECKS) {
+      const want = Math.round(settings.mix.total * (+pct[d.id] || 0) / sum);
+      if (!want) continue;
+      const cards = activeCards(d.id), sts = statesFor(cards);
+      const q = queueFor(cards, sts, { newPerDay: 1e9, shuffle: x => x });
+      const due = q.filter(id => sts[id].phase !== 'new');
+      const fresh = sched.shuffled(q.filter(id => sts[id].phase === 'new'));
+      const take = sched.shuffled(due).concat(fresh).slice(0, want);
+      const byId = new Map(cards.map(c => [c.id, c]));
+      picked.push(...take.map(id => byId.get(id)));
     }
-    const ed = examDay();
-    $('examLine').textContent = ed == null ? 'No exam date set (Settings). Reviews follow the normal 1 · 3 · 7 · 14 · 30-day ladder.'
-      : ed >= t ? `Exam in ${ed - t} day${ed - t === 1 ? '' : 's'}: review gaps are capped to fit.` : 'Exam date has passed: normal review gaps.';
+    startSession(picked, { queue: sched.shuffled(picked.map(c => c.id)) });
+  }));
+
+  // Pull first, so a card another device already reviewed today is not asked again.
+  async function withSync(btn, go) {
+    if (store.getItem(TOKEN_KEY)) {
+      const label = btn.textContent;
+      btn.disabled = true; btn.textContent = 'Syncing…';
+      await Promise.race([syncNow(), new Promise(r => setTimeout(r, 5000))]); // offline: study anyway
+      btn.textContent = label; btn.disabled = false;
+    }
+    go();
   }
 
   // ── Study ──────────────────────────────────────────────────────────────
-  $('studyBtn').addEventListener('click', async () => {
-    // Pull first, so a card another device already reviewed today is not asked again.
-    const btn = $('studyBtn');
-    if (store.getItem(TOKEN_KEY)) {
-      btn.disabled = true; btn.textContent = 'Syncing…';
-      await Promise.race([syncNow(), new Promise(r => setTimeout(r, 5000))]); // offline: study anyway
-      btn.textContent = 'Study';
-    }
-    startSession();
-  });
   $('endBtn').addEventListener('click', () => endSession(true));
+  let returnTo = 'class';
 
-  function startSession() {
-    const cards = allCards();
-    const sts = sched.states(events, cards, { examDay: examDay() });
-    const queue = sched.buildQueue(sts, cards, today(), { newPerDay: newPerDay() });
-    if (!queue.length) { renderHome(); return; } // a sync may have just finished today's work
+  function startSession(cards, opts = {}) {
+    const sts = statesFor(cards);
+    const queue = opts.queue || queueFor(cards, sts);
+    if (!queue.length) { show(opts.queue ? 'mix' : 'class'); return; }
+    returnTo = opts.queue ? 'mix' : 'class';
     session = new sched.Session(queue);
     session.byId = new Map(cards.map(c => [c.id, c]));
     session.firstTry = new Map(); // card id -> right on first attempt this session
@@ -179,22 +305,25 @@
     const first = [...s.firstTry.values()];
     $('doneCards').textContent = first.length;
     $('doneFirst').textContent = first.length ? Math.round(100 * first.filter(Boolean).length / first.length) + '%' : '—';
-    const cards = allCards();
-    const sts = sched.states(events, cards, { examDay: examDay() });
+    const cards = [...s.byId.values()];
+    const sts = statesFor(cards);
     const tomorrow = cards.filter(c => sts[c.id].phase === 'review' && sts[c.id].due === today() + 1).length;
     $('doneNext').textContent = s.remaining
-      ? `${s.remaining} card${s.remaining === 1 ? '' : 's'} left in today’s queue. They will still be due when you come back.`
-      : `${tomorrow} card${tomorrow === 1 ? '' : 's'} to review tomorrow.`;
+      ? `${s.remaining} card${s.remaining === 1 ? '' : 's'} left in this session. They will still be due when you come back.`
+      : `${tomorrow} of these card${tomorrow === 1 ? '' : 's'} come back tomorrow.`;
+    $('doneBack').textContent = returnTo === 'mix' ? 'Back to mix' : 'Back to class';
     document.body.classList.remove('studying');
     for (const name of screens) $('screen-' + name).hidden = name !== 'done';
-    window.scrollTo(0, 0);
   }
+  $('doneBack').addEventListener('click', () => show(returnTo));
 
   const TYPE_LABEL = { recall: 'Explain', typed: 'Short answer', mc: 'Choose', order: 'Put in order', cloze: 'From your notes' };
 
   function fillQuestion(card) {
+    const deck = deckById.get(card.deck) || DECKS[0];
     const lec = deck.lectures.find(l => l.n === card.lecture);
-    $('qlabel').textContent = `Lecture ${card.lecture} · ${card.blank ? 'Fill the blank' : card.type === 'typed' && card.code ? 'Trace' : TYPE_LABEL[card.type]}`;
+    const where = card.lecture === 'paper' ? 'Reading' : deck.lectures.length > 1 ? `Lecture ${card.lecture}` : '';
+    $('qlabel').textContent = [deck.short || deck.title, where, card.blank ? 'Fill the blank' : card.type === 'typed' && card.code ? 'Trace' : TYPE_LABEL[card.type]].filter(Boolean).join(' · ');
     $('qlabel').title = lec ? lec.title : '';
     $('qprompt').textContent = card.prompt;
     $('qcode').hidden = !card.code;
@@ -485,7 +614,7 @@
     if (p.override) fields.o = 1;
     log.append(events, fields);
     if (!session.firstTry.has(card.id)) session.firstTry.set(card.id, !!(p.ok && p.sure));
-    const st = sched.states(events, [card], { examDay: examDay() })[card.id];
+    const st = sched.states(events, [card], { examDay: examDay(card.deck) })[card.id];
     session.record(card.id, {
       ok: p.ok, sure: p.sure,
       learningShort: st.phase === 'learning' && st.successesToday(today()) < sched.LEARN_CRITERION,
@@ -516,16 +645,9 @@
 
   // ── Settings + sync ────────────────────────────────────────────────────
   function renderSettings() {
-    $('examDate').value = settings.examDate || '';
-    $('newPerDay').value = settings.newPerDay;
     $('token').value = store.getItem(TOKEN_KEY) || '';
     $('logSize').textContent = `${events.length} events stored on this device.`;
   }
-  $('examDate').addEventListener('change', e => { settings.examDate = e.target.value; saveSettings(); });
-  $('newPerDay').addEventListener('change', e => {
-    const n = Math.max(0, Math.min(60, Math.round(+e.target.value || 0)));
-    settings.newPerDay = n; e.target.value = n; saveSettings();
-  });
   $('saveToken').addEventListener('click', async () => {
     const tok = $('token').value.trim();
     if (!tok) { store.removeItem(TOKEN_KEY); setSync('', 'Token removed. Syncing is off on this device.'); return; }
@@ -563,7 +685,7 @@
         events.splice(0, events.length, ...all);
         log.save(events);
         setSync('ok', `Synced ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · ${events.length} events`);
-        if (!$('screen-home').hidden) renderHome();
+        if (!$('screen-classes').hidden) renderClasses();
         if (!$('screen-settings').hidden) $('logSize').textContent = `${events.length} events stored on this device.`;
       } catch (e) {
         setSync('err', e.message || 'Sync failed. Your progress is safe on this device; try again later.');
@@ -581,13 +703,13 @@
   window.addEventListener('storage', e => {
     if (e.key !== 'fc.events') return;
     log.save(events);
-    if (!$('screen-home').hidden) renderHome();
+    if (!$('screen-classes').hidden) renderClasses();
   });
 
   // ── Boot ───────────────────────────────────────────────────────────────
-  show('home');
+  show('classes');
   if (store.getItem(TOKEN_KEY)) syncNow(); else setSync('', '');
 
   // For tests (Playwright): measurement accuracy is checked against the real layout.
-  FC.app = { allCards, fillQuestion, fitAsk, fitFeedback, renderNow: id => showCard(id, true), get events() { return events; }, get session() { return session; } };
+  FC.app = { cardsFor, activeCards, startSession, decks: DECKS, fillQuestion, fitAsk, fitFeedback, renderNow: id => showCard(id, true), get events() { return events; }, get session() { return session; } };
 })(globalThis.FC = globalThis.FC || {});

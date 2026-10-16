@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CSC 370 Study</title>
+  <title>Study</title>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" integrity="sha384-d+vyQ0dYcymoP8ndq2hW7FGC50nqGdXUEgoOUGxbbkAJwZqL7h+jKN0GGgn9hFDS" crossorigin="anonymous"></script>
   <!-- @chenglou/pretext 0.0.9, bundled to an IIFE (global `Pretext`) so it works offline and over file:// -->
@@ -195,8 +195,40 @@
     .linkbtn { background: none; border: 0; color: var(--accent-bright); cursor: pointer; font: inherit; font-size: 0.85rem; text-decoration: underline; padding: 0.4rem 0; min-height: 44px; }
 
 
+    /* ── Classes, class screen, mix ── */
+    .class-list { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.5rem; }
+    .class-row { text-align: left; cursor: pointer; background: var(--bg-secondary); border: 1px solid var(--accent-muted);
+      color: var(--text-primary); padding: 0.9rem 1rem; font: inherit; -webkit-tap-highlight-color: transparent; }
+    .class-row:hover { border-color: var(--accent); }
+    .class-title { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 1.1rem; letter-spacing: -0.3px; }
+    .class-sub { color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.15rem; }
+    .class-head { display: flex; align-items: center; gap: 0.75rem; flex: none; }
+    .class-head .btn { min-height: 36px; padding: 0.3rem 0.75rem; }
+    .study-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 0.4rem; flex: none; }
+    .study-row .hero-stats { margin: 0; }
+    .study-row .btn { min-width: 9rem; min-height: 48px; font-size: 1rem; }
+    .options-row { display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.85rem; color: var(--text-secondary); flex: none; margin-top: 0.3rem; }
+    .options-row label { display: flex; align-items: center; gap: 0.4rem; }
+    .options-row input[type="date"], select { width: auto; padding: 0.35rem 0.5rem; font-size: 14px;
+      background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--accent-muted); }
+    .topic-tree { display: flex; flex-direction: column; gap: 0.6rem; }
+    .topic { background: var(--bg-secondary); border: 1px solid var(--bg-tertiary); padding: 0.5rem 0.7rem; }
+    .topic-row { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+    .topic-head { display: flex; align-items: center; gap: 0.5rem; font-weight: 600; cursor: pointer; }
+    .linkbtn.expand { min-height: 32px; padding: 0.2rem 0; font-size: 0.8rem; text-decoration: none; color: var(--text-secondary); }
+    .topic-head input { width: 1.05rem; height: 1.05rem; accent-color: var(--accent); }
+    .chips { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.45rem; }
+    .chip { cursor: pointer; font: inherit; font-size: 0.8rem; padding: 0.25rem 0.6rem; border-radius: 999px;
+      border: 1px solid var(--bg-tertiary); background: transparent; color: var(--text-secondary); min-height: 32px; }
+    .chip[aria-pressed="true"] { background: rgba(0, 119, 182, 0.2); border-color: var(--accent); color: var(--text-primary); }
+    .chip:disabled { opacity: 0.35; cursor: default; }
+    .chip .n { opacity: 0.6; font-size: 0.72rem; }
+    .mix-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.35rem 0; }
+    .mix-input { display: flex; align-items: center; gap: 0.3rem; }
+    .mix-input input { width: 5.5rem; text-align: right; }
+
     /* ── Settings ── */
-    #screen-settings, #screen-done { overflow-y: auto; }
+    #screen-settings, #screen-done, #screen-mix { overflow-y: auto; }
     .field + .field { margin-top: 1rem; }
     .field > label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.3rem; }
     .field .muted { margin-top: 0.3rem; }
@@ -209,7 +241,8 @@
        each with the full height (the window is wide, not tall). */
     @media (min-width: 900px) and (min-aspect-ratio: 4/3) {
       .container { max-width: 1120px; }
-      .container > section:not(#screen-study) { width: 100%; max-width: 640px; margin: 0 auto; }
+      .container > section:not(#screen-study):not(#screen-class) { width: 100%; max-width: 640px; margin: 0 auto; }
+      #screen-class .topic-tree { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); align-content: start; }
       #screen-study:not([hidden]) {
         display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
         grid-template-rows: auto minmax(0, 1fr) auto; column-gap: 1.25rem;
@@ -255,23 +288,18 @@
   <div id="app">
     <div class="container">
       <nav class="topbar" aria-label="Main">
-        <button class="brand" data-nav="home">CSC 370</button>
-        <button class="navbtn" data-nav="home">Home</button>
+        <button class="brand" data-nav="classes">Study</button>
+        <button class="navbtn" data-nav="classes">Classes</button>
+        <button class="navbtn" data-nav="mix">Mix</button>
         <button class="navbtn" data-nav="settings">Settings</button>
         <span class="sync-dot" id="syncDot" role="img" aria-label="Sync status"></span>
       </nav>
 
-      <!-- Home -->
-      <section id="screen-home" aria-labelledby="home-title">
-        <h1 class="label" id="home-title">Today</h1>
-        <div class="hero-stats">
-          <div><div class="n" id="dueCount">0</div><div class="muted">to review</div></div>
-          <div><div class="n" id="newCount">0</div><div class="muted">to learn</div></div>
-        </div>
-        <button class="btn primary big" id="studyBtn">Study</button>
-        <p class="muted" id="studyNote" style="margin-top:0.4rem"></p>
-
-        <div class="panel" style="margin-top:0.75rem">
+      <!-- Classes: the launch screen -->
+      <section id="screen-classes" aria-labelledby="classes-title">
+        <h1 class="label" id="classes-title">Classes</h1>
+        <div id="classList" class="scroll class-list"></div>
+        <div class="panel" style="margin-top:0.75rem; margin-bottom:0">
           <div class="metric">
             <div>
               <div class="label">Remembered later · last 14 days</div>
@@ -280,16 +308,48 @@
             <div class="n" id="recallPct">—</div>
           </div>
         </div>
+      </section>
 
-        <div class="panel scroll">
-          <div class="label" style="margin-bottom:0.4rem">Lectures</div>
-          <div id="lectureList"></div>
-          <div class="legend">
-            <span><i style="background:var(--correct)"></i>mastered</span>
-            <span><i style="background:var(--accent)"></i>started</span>
-          </div>
+      <!-- One class: topic toggles, then Study -->
+      <section id="screen-class" hidden aria-labelledby="classTitle">
+        <div class="class-head">
+          <button class="btn" data-nav="classes" aria-label="Back to classes">←</button>
+          <h1 class="class-title" id="classTitle"></h1>
         </div>
-        <p class="muted" id="examLine"></p>
+        <div class="study-row">
+          <div class="hero-stats">
+            <div><div class="n" id="dueCount">0</div><div class="muted">to review</div></div>
+            <div><div class="n" id="newCount">0</div><div class="muted">to learn</div></div>
+          </div>
+          <button class="btn primary" id="studyBtn">Study</button>
+        </div>
+        <p class="muted" id="studyNote"></p>
+        <div class="options-row">
+          <label>New cards per session
+            <select id="newLimit">
+              <option value="10">10</option><option value="20">20</option><option value="50">50</option><option value="all">All</option>
+            </select>
+          </label>
+          <label>Exam <input type="date" id="examDate"></label>
+        </div>
+        <div class="label" style="margin:0.6rem 0 0.3rem">Topics: tap to switch on or off</div>
+        <div id="topicTree" class="scroll topic-tree"></div>
+      </section>
+
+      <!-- Mix several classes -->
+      <section id="screen-mix" hidden aria-labelledby="mix-title">
+        <h1 class="label" id="mix-title">Mix classes</h1>
+        <div class="panel" style="margin-top:0.5rem">
+          <div class="mix-row">
+            <label for="mixTotal">Cards in this session</label>
+            <div class="mix-input"><input type="number" id="mixTotal" min="1" max="500" step="5" inputmode="numeric"></div>
+          </div>
+          <div class="label" style="margin:0.75rem 0 0.25rem">Share from each class</div>
+          <div id="mixRows"></div>
+          <p class="muted" id="mixSum" style="margin-top:0.4rem"></p>
+          <p class="muted">Each class uses its own topic switches. Cards due for review come first, then new ones.</p>
+        </div>
+        <button class="btn primary big" id="mixStart">Start mix</button>
       </section>
 
       <!-- Study -->
@@ -320,25 +380,13 @@
           <p class="muted" id="doneNext"></p>
           <p class="muted" style="margin-top:0.5rem">If that felt hard, it is working: spaced, effortful recall feels worse during practice and lasts longer.</p>
         </div>
-        <button class="btn primary big" data-nav="home">Back to home</button>
+        <button class="btn primary big" id="doneBack">Back</button>
       </section>
 
       <!-- Settings -->
       <section id="screen-settings" hidden aria-labelledby="settings-title">
         <h1 class="label" id="settings-title">Settings</h1>
         <div class="panel" style="margin-top:0.75rem">
-          <div class="field">
-            <label for="examDate">Exam date</label>
-            <input type="date" id="examDate">
-            <p class="muted">Optional. Review gaps are capped at 30% of the days left, so everything gets reviewed again before the exam.</p>
-          </div>
-          <div class="field">
-            <label for="newPerDay">Cards to learn per day</label>
-            <input type="number" id="newPerDay" min="0" max="60" step="1" inputmode="numeric">
-            <p class="muted">Each card you learn needs 3 correct answers that day, so 10 cards is about 30+ answers.</p>
-          </div>
-        </div>
-        <div class="panel">
           <div class="field">
             <label for="token">GitHub token (for syncing phone and laptop)</label>
             <input type="password" id="token" autocomplete="off" spellcheck="false" placeholder="github_pat_…">
@@ -372,6 +420,13 @@
   <script src="js/sync.js"></script>
   <script src="decks/csc370.js"></script>
   <script src="decks/csc370-blank-answers.js"></script>
+  <script src="decks/csc370-blank-questions.js"></script>
+  <script src="decks/csc370-topics.js"></script>
+  <script src="decks/softtest-a.js"></script>
+  <script src="decks/softtest-b.js"></script>
+  <script src="decks/softtest-c.js"></script>
+  <script src="decks/softtest.js"></script>
+  <script src="decks/ethics.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

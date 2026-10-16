@@ -1,4 +1,4 @@
-// UI controller: Home, Study, Fill blanks, Settings. All card text goes through
+// UI controller: Home, Study, Settings. All card text goes through
 // textContent (never innerHTML): the page holds a GitHub token.
 (function (FC) {
   'use strict';
@@ -15,7 +15,6 @@
   let settings = Object.assign({ newPerDay: 10, examDate: '' }, readJSON(SETTINGS_KEY));
   let session = null;   // sched.Session plus bookkeeping
   let current = null;   // { card, pending } for the card on screen
-  let blankLecture = deck.lectures[0].n;
   // ?nocode hides every card that shows code; ?all lifts the new-cards-per-day limit.
   const params = new URLSearchParams(location.search);
   const NO_CODE = params.has('nocode'), ALL_NEW = params.has('all');
@@ -47,16 +46,29 @@
     return sched.dayOf(new Date(y, m - 1, d, 12).getTime());
   }
 
-  // Deck cards plus one cloze card per filled blank. Within a lecture, cloze cards
-  // (the lecture's own words) come before the deck's cards; new cards go in this order.
+  // Deck cards plus one "fill the blank" card per lecture blank. Blank answers come
+  // from decks/csc370-blank-answers.js (each labelled with where it came from); an
+  // answer the owner typed in an older version of the app wins over the supplied one.
+  const BASIS = {
+    slides: 'from her own slides/tests',
+    sebesta: 'from Sebesta, the course textbook (not her slide)',
+    history: 'historical fact (not her slide)',
+    inferred: 'best guess: check it against your class notes',
+  };
   function allCards() {
-    const answers = log.blankAnswers(events);
+    const mine = log.blankAnswers(events);
+    const supplied = FC.blankAnswers || {};
     const rank = new Map(deck.lectures.map((l, i) => [l.n, i]));
-    const cloze = deck.blanks.filter(b => answers[b.id]).map(b => ({
-      id: 'blank:' + b.id, lecture: b.lecture, type: 'cloze', prompt: b.prompt,
-      answer: answers[b.id], why: '', source: `Your notes · lecture ${b.lecture}, slide ${b.slide}`,
-    }));
-    return cloze.concat(deck.cards)
+    const blanks = deck.blanks.filter(b => mine[b.id] || supplied[b.id]).map(b => {
+      const own = mine[b.id], sup = supplied[b.id] || {};
+      return {
+        id: 'blank:' + b.id, lecture: b.lecture, type: 'recall', blank: true, prompt: b.prompt,
+        answer: own || sup.answer, points: [own || sup.answer], basis: own ? 'mine' : sup.basis,
+        why: own ? '' : (sup.note || ''),
+        source: `Lecture ${b.lecture}, slide ${b.slide} · ` + (own ? 'your own answer' : BASIS[sup.basis] || 'supplied'),
+      };
+    });
+    return blanks.concat(deck.cards)
       .filter(c => !(NO_CODE && c.code))
       .map((c, i) => [c, i])
       .sort((a, b) => rank.get(a[0].lecture) - rank.get(b[0].lecture) || a[1] - b[1])
@@ -64,14 +76,13 @@
   }
 
   // ── Navigation ─────────────────────────────────────────────────────────
-  const screens = ['home', 'study', 'done', 'blanks', 'settings'];
+  const screens = ['home', 'study', 'done', 'settings'];
   function show(name) {
     document.body.classList.remove('studying');
     if (name !== 'study' && session) endSession(false);
     for (const s of screens) $('screen-' + s).hidden = s !== name;
     document.querySelectorAll('.navbtn').forEach(b => b.setAttribute('aria-current', b.dataset.nav === name ? 'page' : 'false'));
     if (name === 'home') renderHome();
-    if (name === 'blanks') renderBlanks();
     if (name === 'settings') renderSettings();
     window.scrollTo(0, 0);
   }
@@ -91,7 +102,7 @@
     const left = cards.filter(c => sts[c.id].phase === 'new').length;
     $('studyNote').textContent = queue.length ? ''
       : left ? 'All done for today. More cards to learn unlock tomorrow (or raise the daily limit in Settings).'
-      : 'All done for today. Fill more lecture blanks to add cards.';
+      : 'All done for today: you have started every card.';
 
     const r = sched.delayedRecall(events, t, 14);
     $('recallPct').textContent = r.total ? Math.round(100 * r.right / r.total) + '%' : '—';
@@ -99,25 +110,19 @@
       ? `You got ${r.right} of ${r.total} right when a card came back hours or days later`
       : 'Starts tomorrow: it counts how many cards you still remember when they come back.';
 
-    const answers = log.blankAnswers(events);
     const list = $('lectureList');
     list.replaceChildren();
     for (const lec of deck.lectures) {
       const lc = cards.filter(c => c.lecture === lec.n);
       const mastered = lc.filter(c => sts[c.id].mastered).length;
       const started = lc.filter(c => sts[c.id].phase !== 'new' && !sts[c.id].mastered).length;
-      const lb = deck.blanks.filter(b => b.lecture === lec.n);
-      const unfilled = lb.filter(b => !answers[b.id]).length;
-      const total = lc.length + unfilled;
-      const pct = n => total ? (100 * n / total) + '%' : '0%';
+      const pct = n => lc.length ? (100 * n / lc.length) + '%' : '0%';
       list.append(h('div', { class: 'lec' },
         h('div', { class: 'lec-head' }, `${lec.n} · ${lec.title}`),
-        h('div', { class: 'bar', role: 'img', 'aria-label': `${mastered} mastered, ${started} started, ${lc.length} cards, ${unfilled} blanks unfilled` },
+        h('div', { class: 'bar', role: 'img', 'aria-label': `${mastered} mastered, ${started} started, of ${lc.length} cards` },
           h('i', { class: 'm', style: `width:${pct(mastered)}` }),
-          h('i', { class: 'l', style: `width:${pct(started)}` }),
-          h('i', { style: `width:${pct(lc.length - mastered - started)}` }),
-          h('i', { class: 's', style: `width:${pct(unfilled)}` })),
-        h('div', { class: 'lec-sub' }, `${mastered}/${lc.length} mastered` + (lb.length ? ` · ${lb.length - unfilled}/${lb.length} blanks filled` : ''))));
+          h('i', { class: 'l', style: `width:${pct(started)}` })),
+        h('div', { class: 'lec-sub' }, `${lc.length} cards · ${started} started · ${mastered} mastered`)));
     }
     const ed = examDay();
     $('examLine').textContent = ed == null ? 'No exam date set (Settings). Reviews follow the normal 1 · 3 · 7 · 14 · 30-day ladder.'
@@ -177,7 +182,7 @@
 
   function fillQuestion(card) {
     const lec = deck.lectures.find(l => l.n === card.lecture);
-    $('qlabel').textContent = `Lecture ${card.lecture} · ${card.type === 'typed' && card.code ? 'Trace' : TYPE_LABEL[card.type]}`;
+    $('qlabel').textContent = `Lecture ${card.lecture} · ${card.blank ? 'Fill the blank' : card.type === 'typed' && card.code ? 'Trace' : TYPE_LABEL[card.type]}`;
     $('qlabel').title = lec ? lec.title : '';
     $('qprompt').textContent = card.prompt;
     $('qcode').hidden = !card.code;
@@ -423,10 +428,13 @@
         h('div', { class: 'val' + mono, 'data-fit': 'pre' }, Array.isArray(p.given) ? numbered(p.given) : p.given)));
     }
     if (!(card.type === 'mc' && p.ok)) {
-      fb.append(h('div', { class: 'fb-block' }, h('div', { class: 'label' }, card.type === 'cloze' ? 'Your notes say' : card.type === 'recall' ? 'Model answer' : 'Answer'),
+      fb.append(h('div', { class: 'fb-block' }, h('div', { class: 'label' }, card.blank ? 'Answer' : card.type === 'recall' ? 'Model answer' : 'Answer'),
         h('div', { class: 'val' + mono, 'data-fit': 'pre' }, card.type === 'order' ? numbered(card.answer) : card.answer)));
     }
-    if (card.type === 'recall') {
+    if (card.blank && card.basis === 'inferred') {
+      fb.append(h('div', { class: 'alert', 'data-fit': '' }, 'This blank’s answer is a best guess. Check it against your class notes.'));
+    }
+    if (card.type === 'recall' && !card.blank) {
       fb.append(h('div', { class: 'fb-block' }, h('div', { class: 'label' }, 'Count it if you had'), h('ul', { class: 'points' }, card.points.map(pt => h('li', { 'data-fit': '' }, pt)))));
     }
     if (card.why) fb.append(h('p', { class: 'why', 'data-fit': '' }, card.why));
@@ -493,45 +501,6 @@
     if (current.card.type === 'mc' && /^[1-9]$/.test(e.key) && +e.key <= ui.optCount) ui.pick(+e.key - 1);
     if (e.key === 'Enter' && (current.card.type === 'mc' || current.card.type === 'order')) { e.preventDefault(); submit(!e.shiftKey); }
   });
-
-  // ── Fill blanks ────────────────────────────────────────────────────────
-  function renderBlanks() {
-    const answers = log.blankAnswers(events);
-    const tabs = $('blankTabs');
-    tabs.replaceChildren(...deck.lectures.filter(l => deck.blanks.some(b => b.lecture === l.n)).map(l => {
-      const lb = deck.blanks.filter(b => b.lecture === l.n);
-      const filled = lb.filter(b => answers[b.id]).length;
-      return h('button', { class: 'btn', 'aria-pressed': String(l.n === blankLecture), onclick: () => { blankLecture = l.n; renderBlanks(); } },
-        `Lecture ${l.n} `, h('span', { class: 'muted' }, `${filled}/${lb.length}`));
-    }));
-    const lb = deck.blanks.filter(b => b.lecture === blankLecture);
-    const filled = lb.filter(b => answers[b.id]).length;
-    $('blankCount').textContent = `${filled} of ${lb.length} filled for lecture ${blankLecture}.`;
-    const list = $('blankList');
-    list.replaceChildren(...lb.map(b => {
-      const id = 'blank-' + b.id;
-      const input = h('input', { type: 'text', id, value: answers[b.id] || '', autocomplete: 'off', spellcheck: 'false' });
-      const row = h('div', { class: 'blank' + (answers[b.id] ? ' filled' : '') },
-        h('label', { for: id }, h('span', { class: 'slide' }, `slide ${b.slide}`), b.prompt), input);
-      const save = () => {
-        const v = input.value.trim();
-        if (v === (log.blankAnswers(events)[b.id] || '')) return;
-        log.append(events, { k: 'b', b: b.id, v });
-        row.classList.toggle('filled', !!v);
-        const n = deck.blanks.filter(x => x.lecture === blankLecture && log.blankAnswers(events)[x.id]).length;
-        $('blankCount').textContent = `${n} of ${lb.length} filled for lecture ${blankLecture}.`;
-        pushSoon();
-      };
-      input.addEventListener('change', save);
-      input.addEventListener('keydown', e => {
-        if (e.key !== 'Enter') return;
-        e.preventDefault(); save();
-        const next = row.nextElementSibling?.querySelector('input');
-        if (next) next.focus();
-      });
-      return row;
-    }));
-  }
 
   // ── Settings + sync ────────────────────────────────────────────────────
   function renderSettings() {

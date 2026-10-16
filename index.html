@@ -26,7 +26,7 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     /* The page itself never scrolls: every screen fits the window, and only
-       inner boxes (a long card, the blanks list) scroll on their own. */
+       inner boxes (a long card or feedback) scroll on their own. */
     html, body { width: 100%; height: 100%; overflow: hidden; }
 
     body {
@@ -194,14 +194,6 @@
     .source { margin-top: 0.6rem; font-size: calc(0.72rem * var(--fit-a, 1)); line-height: 1.45; color: var(--text-secondary); }
     .linkbtn { background: none; border: 0; color: var(--accent-bright); cursor: pointer; font: inherit; font-size: 0.85rem; text-decoration: underline; padding: 0.4rem 0; min-height: 44px; }
 
-    /* ── Blanks ── */
-    .tabs { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; }
-    .tabs .btn { flex: 0 0 auto; padding: 0.5rem 0.8rem; }
-    .tabs .btn[aria-pressed="true"] { border-color: var(--accent-bright); background: rgba(0, 119, 182, 0.18); }
-    .blank { padding: 0.75rem 0; border-top: 1px solid var(--bg-tertiary); }
-    .blank label { display: block; font-size: 0.9rem; margin-bottom: 0.35rem; }
-    .blank .slide { color: var(--text-secondary); font-family: var(--mono); font-size: 0.72rem; margin-right: 0.4rem; }
-    .blank.filled input { border-color: var(--correct); }
 
     /* ── Settings ── */
     #screen-settings, #screen-done { overflow-y: auto; }
@@ -265,7 +257,6 @@
       <nav class="topbar" aria-label="Main">
         <button class="brand" data-nav="home">CSC 370</button>
         <button class="navbtn" data-nav="home">Home</button>
-        <button class="navbtn" data-nav="blanks">Fill blanks</button>
         <button class="navbtn" data-nav="settings">Settings</button>
         <span class="sync-dot" id="syncDot" role="img" aria-label="Sync status"></span>
       </nav>
@@ -296,7 +287,6 @@
           <div class="legend">
             <span><i style="background:var(--correct)"></i>mastered</span>
             <span><i style="background:var(--accent)"></i>started</span>
-            <span><i style="background:repeating-linear-gradient(135deg,var(--text-secondary) 0 2px,transparent 2px 5px);opacity:.5"></i>blanks to fill</span>
           </div>
         </div>
         <p class="muted" id="examLine"></p>
@@ -331,15 +321,6 @@
           <p class="muted" style="margin-top:0.5rem">If that felt hard, it is working: spaced, effortful recall feels worse during practice and lasts longer.</p>
         </div>
         <button class="btn primary big" data-nav="home">Back to home</button>
-      </section>
-
-      <!-- Fill blanks -->
-      <section id="screen-blanks" hidden aria-labelledby="blanks-title">
-        <h1 class="label" id="blanks-title">Fill the lecture blanks</h1>
-        <p class="muted" style="margin:0.4rem 0 1rem">Fill these from your lecture notes with the slide open. Each blank you fill becomes a card, checked against your own answer. Writing them yourself is part of learning them.</p>
-        <div class="tabs" id="blankTabs" role="group" aria-label="Lecture"></div>
-        <p class="muted" id="blankCount"></p>
-        <div id="blankList" class="scroll"></div>
       </section>
 
       <!-- Settings -->
@@ -390,6 +371,7 @@
   <script src="js/grade.js"></script>
   <script src="js/sync.js"></script>
   <script src="decks/csc370.js"></script>
+  <script src="decks/csc370-blank-answers.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

@@ -6,7 +6,7 @@ Date: 2026-10-16. Branch: `csc370` of `0JEA/flash-cards`. Status: BUILT and merg
 
 - **`master` is live.** GitHub Pages serves `master` at https://0jea.github.io/flash-cards/. Merging to `master` deploys.
 - **The ethics quiz is retired, not deleted.** It moves to `archive/ethics-questions.js` and is not loaded. Four of its answer keys look wrong (see the 2026-10-15 look-over); they were left as they are.
-- **Lecture blanks are NOT filled by Claude.** The six "Student" slide decks are fill-in handouts with empty blanks. The owner fills them from lecture notes inside the app (decision 2026-10-15: accuracy plus the generation effect). Unfilled blanks are never shown as cards.
+- **Lecture blanks are supplied, with a source label.** SUPERSEDED: the 2026-10-15 plan had the owner fill them himself, but he doesn't have them all. On 2026-10-16 every blank got an answer in `decks/csc370-blank-answers.js`, tagged slides / sebesta / history / inferred; inferred ones show as guesses. The Fill-blanks screen was removed, and blanks are now self-graded "Fill the blank" cards.
 - **Progress is public.** The review log lives on the `progress` branch of a public repo. The owner accepted this on 2026-10-16.
 
 ## Goal
@@ -38,7 +38,7 @@ Paper references point to `research/01-…` (R1), `research/02-…` (R2) and `re
 | L12 | **Headline metric = delayed recall:** the share of first attempts that were right on cards last seen 1+ days earlier, over the last 14 days. No in-session percentage. | Learners misjudge from in-session fluency (Kornell 2009: 72% preferred massing; Bjork & Bjork 2023, R1). |
 | L13 | **Higher-order cards** (argue, compare, why) sit alongside facts, taken from the course's own post-tests. **Compare cards** set two methods side by side (static vs dynamic scope, compiler vs interpreter, stack vs heap). | Fact-only quizzes don't build higher-order skill (Agarwal 2019, R2). Comparing methods (Rittle-Johnson & Star 2009, R3). |
 | L14 | **Recall cards show key points to grade against**, so self-grading is honest. | Self-explanation against a model (Hodds 2014, d=.95, R3). Inference for self-grading. |
-| L15 | **The owner writes the blank answers himself** (in-app fill sheet). Each filled blank becomes a cloze card checked against his own answer. | Generation effect (Bertsch 2007, R2). Accuracy to lecture. |
+| L15 | ~~The owner writes the blank answers himself~~ SUPERSEDED 2026-10-16: answers are supplied with a source label. The learner still types each blank before seeing it (generation), then self-grades. | Generation effect (Bertsch 2007, R2). |
 
 Not adopted (and why):
 - FSRS or HLR: their evidence comes from the algorithm authors' own data and measures prediction, not learning (R1 §5).
@@ -101,7 +101,7 @@ All days are local calendar days.
 
 ## UI
 
-One page with four screens: **Home** (due and new counts, delayed-recall %, per-lecture mastery, Study button), **Study**, **Fill blanks**, **Settings** (token, exam date, new cards per day, sync status).
+One page with three screens: **Home** (cards to review and to learn, remembered-later %, per-lecture mastery, Study button), **Study**, **Settings** (token, exam date, cards to learn per day, sync status). The page never scrolls. On the study screen Pretext picks the text scale per card so everything fits (`fitAsk`/`fitFeedback`), and wide windows put the question beside the answer.
 
 The existing look carries over: dark, Geist and Space Grotesk, GSAP transitions, and Pretext measuring the incoming card's height.
 

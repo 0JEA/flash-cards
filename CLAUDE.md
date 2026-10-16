@@ -7,7 +7,8 @@
 - **The `progress` branch is DATA, not code.** It holds the owner's review log (`log/YYYY-MM.jsonl`), written by the app through the GitHub API. Never merge it into `master`, never rebase or force-push it, never delete files on it.
   Verify: `gh api "repos/0JEA/flash-cards/contents/?ref=progress" --jq '.[].path'`
 - **The ethics quiz is retired.** `archive/ethics-questions.js` is no longer loaded. Several of its answer keys look wrong; it was left untouched on purpose.
-- **Lecture blank answers are the owner's own.** `decks/csc370.js` lists the empty fill-ins on the professor's slides (`blanks`). The owner fills them in the app from lecture notes. Do not fill them from a textbook or from memory.
+- **Lecture blank answers are SUPPLIED, with a source label** (owner decision 2026-10-16, reversing the earlier "owner fills them": he does not have them all). `decks/csc370.js` lists the empty fill-ins on the professor's slides; `decks/csc370-blank-answers.js` answers every one with a `basis`: `slides` | `sebesta` | `history` | `inferred`. The app shows `inferred` answers as best guesses. Never relabel a guess as fact. `node --test tests/` fails if any blank lacks an answer.
+- **Text size on the study screen is chosen by Pretext, per card** (`fitAsk`/`fitFeedback` in `js/app.js`). Don't fix layout problems with scroll boxes or fixed font sizes; the page must never scroll. Check fits by sweeping every card at the owner's real window size (read it from `hyprctl clients -j`).
 - **Every code-trace answer is machine-verified.** If you add or edit a card with `verify`, run `node --test tests/`. It executes each `verify.src` with python3, gcc, node, bash, guile or ecl and fails on any mismatch. A missing runtime fails rather than skips.
 
 ## What it is
@@ -23,9 +24,10 @@ The design, and the paper behind each learning rule, are in `docs/superpowers/sp
 | `js/scheduler.js` | Pure functions: learning criterion, review ladder, exam cap, queue, delayed-recall metric, `Session` |
 | `js/grade.js` | Answer matching (whitespace/case normalisation; cloze typo tolerance) |
 | `js/sync.js` | Sync to branch `progress` through the GitHub contents API (per-month files, SHA retry) |
-| `js/app.js` | UI controller. Card text only ever goes through `textContent` (the page holds a token) |
-| `decks/csc370.js` | 129 cards and 199 lecture blanks; each card cites its source PDF |
-| `vendor/pretext-0.0.9.min.js` | `@chenglou/pretext` 0.0.9, bundled to an IIFE (global `Pretext`). It predicts the question card's height before each card swap |
+| `js/app.js` | UI controller (Home, Study, Settings). Card text only ever goes through `textContent` (the page holds a token) |
+| `decks/csc370.js` | 129 cards and 203 lecture blanks; each card cites its source PDF |
+| `decks/csc370-blank-answers.js` | Supplied answers to all 203 blanks, each with a `basis` |
+| `vendor/pretext-0.0.9.min.js` | `@chenglou/pretext` 0.0.9, bundled to an IIFE (global `Pretext`). It picks the largest text scale at which each study card fits the window |
 
 Rebuild Pretext (only to change the version):
 ```sh
@@ -36,7 +38,7 @@ Then update the `<script>` tag in `index.html`.
 
 ## Commands
 
-- Tests (59, about 1 s; needs python3, gcc, node, bash, guile, ecl): `node --test tests/`
+- Tests (60, about 1 s; needs python3, gcc, node, bash, guile, ecl): `node --test tests/`
 - Run locally: `python3 -m http.server 8765 --bind 127.0.0.1`, then open http://127.0.0.1:8765/. Opening `index.html` directly from disk also works.
 
 ## Deployed vs repo-only

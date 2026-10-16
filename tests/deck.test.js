@@ -51,3 +51,14 @@ test('blanks: unique ids, a known lecture, exactly one ____ each', () => {
     assert.equal((b.prompt.match(/____/g) || []).length, 1, `${b.id}: ${b.prompt}`);
   }
 });
+
+test('every lecture blank has a supplied answer with a known source', () => {
+  require('../decks/csc370-blank-answers.js');
+  const A = globalThis.FC.blankAnswers;
+  for (const b of deck.blanks) {
+    const a = A[b.id];
+    assert.ok(a && typeof a.answer === 'string' && a.answer.trim(), `no answer for ${b.id} (${b.prompt})`);
+    assert.ok(['slides', 'sebesta', 'history', 'inferred'].includes(a.basis), `${b.id}: basis ${a.basis}`);
+  }
+  assert.deepEqual(Object.keys(A).filter(k => !deck.blanks.some(b => b.id === k)), [], 'answers for blanks that no longer exist');
+});

@@ -66,6 +66,7 @@
   // ── Navigation ─────────────────────────────────────────────────────────
   const screens = ['home', 'study', 'done', 'blanks', 'settings'];
   function show(name) {
+    document.body.classList.remove('studying');
     if (name !== 'study' && session) endSession(false);
     for (const s of screens) $('screen-' + s).hidden = s !== name;
     document.querySelectorAll('.navbtn').forEach(b => b.setAttribute('aria-current', b.dataset.nav === name ? 'page' : 'false'));
@@ -146,6 +147,7 @@
     session.firstTry = new Map(); // card id -> right on first attempt this session
     current = null;
     for (const s of screens) $('screen-' + s).hidden = s !== 'study';
+    document.body.classList.add('studying');
     document.querySelectorAll('.navbtn').forEach(b => b.setAttribute('aria-current', 'false'));
     showCard(session.next(), true);
   }
@@ -166,6 +168,7 @@
     $('doneNext').textContent = s.remaining
       ? `${s.remaining} card${s.remaining === 1 ? '' : 's'} left in today’s queue. They will still be due when you come back.`
       : `${tomorrow} card${tomorrow === 1 ? '' : 's'} to review tomorrow.`;
+    document.body.classList.remove('studying');
     for (const name of screens) $('screen-' + name).hidden = name !== 'done';
     window.scrollTo(0, 0);
   }
@@ -181,70 +184,114 @@
     $('qcode').textContent = card.code || '';
   }
 
-  // ── Pretext: predict the question card's height before swapping content ──
+  // ── Pretext: fit the study screen to the window ──────────────────────
+  // Study text is sized as a multiple of --fit-q (question) and --fit-a (answer and
+  // feedback). Pretext lays out every text block at a candidate scale without touching
+  // the DOM, so we binary-search the largest scale at which the whole screen fits and
+  // render only that one. A single DOM read per fit gives the non-text "chrome"
+  // (padding, inputs, buttons), which does not scale.
+  const FIT_MIN = 0.66, FIT_MAX = 1.3;
   const prepared = new Map();
-  if (document.fonts) document.fonts.ready.then(() => { prepared.clear(); if (window.Pretext) Pretext.clearCache(); });
-
-  function textHeight(text, styleEl, width, pre) {
-    const s = getComputedStyle(styleEl);
-    const font = `${s.fontWeight} ${s.fontSize} ${s.fontFamily}`;
-    const key = font + (pre ? '\npre\n' : '\n') + text;
-    if (!prepared.has(key)) prepared.set(key, Pretext.prepare(text, font, pre ? { whiteSpace: 'pre-wrap' } : undefined));
-    return Pretext.layout(prepared.get(key), width, parseFloat(s.lineHeight)).height;
-  }
   const px = v => parseFloat(v) || 0;
 
-  function predictCardHeight(card) {
-    if (!window.Pretext) return null;
-    try {
-      const q = $('qcard'), prompt = $('qprompt'), code = $('qcode'), ref = $('codeRef');
-      const cs = getComputedStyle(ref);
-      const codeChrome = px(cs.paddingTop) + px(cs.paddingBottom) + px(cs.borderTopWidth) + px(cs.borderBottomWidth);
-      const codeMargin = px(getComputedStyle(code).marginTop);
-      const codeNow = code.hidden ? 0 : code.getBoundingClientRect().height + codeMargin;
-      const base = q.getBoundingClientRect().height - prompt.getBoundingClientRect().height - codeNow;
-      let hgt = base + textHeight(card.prompt, prompt, prompt.getBoundingClientRect().width, true);
-      if (card.code) {
-        const w = ref.getBoundingClientRect().width - px(cs.paddingLeft) - px(cs.paddingRight) - px(cs.borderLeftWidth) - px(cs.borderRightWidth);
-        hgt += codeMargin + codeChrome + textHeight(card.code, ref, w, true);
-      }
-      const maxH = px(getComputedStyle(q).maxHeight);
-      return maxH ? Math.min(hgt, maxH) : hgt;
-    } catch (e) {
-      console.warn('Pretext measurement failed', e);
-      return null;
-    }
+  function pretextHeight(text, font, width, lineHeight, pre) {
+    const key = font + (pre ? '\npre\n' : '\n') + text;
+    let p = prepared.get(key);
+    if (!p) { p = Pretext.prepare(text, font, pre ? { whiteSpace: 'pre-wrap' } : undefined); prepared.set(key, p); }
+    return Pretext.layout(p, width, lineHeight).height;
   }
+
+  // Every visible [data-fit] text block under root, measured at the current scale (1).
+  function textBlocks(root) {
+    return [...root.querySelectorAll('[data-fit]')].filter(el => el.offsetParent).map(el => {
+      const cs = getComputedStyle(el), r = el.getBoundingClientRect();
+      return {
+        text: el.dataset.text ?? el.textContent, pre: el.dataset.fit === 'pre',
+        weight: cs.fontWeight, size: px(cs.fontSize), family: cs.fontFamily, lh: px(cs.lineHeight),
+        width: r.width - px(cs.paddingLeft) - px(cs.paddingRight) - px(cs.borderLeftWidth) - px(cs.borderRightWidth),
+        dom: r.height - px(cs.paddingTop) - px(cs.paddingBottom) - px(cs.borderTopWidth) - px(cs.borderBottomWidth),
+      };
+    });
+  }
+
+  // Largest scale in [FIT_MIN, FIT_MAX] where chrome + all text fits `available`;
+  // null if even FIT_MIN is too big.
+  function searchScale(blocks, chrome, available) {
+    const total = sc => chrome + blocks.reduce((sum, b) =>
+      sum + pretextHeight(b.text, `${b.weight} ${b.size * sc}px ${b.family}`, b.width, b.lh * sc, b.pre), 0);
+    if (total(FIT_MIN) > available) return null;
+    if (total(FIT_MAX) <= available) return FIT_MAX;
+    let lo = FIT_MIN, hi = FIT_MAX;
+    for (let k = 0; k < 9; k++) { const mid = (lo + hi) / 2; if (total(mid) <= available) lo = mid; else hi = mid; }
+    return lo;
+  }
+
+  const overflowing = () => {
+    const q = $('qcard'), a = $('answerArea');
+    return q.scrollHeight > q.clientHeight + 1 || a.scrollHeight > a.clientHeight + 1;
+  };
+
+  // Asking: question and answer controls share one scale.
+  function fitAsk() {
+    if (!window.Pretext || !current) return;
+    const sec = $('screen-study'), area = $('answerArea');
+    sec.classList.remove('fit-overflow');
+    area.style.removeProperty('--fit-a');
+    sec.style.setProperty('--fit-q', 1);
+    sec.style.setProperty('--fit-a', 1);
+    sec.classList.add('fit-measure'); // everything at natural height for one read
+    const top = sec.getBoundingClientRect().top;
+    const natural = Math.max(...[...sec.children].filter(el => el.offsetParent).map(el => el.getBoundingClientRect().bottom)) - top;
+    const available = sec.clientHeight;
+    const blocks = textBlocks(sec);
+    sec.classList.remove('fit-measure');
+    let sc = searchScale(blocks, natural - blocks.reduce((t, b) => t + b.dom, 0), available);
+    if (sc === null) { sc = FIT_MIN; sec.classList.add('fit-overflow'); }
+    const apply = v => { sec.style.setProperty('--fit-q', v); sec.style.setProperty('--fit-a', v); };
+    apply(sc);
+    // Pretext and the DOM agree to well under a pixel per block; this only catches
+    // rounding at an exact boundary.
+    for (let k = 0; k < 6 && sc > FIT_MIN && overflowing(); k++) apply(sc = Math.max(FIT_MIN, sc - 0.03));
+    if (overflowing()) sec.classList.add('fit-overflow');
+  }
+
+  // Feedback: the question keeps its size; the feedback gets the space below it.
+  function fitFeedback() {
+    if (!window.Pretext || !current) return;
+    const area = $('answerArea'), fb = area.firstElementChild;
+    if (!fb) return;
+    area.style.setProperty('--fit-a', 1);
+    const blocks = textBlocks(area);
+    const chrome = fb.getBoundingClientRect().height - blocks.reduce((t, b) => t + b.dom, 0);
+    let sc = searchScale(blocks, chrome, area.clientHeight);
+    // Feedback too long for the space left under the question: shrink both together.
+    if (sc === null) { area.style.removeProperty('--fit-a'); fitAsk(); return; }
+    area.style.setProperty('--fit-a', sc);
+    for (let k = 0; k < 6 && sc > FIT_MIN && area.scrollHeight > area.clientHeight + 1; k++) area.style.setProperty('--fit-a', sc = Math.max(FIT_MIN, sc - 0.03));
+  }
+
+  function refit() {
+    if ($('screen-study').hidden || !current) return;
+    if (current.pending) fitFeedback(); else fitAsk();
+  }
+  let refitFrame = 0;
+  window.addEventListener('resize', () => { cancelAnimationFrame(refitFrame); refitFrame = requestAnimationFrame(refit); });
+  if (document.fonts) document.fonts.ready.then(() => { prepared.clear(); if (window.Pretext) Pretext.clearCache(); refit(); });
 
   let animating = false;
   function showCard(id, first) {
     const card = session.byId.get(id);
     current = { card, pending: null };
     $('leftCount').textContent = `${session.remaining} left`;
-    const area = $('answerArea'), actions = $('actions');
-    if (first || !window.gsap) {
-      fillQuestion(card);
-      area.replaceChildren(buildAnswer(card));
-      $('qcard').scrollTop = 0;
-      focusFirst();
-      return;
-    }
+    const area = $('answerArea'), actions = $('actions'), inner = $('qinner');
+    // Render, then fit while the content is still invisible, so the new card appears at its final size.
+    const render = () => { fillQuestion(card); area.replaceChildren(buildAnswer(card)); $('qcard').scrollTop = 0; area.scrollTop = 0; fitAsk(); };
+    if (first || !window.gsap) { render(); focusFirst(); return; }
     animating = true;
-    const q = $('qcard'), inner = $('qinner');
-    const target = predictCardHeight(card);
-    gsap.killTweensOf([q, inner, area, actions]);
-    if (target) {
-      gsap.set(q, { height: q.getBoundingClientRect().height });
-      gsap.to(q, {
-        height: target, duration: 0.4, ease: 'power2.inOut',
-        // ~0.1% of lines sit on the wrap boundary, where canvas and DOM widths
-        // disagree: settle into the real height rather than snapping.
-        onComplete: () => gsap.to(q, { height: 'auto', duration: 0.12, onComplete: () => gsap.set(q, { clearProps: 'height' }) }),
-      });
-    }
+    gsap.killTweensOf([inner, area, actions]);
     gsap.timeline()
       .to([inner, area, actions], { xPercent: -8, opacity: 0, duration: 0.18, ease: 'power2.in' })
-      .add(() => { fillQuestion(card); area.replaceChildren(buildAnswer(card)); q.scrollTop = 0; area.scrollTop = 0; })
+      .add(render)
       .set([inner, area, actions], { xPercent: 8 })
       .to([inner, area, actions], { xPercent: 0, opacity: 1, duration: 0.22, ease: 'power2.out', onComplete: () => { animating = false; focusFirst(); } });
   }
@@ -282,7 +329,7 @@
       let chosen = null;
       const box = h('div', { role: 'group', 'aria-label': 'Options' });
       opts.forEach((o, i) => {
-        const b = h('button', { class: 'opt', 'aria-pressed': 'false', 'data-opt': o, onclick: () => pick(i) }, h('span', { class: 'kbd' }, `${i + 1}`), ' ', o);
+        const b = h('button', { class: 'opt', 'aria-pressed': 'false', 'data-opt': o, 'data-fit': '', 'data-text': o, onclick: () => pick(i) }, h('span', { class: 'kbd' }, `${i + 1}`), ' ', o);
         box.append(b);
       });
       function pick(i) {
@@ -301,16 +348,15 @@
       const ans = h('div', { class: 'tiles', 'aria-label': 'Your order' });
       const src = h('div', { class: 'tiles pool', 'aria-label': 'Tiles to place' });
       function draw() {
-        ans.replaceChildren(...(placed.length ? placed.map((t, i) => h('button', { class: 'tile', onclick: () => { placed.splice(i, 1); pool.push(t); draw(); } }, h('span', { class: 'num' }, `${i + 1}.`), t))
+        ans.replaceChildren(...(placed.length ? placed.map((t, i) => h('button', { class: 'tile', 'data-fit': '', 'data-text': t, onclick: () => { placed.splice(i, 1); pool.push(t); draw(); } }, h('span', { class: 'num' }, `${i + 1}.`), t))
           : [h('div', { class: 'tiles-empty' }, 'Tap tiles below in order. Tap a placed tile to take it back.')]));
-        src.replaceChildren(...pool.map((t, i) => h('button', { class: 'tile', onclick: () => { pool.splice(i, 1); placed.push(t); draw(); } }, t)));
+        src.replaceChildren(...pool.map((t, i) => h('button', { class: 'tile', 'data-fit': '', 'data-text': t, onclick: () => { pool.splice(i, 1); placed.push(t); draw(); } }, t)));
         src.hidden = pool.length === 0;
         updateReady();
       }
       wrap.append(ans, src);
       read = () => ({ given: placed.slice(), ready: pool.length === 0 });
       wrap.draw = draw;
-      queueMicrotask(draw);
     }
 
     const sureBtn = h('button', { class: 'btn primary', onclick: () => submit(true) }, 'Sure', h('span', { class: 'kbd' }, card.type === 'recall' ? 'Ctrl+⏎' : '⏎'));
@@ -319,7 +365,7 @@
     $('actions').replaceChildren(h('div', { class: 'btn-row' }, idkBtn, guessBtn, sureBtn));
     function updateReady() { const r = read().ready; sureBtn.disabled = !r; guessBtn.disabled = !r; }
     wrap.addEventListener('input', updateReady);
-    queueMicrotask(updateReady);
+    if (wrap.draw) wrap.draw(); else updateReady();
     wrap.read = read;
     current && (current.ui = wrap);
     return wrap;
@@ -354,8 +400,8 @@
 
     const fb = h('div', { class: 'feedback', role: 'status', 'aria-live': 'polite' });
     const selfGrade = card.type === 'recall' && !p.gaveUp;
-    const verdict = h('div', { class: 'verdict' });
-    const alert = h('div', { class: 'alert' });
+    const verdict = h('div', { class: 'verdict', 'data-fit': '' });
+    const alert = h('div', { class: 'alert', 'data-fit': '' });
     function paintVerdict() {
       fb.classList.toggle('good', p.ok === true);
       fb.classList.toggle('bad', p.ok === false);
@@ -374,17 +420,17 @@
     if (p.given && p.given.length) {
       const yours = card.type === 'order' ? 'Your order' : card.type === 'mc' ? 'You chose' : 'You wrote';
       fb.append(h('div', { class: 'fb-block' }, h('div', { class: 'label' }, yours),
-        h('div', { class: 'val' + mono }, Array.isArray(p.given) ? numbered(p.given) : p.given)));
+        h('div', { class: 'val' + mono, 'data-fit': 'pre' }, Array.isArray(p.given) ? numbered(p.given) : p.given)));
     }
     if (!(card.type === 'mc' && p.ok)) {
       fb.append(h('div', { class: 'fb-block' }, h('div', { class: 'label' }, card.type === 'cloze' ? 'Your notes say' : card.type === 'recall' ? 'Model answer' : 'Answer'),
-        h('div', { class: 'val' + mono }, card.type === 'order' ? numbered(card.answer) : card.answer)));
+        h('div', { class: 'val' + mono, 'data-fit': 'pre' }, card.type === 'order' ? numbered(card.answer) : card.answer)));
     }
     if (card.type === 'recall') {
-      fb.append(h('div', { class: 'fb-block' }, h('div', { class: 'label' }, 'Count it if you had'), h('ul', { class: 'points' }, card.points.map(pt => h('li', null, pt)))));
+      fb.append(h('div', { class: 'fb-block' }, h('div', { class: 'label' }, 'Count it if you had'), h('ul', { class: 'points' }, card.points.map(pt => h('li', { 'data-fit': '' }, pt)))));
     }
-    if (card.why) fb.append(h('p', { class: 'why' }, card.why));
-    fb.append(h('p', { class: 'source' }, card.source));
+    if (card.why) fb.append(h('p', { class: 'why', 'data-fit': '' }, card.why));
+    fb.append(h('p', { class: 'source', 'data-fit': '' }, card.source));
 
     const row = h('div', { class: 'btn-row' });
     const cont = () => commit();
@@ -396,7 +442,7 @@
     } else {
       if ((card.type === 'typed' || card.type === 'cloze') && p.ok === false && !p.gaveUp) {
         // Exact matching can reject a right answer worded differently; allow an honest override.
-        const ov = h('button', { class: 'linkbtn', onclick: () => { p.ok = true; p.override = true; ov.remove(); paintVerdict(); } },
+        const ov = h('button', { class: 'linkbtn', onclick: () => { p.ok = true; p.override = true; ov.remove(); paintVerdict(); fitFeedback(); } },
           card.verify ? 'I was right (only formatting differs)' : 'I was right (only wording differs)');
         fb.append(ov);
       }
@@ -405,6 +451,7 @@
     area.replaceChildren(fb);
     area.scrollTop = 0;
     $('actions').replaceChildren(row);
+    fitFeedback();
     const btn = row.querySelector('.btn.primary');
     if (btn && matchMedia('(hover: hover)').matches) btn.focus({ preventScroll: true });
   }
@@ -561,5 +608,5 @@
   if (store.getItem(TOKEN_KEY)) syncNow(); else setSync('', '');
 
   // For tests (Playwright): measurement accuracy is checked against the real layout.
-  FC.app = { allCards, fillQuestion, predictCardHeight, get events() { return events; }, get session() { return session; } };
+  FC.app = { allCards, fillQuestion, fitAsk, fitFeedback, renderNow: id => showCard(id, true), get events() { return events; }, get session() { return session; } };
 })(globalThis.FC = globalThis.FC || {});

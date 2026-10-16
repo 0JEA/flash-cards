@@ -89,3 +89,11 @@ test('non-ASCII text survives the base64 round trip', async () => {
   await s.sync([{ i: 'b1', t: OCT, k: 'b', b: 'x', v: 'Zuse’s Plankalkül → “ok”', d: 'x' }]);
   assert.equal(log.fromJSONL(gh.files.get('log/2026-10.jsonl').text)[0].v, 'Zuse’s Plankalkül → “ok”');
 });
+
+test('one device alone: events added after a sync are uploaded on the next sync', async () => {
+  const gh = fakeGitHub();
+  const a = Sync.create({ token: 'good', fetch: gh.fetch, store: memStore() });
+  let out = await a.sync([ev('1', OCT)]);
+  out = await a.sync(out.concat([ev('2', OCT + 1)]));   // remote unchanged since our last write
+  assert.deepEqual(log.fromJSONL(gh.files.get('log/2026-10.jsonl').text).map(e => e.i), ['1', '2']);
+});

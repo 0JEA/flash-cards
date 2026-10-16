@@ -124,3 +124,22 @@ test('session: a miss or guess comes back 3-5 cards later; a learning success sh
   sess.record('c', { ok: 1, sure: 1, learningShort: false });
   assert.equal(sess.queue.includes('c'), false);
 });
+
+test('review: a miss from a high step resets all the way to step 0, not one step back', () => {
+  const ev = [rev('a', 0, 1), rev('a', 0, 1), rev('a', 0, 1), rev('a', 1, 1), rev('a', 4, 1), // step 2, due day 11
+    rev('a', 11, 0)];
+  const st = S.states(ev, cards)['a'];
+  assert.equal(st.step, 0);
+  assert.equal(st.due, today(12));
+});
+
+test('mastered needs 3 successful relearning days: 2 is not enough', () => {
+  const ev = [rev('a', 0, 1), rev('a', 0, 1), rev('a', 0, 1), rev('a', 1, 1), rev('a', 4, 1)]; // step 2
+  assert.equal(S.states(ev, cards)['a'].mastered, false);
+});
+
+test('session: a correct Guess is re-asked like a miss (3-5 cards later)', () => {
+  const sess = new S.Session(['a', 'b', 'c', 'd', 'e', 'f', 'g'], () => 0);
+  sess.record('a', { ok: 1, sure: 0, learningShort: false });
+  assert.equal(sess.queue.indexOf('a'), 3);
+});

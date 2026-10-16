@@ -1,6 +1,6 @@
 # CSC 370 study app: design
 
-Date: 2026-10-16. Branch: `csc370` of `0JEA/flash-cards`. Status: DECIDED, being built in the same session.
+Date: 2026-10-16. Branch: `csc370` of `0JEA/flash-cards`. Status: BUILT on branch `csc370` (2026-10-16). 54 tests, plus a mutation check: 18 of 19 rule-breaking mutations are caught, and the 19th is equivalent.
 
 ## What NOT to assume (read first)
 
@@ -105,7 +105,13 @@ One page with four screens: **Home** (due and new counts, delayed-recall %, per-
 
 The existing look carries over: dark, Geist and Space Grotesk, GSAP transitions, and Pretext measuring the incoming card's height.
 
-Keyboard: Enter submits as Sure, Shift+Enter submits as Guess, and Ctrl/Cmd+Enter submits multi-line traces. 1–4 choose an MC option.
+Keyboard (as built):
+- One-line answers (typed answers, traces, cloze): Enter submits as Sure; Shift+Enter submits as Guess. Traces are typed on one line, since whitespace is normalised.
+- Recall textarea: Ctrl/Cmd+Enter is Sure; Ctrl/Cmd+Shift+Enter is Guess.
+- MC: 1–4 select an option, then Enter or Shift+Enter submits.
+- Feedback screen: Enter continues. On recall cards, 1 means "Missed it" and 2 means "Got it".
+
+Typed, trace and cloze answers marked wrong offer an "I was right (only wording/formatting differs)" override. It is logged with `o: 1`.
 
 ## Testing
 

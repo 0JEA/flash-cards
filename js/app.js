@@ -485,7 +485,18 @@
     if (card.code) body.push(h('pre', { class: 'code' }, card.code));
     body.push(sec('What it’s asking', h('p', null, helpMath(help.asks))));
     if (help.idea) body.push(sec('The idea', h('p', null, helpMath(help.idea))));
-    if (help.tree || help.graph) body.push(sec('Picture it', help.tree ? drawTree(help.tree) : null, help.tree && help.graph ? h('div', { style: 'height:0.75rem' }) : null, help.graph ? plot(help.graph) : null));
+    // Heaps: one drawn heap, or a short sequence of states (each with its caption).
+    // In a sequence, nodes that changed since the previous state are highlighted (the swap).
+    const heapFig = (arr, prev) => {
+      const changed = i => prev && prev[i - 1] !== arr[i - 1] ? 'swapped' : '';
+      return h('figure', { class: 'graph heap-fig' }, FC.tree.draw(FC.tree.heapTree(arr), { render: helpMath, maxHeight: 220, orient: 'v', classOf: n => changed(n.t.id) }), FC.tree.stripOf(arr, changed));
+    };
+    const steps = help.heapSteps || [];
+    const pics = [help.tree ? drawTree(help.tree) : null,
+      help.heap ? heapFig(help.heap) : null,
+      ...steps.map((st, i) => h('div', { class: 'heap-step' }, h('p', null, helpMath(st.text || '')), heapFig(st.heap, i ? steps[i - 1].heap : null))),
+      help.graph ? plot(help.graph) : null].filter(Boolean);
+    if (pics.length) body.push(sec('Picture it', ...pics.flatMap((p, i) => i ? [h('div', { style: 'height:0.75rem' }), p] : [p])));
     if (help.steps) body.push(sec('Step by step', h('ol', { class: 'help-steps' }, help.steps.map(helpStep))));
     if (help.answer) body.push(sec('Answer', h('div', { class: 'help-answer' }, helpMath(help.answer))));
     if (help.mistake) body.push(sec('Watch out', h('div', { class: 'help-mistake' }, helpMath(help.mistake))));

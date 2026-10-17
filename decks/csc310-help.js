@@ -29,6 +29,8 @@
 //                 { nodes: ['$T(1)$', '$T(1)$', '$\\cdots$', '$T(1)$'], sum: '$\\Theta(n^{\\log_4 3})$' } ],
 //       caption: 'What to notice.',  // ≤ 9 nodes per level; use '$\\cdots$' nodes for more
 //     },
+//     heap: [16, 14, 10, 8, 7],      // optional: drawn as a heap (top-down tree + array), 1-based
+//     heapSteps: [{ text: 'Swap A[2] and A[4]:', heap: [...] }, ...],   // optional, ≤ 4 states
 //     answer:  'The answer, with the reason in one line.',
 //     mistake: 'The mistake students usually make here, and how to avoid it.',
 //     tryIt:   { q: 'A similar small problem (different numbers).', a: 'Its answer with the key step.' },

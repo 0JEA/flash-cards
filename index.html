@@ -252,6 +252,8 @@
     .legend span.sw { display: inline-block; width: 1.1rem; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 0.45rem; }
     .sw.tone-a { background: var(--accent); } .sw.tone-b { background: var(--wrong); } .sw.tone-c { background: var(--correct); } .sw.tone-d { background: var(--warn); }
     .graph-cap { color: var(--text-2); font-size: 0.9rem; margin-top: 0.5rem; line-height: 1.55; }
+    .heap-step p { margin-bottom: 0.4rem; line-height: 1.6; }
+    .heap-fig .ftree { margin: 0 auto; }
     .tree-fig { position: relative; width: 100%; }
     .graph svg.tree-edges { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
     .tree-edges line { stroke: var(--text-3); stroke-width: 1.2; }
@@ -279,8 +281,8 @@
     .ftree-node { overflow: visible; }
     .ftree-node.blank { border-style: dashed; border-color: var(--accent); min-width: 2.2rem; min-height: 1.6rem; }
     .ftree-node.hint { border-color: var(--warn); box-shadow: 0 0 0 3px oklch(0.82 0.12 85 / 0.25); }
-    .ftree-node.swapped { border-color: var(--correct); background: var(--correct-soft); }
-    .ftree-node.picked { border-color: var(--accent); background: var(--accent-soft); }
+    .ftree-node.swapped { border-color: var(--correct); background: linear-gradient(var(--correct-soft), var(--correct-soft)), var(--surface-2); }
+    .ftree-node.picked { border-color: var(--accent); background: linear-gradient(var(--accent-soft), var(--accent-soft)), var(--surface-2); }
     .hstrip { display: flex; gap: 3px; justify-content: center; margin-top: 0.5rem; flex-wrap: wrap; }
     .hcell { position: relative; min-width: 2rem; padding: 0.25rem 0.35rem 0.5rem; text-align: center; font: 500 0.82rem var(--mono);
       background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; }
@@ -302,7 +304,7 @@
     button.ftree-node { cursor: pointer; }
     .ftree-node.empty { min-width: 2.4rem; min-height: 1.6rem; border-style: dashed; }
     .ftree-node.selected { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
-    .ftree-node.wrong { border-color: var(--wrong); background: var(--wrong-soft); }
+    .ftree-node.wrong { border-color: var(--wrong); background: linear-gradient(var(--wrong-soft), var(--wrong-soft)), var(--surface-2); }
     .tbuild { display: flex; flex-direction: column; gap: 0.5rem; }
     .tbuild-view { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.6rem; }
     .tbuild-hint { font-size: 0.82rem; color: var(--text-2); }
@@ -539,10 +541,16 @@
   <script src="decks/csc310-help-c.js"></script>
   <script src="decks/csc310-help-d.js"></script>
   <script src="decks/csc310-help-e.js"></script>
+  <script src="decks/csc310-help-f.js"></script>
+  <script src="decks/csc310-help-g.js"></script>
+  <script src="decks/csc310-help-h.js"></script>
   <script src="decks/csc370-cpointer-bank.js"></script>
   <script src="js/gen-softtest.js"></script>
   <script src="js/gen-csc370.js"></script>
   <script src="js/gen-csc310.js"></script>
+  <script src="js/gen-csc310-rt.js"></script>
+  <script src="js/gen-csc310-heap.js"></script>
+  <script src="js/gen-csc310-trees.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

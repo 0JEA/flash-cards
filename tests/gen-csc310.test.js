@@ -13,11 +13,13 @@ const G = globalThis.FC.gen, grade = globalThis.FC.grade;
 
 const SEEDS = Array.from({ length: 300 }, (_, i) => (Math.imul(i + 1, 2654435761) >>> 0));
 const IDS = ['gen-310-master', 'gen-310-recursion-tree', 'gen-310-growth-order', 'gen-310-loop-count', 'gen-310-partition',
-  'gen-310-heap', 'gen-310-buildheap', 'gen-310-counting-sort', 'gen-310-hash', 'gen-310-binary-search'];
+  'gen-310-heap', 'gen-310-buildheap', 'gen-310-counting-sort', 'gen-310-hash', 'gen-310-binary-search',
+  'gen-310-insertion-count', 'gen-310-prove-bound', 'gen-310-compare-growth'];
+const A1 = new Set(['gen-310-loop-count', 'gen-310-growth-order', 'gen-310-binary-search', 'gen-310-insertion-count', 'gen-310-prove-bound', 'gen-310-compare-growth']);
 const cards = new Map(IDS.map(id => [id, SEEDS.map(s => G.instance(id, s))]));
 const lectures = new Set(['1', '2', '3', 'ws-binsearch', '4', '5', 'master', '6', '7', 'heap', 'buildheap', 'lowerbound', 'linsort', 'hash', 'ws-openaddr']);
 const WHY_MAX = 350; // raw characters, LaTeX source included (renders shorter)
-const CATS = new Set(['Asymptotics', 'Recurrences', 'Sorting', 'Heaps & priority queues', 'Hashing']);
+const CATS = new Set(['Foundations', 'Asymptotics', 'Recurrences', 'Sorting', 'Heaps & priority queues', 'Hashing']);
 
 // Typed answers must be accepted by the real grader; return the canonical string.
 const ok = (c, s) => grade.typed(s, c);
@@ -45,13 +47,53 @@ test('csc310 registers exactly the expected generators', () => {
   }
 });
 
+// Cards with graphs hold closures: compare them by their values at sample points.
+const freeze = c => JSON.parse(JSON.stringify(c, (k, v) => (typeof v === 'function' && c.graph
+  ? Array.from({ length: 7 }, (_, i) => v(c.graph.x[0] + (c.graph.x[1] - c.graph.x[0]) * i / 6)) : v)));
+// A graph drawn from this instance's numbers: compact (≤ 3 curves, short labels and caption),
+// every curve finite at 200 samples (and > 0 on a log scale), bars/marks inside the x range.
+function checkGraph(c) {
+  const g = c.graph, [x0, x1] = g.x;
+  assert.ok(Number.isFinite(x0) && Number.isFinite(x1) && x0 < x1, 'x range');
+  assert.ok(g.xLabel && g.yLabel, 'axis labels');
+  assert.ok((g.curves || []).length <= 3, 'at most 3 curves');
+  assert.ok((g.curves || []).length || g.bars, 'something to draw');
+  assert.ok(!g.caption || (g.caption.length <= 110 && (g.caption.match(/\. /g) || []).length === 0), `caption too long: ${g.caption}`);
+  for (const cv of g.curves || []) {
+    assert.ok(cv.label.length <= 60, `curve label too long: ${cv.label}`);
+    for (let i = 0; i < 200; i++) {
+      const y = cv.f(x0 + (x1 - x0) * i / 199);
+      assert.ok(Number.isFinite(y), `curve ${cv.label} not finite at sample ${i}`);
+      if (g.logY) assert.ok(y > 0, `curve ${cv.label} ≤ 0 on a log scale`);
+    }
+  }
+  if (g.bars) for (const [bx, bh] of g.bars.values) {
+    assert.ok(bx >= x0 && bx <= x1 && Number.isFinite(bh) && bh >= 0, `bar ${bx},${bh} outside ${x0}..${x1}`);
+    if (g.logY) assert.ok(bh > 0);
+  }
+  for (const m of g.marks || []) assert.ok(m.x >= x0 && m.x <= x1, 'mark in range');
+  if (g.from != null) assert.ok(g.from >= x0 && g.from <= x1, 'from in range');
+}
+// Assignment 1 is graded on exponentials (n^k vs c^n, 2^n vs 2^(n/2), 2^(n+1), 2^(2n)),
+// lg(n!) vs lg(n^n), n^(lg c) vs c^(lg n), and selection/bubble sort counts: none of these may
+// appear, even as close variants. An exponent containing n, or a factorial, is a violation.
+function checkNotGraded(c) {
+  const text = [c.prompt, c.why, c.code || '', JSON.stringify(c.answer), JSON.stringify(c.accept || []), JSON.stringify(c.options || []), JSON.stringify(c.points || []),
+    c.graph ? JSON.stringify({ cap: c.graph.caption, l: (c.graph.curves || []).map(x => x.label), b: c.graph.bars && c.graph.bars.label }) : ''].join(' ');
+  for (const m of text.matchAll(/\^\s*(\{[^}]*\}|\([^)]*\)|[^\s,$}\])]+)/g)) {
+    assert.ok(!/(^|[^a-zA-Z])n($|[^a-zA-Z])/.test(m[1].replace(/\\[a-zA-Z]+/g, ' ')), `exponent containing n ("${m[0]}") in an Assignment 1 generator: ${c.prompt}`);
+  }
+  assert.ok(!/(n|\))!/.test(text), `factorial in an Assignment 1 generator: ${c.prompt}`);
+  assert.ok(!/selection|bubble/i.test(text), 'selection/bubble sort is graded A1 work');
+}
+
 for (const id of IDS) {
   test(`${id}: valid fields, deterministic, varied, no placeholders`, () => {
     const list = cards.get(id), prompts = new Set();
     let longest = 0;
     list.forEach((c, i) => {
       const again = G.instance(id, SEEDS[i]);
-      assert.deepEqual(again, c, 'same seed must give the same problem');
+      assert.deepEqual(freeze(again), freeze(c), 'same seed must give the same problem');
       assert.ok(typeof c.prompt === 'string' && c.prompt.length > 10, 'prompt');
       assert.ok(typeof c.why === 'string' && c.why.length > 10, 'why must show the worked steps');
       assert.ok(c.source && c.spec, 'source and spec');
@@ -76,15 +118,21 @@ for (const id of IDS) {
       } else if (c.type === 'set') {
         assert.ok(Array.isArray(c.answer) && c.answer.length >= 1);
         assert.ok(grade.set(c.answer.join(', '), c));
+      } else if (c.type === 'recall') {
+        assert.ok(c.answer && Array.isArray(c.points) && c.points.length >= 2, 'recall needs answer + points');
       } else assert.fail(`unexpected type ${c.type}`);
+      if (c.graph) checkGraph(c);
+      if (A1.has(id)) checkNotGraded(c);
       // Inline LaTeX ($…$) only in reader-facing text, and every formula must parse in KaTeX.
-      for (const s of [c.prompt, c.why].concat(c.type === 'mc' ? c.options.concat(c.answer) : [])) {
+      const shown = [c.prompt, c.why].concat(c.type === 'mc' ? c.options.concat(c.answer) : [], c.type === 'recall' ? c.points.concat(c.answer) : [],
+        c.graph ? [c.graph.caption || ''].concat((c.graph.curves || []).map(x => x.label), (c.graph.marks || []).map(x => x.label), c.graph.bars ? [c.graph.bars.label] : []) : []);
+      for (const s of shown) {
         assert.equal((s.match(/(?<!\\)\$/g) || []).length % 2, 0, `unbalanced $ in: ${s}`);
         for (const m of s.matchAll(/(?<!\\)\$(.+?)(?<!\\)\$/g)) {
           assert.doesNotThrow(() => katex.renderToString(m[1], { throwOnError: true }), `KaTeX rejects ${m[1]}`);
         }
       }
-      if (c.type !== 'mc') {
+      if (c.type !== 'mc' && c.type !== 'recall') {
         for (const s of [].concat(c.answer, c.accept || [])) assert.ok(!String(s).includes('$'), `LaTeX in a typed answer: ${s}`);
       }
       assert.ok(!(c.code || '').includes('$'), 'code stays plain');
@@ -96,8 +144,10 @@ for (const id of IDS) {
     });
     assert.ok(prompts.size >= 20, `only ${prompts.size} distinct prompts`);
     // Every question kind the generator has should actually come up across 300 seeds.
-    const kinds = new Set(list.map(c => c.spec.kind));
+    const kinds = new Set(list.map(c => c.spec.kind || c.spec.fam));
     assert.ok(kinds.size >= 2, `${id}: only kinds ${[...kinds]}`);
+    assert.equal(G.forDeck('csc310').find(g => g.id === id).assignment?.includes('a1') || false, A1.has(id), 'a1 tag');
+    if (A1.has(id)) assert.ok(list.every(c => c.graph), 'every a1 instance draws a graph');
   });
 }
 
@@ -495,4 +545,124 @@ test('gen-310-binary-search: midpoints, iterations and result re-run recursively
     else if (c.spec.kind === 'iters') expectTyped(c, mids.length);
     else expectTyped(c, ret);
   }
+});
+
+// ─────────────── graphs of the existing Assignment 1 generators ───────────────
+test('a1 graphs agree with the problem: loop bars add up to count, search bars are the probes, growth curves stay in order', () => {
+  const loops = cards.get('gen-310-loop-count');
+  const counts = runPy(loops.map(c => toPython(c.code, c.spec.n))); // python3 runs the shown code
+  loops.forEach((c, i) => {
+    const g = c.graph, vals = g.bars.values.map(v => v[1]);
+    const sum = vals.reduce((a, b) => a + b, 0);
+    if (g.xLabel === 'i' || c.spec.tpl === 'halving-sum') assert.equal(sum, counts[i], `bars sum ${sum}\n${c.code}`);
+    else assert.equal(vals.length, counts[i], `bar count\n${c.code}`);
+  });
+  for (const c of cards.get('gen-310-binary-search')) {
+    const sizes = c.graph.bars.values.map(v => v[1]);
+    if (c.spec.kind === 'worst') { assert.equal(sizes.length, worst(c.spec.n)); assert.equal(sizes[0], c.spec.n); continue; }
+    const mids = []; bsRec(c.spec.a, c.spec.key, 1, c.spec.a.length, mids);
+    assert.equal(sizes.length, mids.length);
+    assert.equal(sizes[0], c.spec.a.length);
+  }
+  for (const c of cards.get('gen-310-growth-order')) {
+    const cv = c.graph.curves, [x0, x1] = c.graph.x;
+    const order = c.type === 'order' ? c.answer : null;
+    for (let i = 0; i <= 50; i++) {
+      const x = x0 + (x1 - x0) * i / 50, ys = cv.map(k => k.f(x));
+      if (order) for (let j = 0; j + 1 < ys.length; j++) assert.ok(ys[j] < ys[j + 1], `curves out of order at lg n = ${x}: ${order}`);
+    }
+  }
+});
+
+// ─────────────── 11. insertion sort ───────────────
+test('gen-310-insertion-count: shifts and while-tests from running insertion sort', () => {
+  for (const c of cards.get('gen-310-insertion-count')) {
+    const A = parseArr(c.prompt), B = A.slice(), shifts = [];
+    assert.deepEqual(A, c.spec.A);
+    for (let j = 1; j < B.length; j++) { // 0-based
+      const key = B[j]; let i = j - 1, s = 0, tests = 1;
+      while (i >= 0 && B[i] > key) { B[i + 1] = B[i]; i--; s++; tests++; }
+      B[i + 1] = key; shifts.push({ j: j + 1, s, tests });
+    }
+    assert.deepEqual(B, A.slice().sort((x, y) => x - y));
+    const total = shifts.reduce((a, x) => a + x.s, 0), tsum = shifts.reduce((a, x) => a + x.tests, 0);
+    const k = c.spec.kind;
+    if (k === 'shifts') expectTyped(c, total);
+    else if (k === 'tests') expectTyped(c, tsum);
+    else if (k === 'tj') expectTyped(c, shifts.find(x => x.j === c.spec.j).tests);
+    else {
+      const sorted = A.every((v, i) => i === 0 || A[i - 1] < v), rev = A.every((v, i) => i === 0 || A[i - 1] > v);
+      assert.equal(c.answer, sorted ? 'Best case (already sorted)' : rev ? 'Worst case (reverse order)' : 'Neither best nor worst');
+    }
+    const bars = c.graph.bars.values.map(v => v[1]);
+    assert.deepEqual(bars, shifts.map(x => (k === 'shifts' ? x.s : x.tests)));
+  }
+});
+
+// ─────────────── 12. proofs from the definition ───────────────
+// Valid (c = p/q, n0) for O: 0 <= f(n) <= c g(n) for all n >= n0; Ω: f(n) >= c g(n).
+// Brute force over n0..10^4; beyond that the difference polynomial must have a positive
+// leading coefficient and (Cauchy bound) no root past 10^4.
+function pairValid(rel, f, d, [p, q], n0) {
+  const fv = n => f.reduce((s, a, k) => s + a * n ** k, 0);
+  for (let n = n0; n <= 10000; n++) {
+    const ok = rel === 'O' ? fv(n) >= 0 && q * fv(n) <= p * n ** d : q * fv(n) >= p * n ** d;
+    if (!ok) return false;
+  }
+  const H = [0, 1, 2, 3].map(k => (rel === 'O' ? 1 : -1) * ((k === d ? p : 0) - q * (f[k] || 0)));
+  let top = 3; while (top >= 0 && H[top] === 0) top--;
+  if (top < 0) return true;
+  if (H[top] < 0) return false;
+  const bound = 1 + Math.max(0, ...H.slice(0, top).map(h => Math.abs(h / H[top])));
+  assert.ok(bound < 10000, 'root bound must lie inside the brute-forced range');
+  return true;
+}
+test('gen-310-prove-bound: the stated (c, n0) is valid and minimal; exactly one MC pair is valid', () => {
+  for (const c of cards.get('gen-310-prove-bound')) {
+    const { rel, f, d, n0 } = c.spec;
+    if (rel === 'Θ') {
+      assert.ok(pairValid('O', f, d, c.spec.c, n0) && pairValid('Ω', f, d, c.spec.c1, n0), 'Θ constants valid');
+      if (n0 > 1) assert.ok(!(pairValid('O', f, d, c.spec.c, n0 - 1) && pairValid('Ω', f, d, c.spec.c1, n0 - 1)), 'n0 minimal');
+    } else {
+      assert.ok(pairValid(rel, f, d, c.spec.c, n0), `stated pair invalid: ${c.prompt}`);
+      if (n0 > 1) assert.ok(!pairValid(rel, f, d, c.spec.c, n0 - 1), `n0 = ${n0} is not the smallest: ${c.prompt}`);
+    }
+    // The algebra's threshold, when it states one, is n0.
+    for (const m of [c.why, c.answer].join(' ').matchAll(/\\iff n \\ge (\d+)/g)) {
+      if (rel !== 'Θ') assert.equal(+m[1], n0, `key inequality threshold ${m[1]} vs n0 ${n0}`);
+    }
+    assert.equal(c.graph.marks[0].x, n0);
+    if (c.type === 'mc') {
+      const valids = c.spec.choices.filter(ch => pairValid(rel, f, d, ch.c, ch.n0));
+      assert.equal(valids.length, 1, `exactly one valid option: ${c.prompt}`);
+      assert.equal(valids[0].text, c.answer);
+      assert.deepEqual(c.spec.choices.map(ch => ch.text).sort(), [c.answer].concat(c.options).sort());
+      assert.ok(c.options.length >= 2, 'at least 3 options');
+    } else {
+      assert.equal(c.type, 'recall');
+      assert.ok(c.answer.includes(`n_0 = ${n0}`));
+    }
+  }
+});
+
+// ─────────────── 13. comparing growth (mpmath on the terms) ───────────────
+test('gen-310-compare-growth: o / Θ / ω agrees with mpmath at n up to 10^120', () => {
+  const list = cards.get('gen-310-compare-growth');
+  const py = ts => ts.map(t => `${t.c}*n**(mpf(${t.p6})/6)*log(n,2)**${t.l}`).join('+');
+  const script = `
+import sys, json
+from mpmath import mp, mpf, log
+mp.dps = 250
+out = []
+for f, g in json.loads(sys.stdin.read()):
+    d = [log(eval(f, {'n': mpf(10)**e, 'mpf': mpf, 'log': log})) - log(eval(g, {'n': mpf(10)**e, 'mpf': mpf, 'log': log})) for e in (30, 60, 120)]
+    out.append(0 if abs(d[2] - d[0]) < mpf('0.01') else (1 if d[2] > d[0] else -1))
+print(json.dumps(out))`;
+  const cls = JSON.parse(execFileSync('python3', ['-I', '-c', script], { input: JSON.stringify(list.map(c => [py(c.spec.f), py(c.spec.g)])) }).toString());
+  list.forEach((c, i) => {
+    assert.equal(c.answer, { '-1': '$f(n) = o(g(n))$', 0: '$f(n) = \\Theta(g(n))$', 1: '$f(n) = \\omega(g(n))$' }[cls[i]], c.prompt);
+    // The graph's ratio curve really is f/g of the shown functions.
+    const n = 2 ** 5, val = ts => ts.reduce((s, t) => s + t.c * n ** (t.p6 / 6) * Math.log2(n) ** t.l, 0);
+    assert.ok(Math.abs(c.graph.curves[0].f(5) / (val(c.spec.f) / val(c.spec.g)) - 1) < 1e-9);
+  });
 });

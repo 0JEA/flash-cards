@@ -32,6 +32,13 @@
 //   gen-310-counting-sort   counting sort C arrays and output; radix sort passes
 //   gen-310-hash            chaining, linear / quadratic / double hashing, probes, DEL, load factor
 //   gen-310-binary-search   midpoints probed, iterations, return value, worst case
+//   gen-310-insertion-count insertion sort shifts, while-tests t_j, best/worst/neither
+//   gen-310-prove-bound     (c, n0) for O / Ω / Θ from the definition (pick one, or write the proof)
+//   gen-310-compare-growth  o / Θ / ω from the ratio f/g
+// Tagged assignment a1 (with a graph drawn from the instance's numbers): loop-count,
+// growth-order, binary-search, insertion-count, prove-bound, compare-growth. Assignment 1 is
+// graded on exponentials, factorials and c^(lg n) forms: those never appear in these six
+// (the test rejects any exponent containing n and any factorial).
 (function (FC) {
   'use strict';
   const G = FC.gen;
@@ -278,42 +285,37 @@
   });
 
   // ═══════════════════════════ 3. Growth of functions ═══════════════════════════
-  // s: plain (order tiles, spec), t: LaTeX. key compares lexicographically:
-  // [n^n / n! level, exponential base, poly exponent, lg power, lg lg power].
+  // s: plain (order tiles, spec), t: LaTeX, f: the function itself (for the graph).
+  // key compares lexicographically: [poly exponent, lg power, lg lg power].
+  // Assignment 1 is graded on exponentials, factorials and c^(lg n) forms, so this
+  // a1-tagged generator uses only polylog and polynomial functions.
+  const L2 = Math.log2;
   const FUN = [
-    { s: '1', t: '1', key: [0, 1, 0, 0, 0] },
-    { s: 'lg lg n', t: '\\lg\\lg n', key: [0, 1, 0, 0, 1] },
-    { s: 'lg n', t: '\\lg n', key: [0, 1, 0, 1, 0] },
-    { s: 'lg^2 n', t: '\\lg^2 n', key: [0, 1, 0, 2, 0] },
-    { s: 'n^(1/3)', t: 'n^{1/3}', key: [0, 1, 1 / 3, 0, 0] },
-    { s: '√n', t: '\\sqrt{n}', key: [0, 1, 0.5, 0, 0] },
-    { s: 'n/lg n', t: 'n/\\lg n', key: [0, 1, 1, -1, 0] },
-    { s: 'n', t: 'n', key: [0, 1, 1, 0, 0] },
-    { s: 'n lg n', t: 'n \\lg n', key: [0, 1, 1, 1, 0] },
-    { s: 'n^1.5', t: 'n^{1.5}', key: [0, 1, 1.5, 0, 0] },
-    { s: 'n^2', t: 'n^2', key: [0, 1, 2, 0, 0] },
-    { s: 'n^2 lg n', t: 'n^2 \\lg n', key: [0, 1, 2, 1, 0] },
-    { s: 'n^3', t: 'n^3', key: [0, 1, 3, 0, 0] },
-    { s: '2^n', t: '2^n', key: [0, 2, 0, 0, 0] },
-    { s: 'n·2^n', t: 'n \\cdot 2^n', key: [0, 2, 1, 0, 0] },
-    { s: '3^n', t: '3^n', key: [0, 3, 0, 0, 0] },
-    { s: 'n!', t: 'n!', key: [1, 0, 0, 0, 0] },
-    { s: 'n^n', t: 'n^n', key: [2, 0, 0, 0, 0] },
+    { s: '1', t: '1', key: [0, 0, 0], f: () => 1 },
+    { s: 'lg lg n', t: '\\lg\\lg n', key: [0, 0, 1], f: n => L2(L2(n)) },
+    { s: 'lg n', t: '\\lg n', key: [0, 1, 0], f: n => L2(n) },
+    { s: 'lg^2 n', t: '\\lg^2 n', key: [0, 2, 0], f: n => L2(n) ** 2 },
+    { s: 'n^(1/3)', t: 'n^{1/3}', key: [1 / 3, 0, 0], f: n => Math.cbrt(n) },
+    { s: '√n', t: '\\sqrt{n}', key: [0.5, 0, 0], f: n => Math.sqrt(n) },
+    { s: 'n/lg n', t: 'n/\\lg n', key: [1, -1, 0], f: n => n / L2(n) },
+    { s: 'n', t: 'n', key: [1, 0, 0], f: n => n },
+    { s: 'n lg n', t: 'n \\lg n', key: [1, 1, 0], f: n => n * L2(n) },
+    { s: 'n^1.5', t: 'n^{1.5}', key: [1.5, 0, 0], f: n => n ** 1.5 },
+    { s: 'n^2', t: 'n^2', key: [2, 0, 0], f: n => n * n },
+    { s: 'n^2 lg n', t: 'n^2 \\lg n', key: [2, 1, 0], f: n => n * n * L2(n) },
+    { s: 'n^3', t: 'n^3', key: [3, 0, 0], f: n => n ** 3 },
   ];
   // Same Θ class as a pool function, written differently (cls: why it is that class).
   const VARIANT = [
-    { s: '5n^2 + 3n', t: '5n^2 + 3n', of: 'n^2' },
-    { s: 'n^2/10', t: 'n^2/10', of: 'n^2' },
-    { s: '100n + 7', t: '100n + 7', of: 'n' },
-    { s: 'lg(n^3)', t: '\\lg(n^3)', of: 'lg n', cls: '3\\lg n' },
-    { s: 'log_3 n', t: '\\log_3 n', of: 'lg n', cls: '\\lg n/\\lg 3' },
-    { s: '2^(n+1)', t: '2^{n+1}', of: '2^n', cls: '2 \\cdot 2^n' },
-    { s: '3n lg n + n', t: '3n \\lg n + n', of: 'n lg n' },
-    { s: '√n + 10', t: '\\sqrt{n} + 10', of: '√n' },
-    { s: 'n^3 + 1000n^2', t: 'n^3 + 1000n^2', of: 'n^3' },
-    { s: '2^(lg n)', t: '2^{\\lg n}', of: 'n', cls: 'n' },
-    { s: '4^(lg n)', t: '4^{\\lg n}', of: 'n^2', cls: '(2^{\\lg n})^2 = n^2' },
-    { s: '0.3n^2 + 10n + 20', t: '0.3n^2 + 10n + 20', of: 'n^2' },
+    { s: '5n^2 + 3n', t: '5n^2 + 3n', of: 'n^2', f: n => 5 * n * n + 3 * n },
+    { s: 'n^2/10', t: 'n^2/10', of: 'n^2', f: n => n * n / 10 },
+    { s: '100n + 7', t: '100n + 7', of: 'n', f: n => 100 * n + 7 },
+    { s: 'lg(n^3)', t: '\\lg(n^3)', of: 'lg n', cls: '3\\lg n', f: n => 3 * L2(n) },
+    { s: 'log_3 n', t: '\\log_3 n', of: 'lg n', cls: '\\lg n/\\lg 3', f: n => L2(n) / L2(3) },
+    { s: '3n lg n + n', t: '3n \\lg n + n', of: 'n lg n', f: n => 3 * n * L2(n) + n },
+    { s: '√n + 10', t: '\\sqrt{n} + 10', of: '√n', f: n => Math.sqrt(n) + 10 },
+    { s: 'n^3 + 1000n^2', t: 'n^3 + 1000n^2', of: 'n^3', f: n => n ** 3 + 1000 * n * n },
+    { s: '0.3n^2 + 10n + 20', t: '0.3n^2 + 10n + 20', of: 'n^2', f: n => 0.3 * n * n + 10 * n + 20 },
   ];
   const byS = new Map(FUN.map(f => [f.s, f]));
   for (const v of VARIANT) byS.set(v.s, { ...v, key: byS.get(v.of).key });
@@ -321,22 +323,38 @@
   const cmpFun = (f, g) => cmpKey(byS.get(f).key, byS.get(g).key);
   // "f = 3 lg n = Θ(lg n)" for a variant, plain "f = n^2" for a pool function.
   const classTex = s => { const x = byS.get(s); return x.of ? `${x.t}${x.cls ? ' = ' + x.cls : ''} = \\Theta(${byS.get(x.of).t})` : x.t; };
-  const RULE = `Growth: powers of ${M('\\lg n')} < ${M('n^{\\varepsilon}')} < ${M('c^n')} < ${M('n!')} < ${M('n^n')}.`;
+  const RULE = `Powers of ${M('\\lg n')} lose to any ${M('n^{\\varepsilon}')}; polynomials compare by exponent.`;
+  // Graph of these functions against m = lg n (n = 2^m), log scale, starting where their
+  // order is already the final one (checked on a fine grid up to m = 160).
+  function growthGraph(fs) {
+    const val = (s, m) => byS.get(s).f(2 ** m);
+    let last = 2;
+    for (let m = 2; m <= 160; m += 0.25) {
+      for (const a of fs) for (const b of fs) {
+        if (cmpFun(a, b) < 0 && !(val(a, m) < val(b, m))) last = m;
+      }
+    }
+    const m0 = Math.ceil(last + 1), m1 = m0 + Math.max(12, m0);
+    return { x: [m0, m1], logY: true, xLabel: 'lg n', yLabel: 'value',
+      curves: fs.map((s, i) => ({ label: M(byS.get(s).t), f: m => val(s, m), tone: 'abc'[i] })),
+      caption: `Across ${M('\\lg n')}, up log scale: from ${M('n = 2^{' + m0 + '}')} on the order never changes.` };
+  }
   const REL = {
     O: { tex: 'O', t: c => c <= 0, like: 'a \\le b' }, 'Ω': { tex: '\\Omega', t: c => c >= 0, like: 'a \\ge b' }, 'Θ': { tex: '\\Theta', t: c => c === 0, like: 'a = b' },
     o: { tex: 'o', t: c => c < 0, like: 'a < b' }, 'ω': { tex: '\\omega', t: c => c > 0, like: 'a > b' },
   };
   G.register({
-    id: 'gen-310-growth-order', deck: DECK, lecture: '3', cat: 'Asymptotics', sub: 'Growth of functions',
+    id: 'gen-310-growth-order', deck: DECK, lecture: '3', cat: 'Asymptotics', sub: 'Growth of functions', assignment: ['a1'],
     title: 'Compare and order functions by growth rate',
     make(rng) {
       const kind = weighted(rng, [['order', 3], ['rel3', 2], ['tf', 2.5]]);
       const source = src('Lecture 3.pdf (growth of functions, O, Ω, Θ, o, ω)');
       if (kind === 'order') {
-        const fs = sample(rng, FUN, int(rng, 4, 5)).map(f => f.s);
+        const fs = sample(rng, FUN, 3).map(f => f.s);
         const sorted = fs.slice().sort(cmpFun);
         return { type: 'order', prompt: `Order by growth rate, slowest-growing first: ${fs.map(s => M(byS.get(s).t)).join(', ')}`,
-          answer: sorted, why: `${M(sorted.map(s => byS.get(s).t).join(' \\ll '))}. ${RULE}`, source, spec: { gen: 'growth', kind, fs } };
+          answer: sorted, why: `${M(sorted.map(s => byS.get(s).t).join(' \\ll '))}. ${RULE}`, source, spec: { gen: 'growth', kind, fs },
+          graph: growthGraph(sorted) };
       }
       let f, g;
       do {
@@ -353,17 +371,18 @@
           : c < 0 ? `${M('f/g \\to 0')}: ${M('f = o(g)')}, so ${M('O')} holds; ${M('\\Theta')}, ${M('\\Omega')}, ${M('\\omega')} fail.`
             : `${M('f/g \\to \\infty')}: ${M('f = \\omega(g)')}, so ${M('\\Omega')} holds; ${M('\\Theta')}, ${M('O')}, ${M('o')} fail.`);
       const spec = { gen: 'growth', kind, f, g, ft, gt };
+      const graph = growthGraph(c <= 0 ? [f, g] : [g, f]);
       if (kind === 'rel3') {
         const OPT = { '-1': M('f(n) = o(g(n))'), 0: M('f(n) = \\Theta(g(n))'), 1: M('f(n) = \\omega(g(n))') };
         const answer = OPT[c];
         return { type: 'mc', prompt: `${M('f(n) = ' + ft)}, ${M('g(n) = ' + gt)}.\nWhich statement is true?`, answer,
-          options: Object.values(OPT).filter(o => o !== answer), why: `${explain} ${RULE}`, source, spec };
+          options: Object.values(OPT).filter(o => o !== answer), why: `${explain} ${RULE}`, source, spec, graph };
       }
       const r = pick(rng, Object.keys(REL));
       spec.rel = r;
       const holds = REL[r].t(c);
       return { type: 'mc', prompt: `True or false: ${M(`${ft} = ${REL[r].tex}(${gt})`)}`, answer: holds ? 'Yes, true' : 'No, false',
-        options: [holds ? 'No, false' : 'Yes, true'], why: `${M(REL[r].tex)} is like ${M(REL[r].like)}. ${explain}`, source, spec };
+        options: [holds ? 'No, false' : 'Yes, true'], why: `${M(REL[r].tex)} is like ${M(REL[r].like)}. ${explain}`, source, spec, graph };
     },
   });
 
@@ -387,7 +406,7 @@
       count: n => n * (floorLog(n, 2) + 1), explain: n => `Doubling ${M('j')} runs ${M(`\\lfloor \\lg ${n} \\rfloor + 1 = ${floorLog(n, 2) + 1}`)} times, for each of the ${n} values of ${M('i')}: ${M(`${n} \\cdot ${floorLog(n, 2) + 1} = ${n * (floorLog(n, 2) + 1)}`)}. ${M('\\Theta(n \\lg n)')}.` },
     { id: 'halving-sum', theta: { e: 1, l: 0 }, code: () => ['i = n', 'while i >= 1', '    for j = 1 to i', '        count = count + 1', '    i = floor(i / 2)'],
       count: n => { let s = 0; for (let i = n; i >= 1; i = Math.floor(i / 2)) s += i; return s; },
-      explain: n => { const t = []; for (let i = n; i >= 1; i = Math.floor(i / 2)) t.push(i); return `The inner loop runs ${M('i')} times for ${M('i')} = ${t.join(', ')}: total ${t.reduce((x, y) => x + y, 0)}. ${M('n + n/2 + n/4 + \\dots < 2n')}, so ${M('\\Theta(n)')}, not ${M('\\Theta(n \\lg n)')}.`; } },
+      explain: n => { const t = []; for (let i = n; i >= 1; i = Math.floor(i / 2)) t.push(i); return `The inner loop runs ${M('i')} times for ${M('i')} = ${t.join(', ')}: ${t.reduce((x, y) => x + y, 0)}. ${M('n + n/2 + \\dots < 2n')}: ${M('\\Theta(n)')}.`; } },
     { id: 'cubic', theta: { e: 3, l: 0 }, code: () => ['for i = 1 to n', '    for j = 1 to n', '        for k = 1 to j', '            count = count + 1'],
       count: n => n * n * (n + 1) / 2, explain: n => `For each ${M('i')}: ${M(`1 + \\dots + n = \\tfrac{n(n+1)}{2} = ${n * (n + 1) / 2}`)}; times ${n} values of ${M('i')}: ${n * n * (n + 1) / 2}. ${M('\\Theta(n^3)')}.` },
     { id: 'sqrt', theta: { e: 0.5, l: 0 }, code: () => ['i = 1', 'while i * i <= n', '    count = count + 1', '    i = i + 1'],
@@ -399,10 +418,38 @@
       count: n => n * (n + 1) * (2 * n + 1) / 6, explain: n => `Inner loop runs ${M('i^2')} times: ${M(`1^2 + \\dots + n^2 = \\tfrac{n(n+1)(2n+1)}{6} = ${n * (n + 1) * (2 * n + 1) / 6}`)}. ${M('\\Theta(n^3)')}.` },
     { id: 'doubling-from-i', theta: { e: 1, l: 0 }, code: () => ['for i = 1 to n', '    j = i', '    while j <= n', '        count = count + 1', '        j = j * 2'],
       count: n => { let s = 0; for (let i = 1; i <= n; i++) s += floorLog(Math.floor(n / i), 2) + 1; return s; },
-      explain: n => { const s = []; for (let i = 1; i <= n; i++) s.push(floorLog(Math.floor(n / i), 2) + 1); return `The while loop runs ${M('\\lfloor \\lg(n/i) \\rfloor + 1')} times: ${s.join('+')} = ${s.reduce((x, y) => x + y, 0)}. Half the ${M('i')} give 1, a quarter give 2, …: about ${M('2n')}, so ${M('\\Theta(n)')} (the BuildHeap sum).`; } },
+      explain: n => { let s = 0; for (let i = 1; i <= n; i++) s += floorLog(Math.floor(n / i), 2) + 1; return `For each ${M('i')} the while loop runs ${M('\\lfloor \\lg(n/i) \\rfloor + 1')} times: ${s} in all. Half the ${M('i')} give 1, a quarter give 2, …: about ${M('2n')}, so ${M('\\Theta(n)')}.`; } },
   ];
+  // Graph: one bar per outer-loop value (its inner-loop runs), or one bar per iteration of a
+  // single while loop (the value of i then), plus the matching formula as a curve.
+  function loopGraph(id, n, p, total) {
+    const range = (a, b) => Array.from({ length: b - a + 1 }, (_, k) => a + k);
+    const outer = (h, f, label) => ({ x: [0.5, n + 0.5], xLabel: 'i', yLabel: 'inner runs',
+      bars: { label: 'inner-loop runs for this i', tone: 'b', values: range(1, n).map(i => [i, h(i)]) },
+      curves: [{ label, f, tone: 'a' }], caption: `The bars add up to count ${M('= ' + total)}.` });
+    const lgn = floorLog(n, 2) + 1;
+    if (id === 'square') return outer(() => n, () => n, M('n = ' + n) + ' each');
+    if (id === 'tri') return outer(i => i, x => x, M('i') + ' runs');
+    if (id === 'tri-strict') return outer(i => n - i, x => n - x, M('n - i') + ' runs');
+    if (id === 'const-inner') return outer(() => p.c, () => p.c, M(String(p.c)) + ' runs');
+    if (id === 'n-log') return outer(() => lgn, () => lgn, M('\\lfloor \\lg n \\rfloor + 1 = ' + lgn));
+    if (id === 'cubic') return outer(() => n * (n + 1) / 2, () => n * (n + 1) / 2, M('n(n+1)/2') + ' each');
+    if (id === 'squares') return outer(i => i * i, x => x * x, M('i^2') + ' runs');
+    if (id === 'doubling-from-i') return outer(i => floorLog(Math.floor(n / i), 2) + 1, x => L2(n / x) + 1, M('\\lg(n/i) + 1'));
+    // single while loops: the value of i at each iteration k
+    let vals;
+    if (id === 'halving-sum') { vals = []; for (let i = n; i >= 1; i = Math.floor(i / 2)) vals.push(i); }
+    else if (id === 'double') { vals = []; for (let i = 1; i <= n; i *= p.c) vals.push(i); }
+    else if (id === 'sqrt') vals = range(1, Math.floor(Math.sqrt(n + 0.5))).map(i => i * i);
+    else vals = range(0, Math.ceil(n / p.c) - 1).map(k => k * p.c);
+    const lab = id === 'halving-sum' ? 'inner runs ($i$) on this pass' : id === 'sqrt' ? M('i^2') + ' this iteration' : 'value of ' + M('i') + ' this iteration';
+    return { x: [0.5, vals.length + 0.5], xLabel: 'iteration', yLabel: id === 'halving-sum' ? 'inner runs' : 'value',
+      bars: { label: lab, tone: 'b', values: vals.map((v, k) => [k + 1, v]) },
+      curves: [{ label: M('n = ' + n) + (id === 'halving-sum' ? '' : ' (loop stops above)'), f: () => n, tone: 'c' }],
+      caption: id === 'halving-sum' ? `Each pass halves ${M('i')}; the bars add up to ${M(String(total))}.` : `${vals.length} bars: count ${M('= ' + total)}.` };
+  }
   G.register({
-    id: 'gen-310-loop-count', deck: DECK, lecture: '2', cat: 'Asymptotics', sub: 'Counting operations',
+    id: 'gen-310-loop-count', deck: DECK, lecture: '2', cat: 'Asymptotics', sub: 'Counting operations', assignment: ['a1'],
     title: 'Count loop iterations exactly, then bound them with Θ',
     make(rng) {
       const L = pick(rng, LOOPS), p = L.params ? L.params(rng) : {};
@@ -410,13 +457,14 @@
       const code = ['count = 0'].concat(L.code(p)).join('\n');
       const kind = chance(rng, 0.6) ? 'count' : 'theta';
       const spec = { gen: 'loop', kind, tpl: L.id, n, p };
+      const graph = loopGraph(L.id, n, p, L.count(n, p));
       const source = src('Lecture 2.pdf and Lecture 3.pdf (counting operations, Θ)');
       if (kind === 'count') {
         return { type: 'typed', prompt: `After this fragment runs with ${M('n = ' + n)}, what is the value of count?`, code,
-          answer: String(L.count(n, p)), why: L.explain(n, p), source, spec };
+          answer: String(L.count(n, p)), why: L.explain(n, p), source, spec, graph };
       }
-      return { type: 'typed', prompt: `How many times does count = count + 1 run, as a function of ${M('n')}? ${TYPE_THETA}`, code,
-        ...thetaAnswer(L.theta), why: L.explain(n, p), source, spec };
+      return { type: 'typed', prompt: `How often does count = count + 1 run, in Θ form? (e.g. Θ(n^2), Θ(n lg n), Θ(sqrt n))`, code,
+        ...thetaAnswer(L.theta), why: L.explain(n, p), source, spec, graph };
     },
   });
 
@@ -790,18 +838,25 @@
   // ═══════════════════════════ 10. Binary search (worksheet version) ═══════════════════════════
   function binSearch(a, key) {
     let low = 1, high = a.length; const mids = [], rows = [];
+    const sizes = [];
     while (low <= high) {
       const mid = Math.floor((low + high) / 2), v = a[mid - 1];
-      mids.push(mid);
+      mids.push(mid); sizes.push(high - low + 1);
       rows.push(`(${low},${high})→${mid}: ${v === key ? 'found' : v < key ? `${v} < ${key}` : `${v} > ${key}`}`);
-      if (v === key) return { mids, ret: mid, rows };
+      if (v === key) return { mids, ret: mid, rows, sizes };
       if (v < key) low = mid + 1; else high = mid - 1;
     }
     rows.push(`(${low},${high}): low > high, return −1`);
-    return { mids, ret: -1, rows };
+    return { mids, ret: -1, rows, sizes };
+  }
+  // Bars: the part of the list still searched at each iteration; the curve halves from n.
+  function halvingGraph(n, sizes, caption) {
+    return { x: [0.5, sizes.length + 0.5], logY: n > 100, xLabel: 'iteration k', yLabel: 'list size',
+      bars: { label: 'size at iteration k', tone: 'b', values: sizes.map((v, k) => [k + 1, v]) },
+      curves: [{ label: M('n/2^{k-1}'), f: k => n / 2 ** (k - 1), tone: 'a' }], caption };
   }
   G.register({
-    id: 'gen-310-binary-search', deck: DECK, lecture: 'ws-binsearch', cat: 'Asymptotics', sub: 'Binary search',
+    id: 'gen-310-binary-search', deck: DECK, lecture: 'ws-binsearch', cat: 'Asymptotics', sub: 'Binary search', assignment: ['a1'],
     title: 'Dry-run binary search: midpoints, iterations, result',
     make(rng) {
       const kind = weighted(rng, [['mids', 2], ['iters', 1.2], ['ret', 1], ['worst', 0.7]]);
@@ -812,7 +867,8 @@
         const w = floorLog(n, 2) + 1;
         return { type: 'typed', prompt: `The worksheet's BinarySearch(a, n, key) (${MID}). What is the MOST while-loop iterations (midpoints probed) for ${M('n = ' + n)}?`,
           answer: String(w), why: `Each probe leaves at most ${M('\\lfloor n/2 \\rfloor')} elements, so the worst case is ${M('\\lfloor \\lg n \\rfloor + 1')}: ${M(`2^{${w - 1}} \\le ${n} < 2^{${w}}`)}, so ${w}. The worksheet's "about ${M('\\log_2 n')}" rounds this. ${M('\\Theta(\\lg n)')}.`,
-          source, spec: { gen: 'binsearch', kind, n } };
+          source, spec: { gen: 'binsearch', kind, n },
+          graph: halvingGraph(n, (() => { const z = []; for (let m = n; m >= 1; m = Math.floor(m / 2)) z.push(m); return z; })(), `Each probe keeps at most half: ${w} bars until 1 is left.`) };
       }
       const n = int(rng, 7, 16);
       const a = []; let v = int(rng, 1, 9);
@@ -822,9 +878,230 @@
       const head = `The worksheet's BinarySearch (${MID}, a is 1-based) on\na = ${fmt(a)}, n = ${n}, key = ${key}.`;
       const spec = { gen: 'binsearch', kind, a, key };
       const why = `(low, high)→mid: ${r.rows.join('; ')}.`;
-      if (kind === 'mids') return { type: 'typed', prompt: `${head}\nList the values of mid in the order they are computed (comma-separated).`, ...listAnswer(r.mids), why, source, spec };
-      if (kind === 'iters') return { type: 'typed', prompt: `${head}\nHow many iterations does the while loop run (midpoints probed)?`, answer: String(r.mids.length), why, source, spec };
-      return { type: 'typed', prompt: `${head}\nWhat does BinarySearch return?`, answer: String(r.ret), why, source, spec };
+      const graph = halvingGraph(n, r.sizes, `${r.sizes.length} iteration${r.sizes.length > 1 ? 's' : ''}; each keeps at most half.`);
+      if (kind === 'mids') return { type: 'typed', prompt: `${head}\nList the values of mid in the order they are computed (comma-separated).`, ...listAnswer(r.mids), why, source, spec, graph };
+      if (kind === 'iters') return { type: 'typed', prompt: `${head}\nHow many iterations does the while loop run (midpoints probed)?`, answer: String(r.mids.length), why, source, spec, graph };
+      return { type: 'typed', prompt: `${head}\nWhat does BinarySearch return?`, answer: String(r.ret), why, source, spec, graph };
+    },
+  });
+
+  // ═══════════════════════════ 11. Insertion sort counts (Lecture 2, Assignment 1) ═══════════════════════════
+  // Her pseudocode, 1-based. t_j = times the while condition is tested for that j = shifts + 1.
+  const INS_CODE = ['for j = 2 to n', '    key = A[j]; i = j - 1', '    while i > 0 and A[i] > key', '        A[i+1] = A[i]; i = i - 1', '    A[i+1] = key'].join('\n');
+  function insertionTrace(A0) {
+    const A = [null].concat(A0), n = A0.length, shifts = [];
+    for (let j = 2; j <= n; j++) {
+      const key = A[j]; let i = j - 1, s = 0;
+      while (i > 0 && A[i] > key) { A[i + 1] = A[i]; i--; s++; }
+      A[i + 1] = key;
+      shifts[j] = s;
+    }
+    return shifts;
+  }
+  G.register({
+    id: 'gen-310-insertion-count', deck: DECK, lecture: '2', cat: 'Foundations', sub: 'Insertion sort', assignment: ['a1'],
+    title: 'Count insertion sort’s shifts and while-tests',
+    make(rng) {
+      const n = int(rng, 5, 8), shape = weighted(rng, [['sorted', 1], ['reversed', 1], ['nearly', 1.2], ['random', 2.5]]);
+      let A = distinct(rng, n, 1, 50);
+      if (shape !== 'random') A.sort((x, y) => x - y);
+      if (shape === 'reversed') A.reverse();
+      if (shape === 'nearly') { const k = int(rng, 0, n - 2); [A[k], A[k + 1]] = [A[k + 1], A[k]]; }
+      const sh = insertionTrace(A), js = []; for (let j = 2; j <= n; j++) js.push(j);
+      const total = js.reduce((t, j) => t + sh[j], 0), tests = total + n - 1;
+      const kind = weighted(rng, [['shifts', 1.4], ['tests', 1.4], ['tj', 1], ['case', 1]]);
+      const spec = { gen: 'insertion', kind, A };
+      const source = src('Lecture 2.pdf (InsertionSort, t_j)');
+      const head = `InsertionSort on A = ${fmt(A)}, ${M('n = ' + n)}.`;
+      const trace = `Shifts for ${M('j')} = 2..${n}: ${js.map(j => sh[j]).join(', ')}.`;
+      const useT = kind !== 'shifts';
+      const graph = { x: [1.5, n + 0.5], y: [0, n + 0.5], xLabel: 'j', yLabel: useT ? 't_j' : 'shifts',
+        bars: { label: useT ? M('t_j') + ' for this array' : 'shifts for this array', tone: 'b', values: js.map(j => [j, sh[j] + (useT ? 1 : 0)]) },
+        curves: [{ label: `worst: ${M(useT ? 't_j = j' : 'j - 1')}`, f: x => (useT ? x : x - 1), tone: 'c' }, { label: `best: ${M(useT ? 't_j = 1' : '0')}`, f: () => (useT ? 1 : 0), tone: 'a' }],
+      };
+      const base = { code: INS_CODE, source, spec, graph };
+      if (kind === 'shifts') return { type: 'typed', prompt: `${head}\nHow many times does A[i+1] = A[i] run in total?`, answer: String(total),
+        why: `${trace} Each shift moves one bigger element right. Total ${M('= ' + total)}.`, ...base };
+      if (kind === 'tests') return { type: 'typed', prompt: `${head}\n${M('t_j')} = times the while condition is tested for that ${M('j')}. What is ${M('\\sum_{j=2}^{' + n + '} t_j')}?`, answer: String(tests),
+        why: `${trace} Each ${M('t_j')} = shifts + 1 (the last test fails), so ${M(`\\sum t_j = ${total} + (n-1) = ${tests}`)}.`, ...base };
+      if (kind === 'tj') {
+        const j = pick(rng, js.filter(x => sh[x] > 0).concat(js));
+        spec.j = j;
+        const pre = A.slice(0, j - 1).sort((x, y) => x - y);
+        return { type: 'typed', prompt: `${head}\nWhat is ${M('t_{' + j + '}')}, the number of while-condition tests while inserting A[${j}] = ${A[j - 1]}?`, answer: String(sh[j] + 1),
+          why: `A[1..${j - 1}] is then ${fmt(pre)}: ${sh[j]} bigger than ${A[j - 1]}, so ${sh[j]} shift${sh[j] === 1 ? '' : 's'} + 1 failing test: ${M('t_{' + j + '} = ' + (sh[j] + 1))}.`, ...base };
+      }
+      const OPT = { best: 'Best case (already sorted)', worst: 'Worst case (reverse order)', neither: 'Neither best nor worst' };
+      const k = total === 0 ? 'best' : total === n * (n - 1) / 2 ? 'worst' : 'neither';
+      return { type: 'mc', prompt: `${head}\nFor arrays of this size, is this input insertion sort’s best case, worst case, or neither?`, answer: OPT[k],
+        options: Object.values(OPT).filter(o => o !== OPT[k]),
+        why: `${trace} Best: 0 shifts. Worst: ${M(`n(n-1)/2 = ${n * (n - 1) / 2}`)}. Here ${total}: ${k === 'neither' ? 'neither' : k + ' case'}.`, ...base, spec };
+    },
+  });
+
+  // ═══════════════════════════ 12. Proving a bound from the definition (Lecture 3, Assignment 1) ═══════════════════════════
+  // f is a polynomial (coefficients f[k] of n^k), g = n^d, c = p/q. Definitions from Lecture 3:
+  //   O: 0 <= f(n) <= c g(n) for all n >= n0;   Ω: f(n) >= c g(n) for all n >= n0 (c > 0).
+  const polyAt = (P, n) => P.reduce((s, ck, k) => s + ck * n ** k, 0);
+  function polyTex(P) {
+    let out = '';
+    for (let k = P.length - 1; k >= 0; k--) {
+      const ck = P[k]; if (!ck) continue;
+      const mag = Math.abs(ck), body = k === 0 ? String(mag) : (mag === 1 ? '' : mag) + (k === 1 ? 'n' : `n^${k}`);
+      out += out ? (ck < 0 ? ' - ' : ' + ') + body : (ck < 0 ? '-' : '') + body;
+    }
+    return out || '0';
+  }
+  const cTex = c => (c[1] === 1 ? String(c[0]) : `\\tfrac{${c[0]}}{${c[1]}}`);
+  const cgTex = (c, gT) => (c[0] === c[1] ? gT : cTex(c) + gT); // "n^2", not "1n^2"
+  const gPoly = d => { const P = [0, 0, 0, 0]; P[d] = 1; return P; };
+  // Holds for every n >= n0? Checked on [n0, 10^4]; beyond, the sign of the leading
+  // coefficient of the difference decides (all its roots are far below 10^4 here).
+  function holdsAt(rel, f, d, c, n) {
+    const fv = polyAt(f, n), gv = n ** d;
+    return rel === 'O' ? fv >= 0 && c[1] * fv <= c[0] * gv : c[1] * fv >= c[0] * gv;
+  }
+  function firstFail(rel, f, d, c, n0) {
+    for (let n = n0; n <= 10000; n++) if (!holdsAt(rel, f, d, c, n)) return n;
+    const H = f.map((fk, k) => (rel === 'O' ? 1 : -1) * (c[0] * (k === d ? 1 : 0) - c[1] * fk));
+    let k = H.length - 1; while (k >= 0 && H[k] === 0) k--;
+    return k >= 0 && H[k] < 0 ? Infinity : 0; // Infinity: fails beyond 10^4 (counts as invalid)
+  }
+  const valid = (rel, f, d, c, n0) => firstFail(rel, f, d, c, n0) === 0;
+  function minN0(rel, f, d, c) { let last = 0; for (let n = 1; n <= 10000; n++) if (!holdsAt(rel, f, d, c, n)) last = n; return last + 1; }
+  // Families: f, g = n^d, the relation, a constant and the key-inequality text.
+  function boundInstance(rng) {
+    const a = int(rng, 1, 6), b = int(rng, 1, 9), dd = int(rng, 1, 9);
+    const fam = weighted(rng, [['O-quad', 2], ['O-lin', 1.2], ['O-cubic', 0.8], ['O-plus3', 1], ['Om-quad', 1.5], ['Om-lin', 1.2], ['Om-plus', 0.8]]);
+    const half = a === 1;
+    if (fam === 'O-quad') return { rel: 'O', d: 2, f: [0, b, a, 0], c: [a + 1, 1], key: `${a + 1}n^2 \\ge ${polyTex([0, b, a])} \\iff n^2 \\ge ${b === 1 ? '' : b}n \\iff n \\ge ${b}` };
+    if (fam === 'O-lin') return { rel: 'O', d: 1, f: [b, a, 0, 0], c: [a + 1, 1], key: `${a + 1}n \\ge ${polyTex([b, a])} \\iff n \\ge ${b}` };
+    if (fam === 'O-cubic') return { rel: 'O', d: 3, f: [0, 0, b, a], c: [a + 1, 1], key: `${a + 1}n^3 \\ge ${polyTex([0, 0, b, a])} \\iff n^3 \\ge ${b === 1 ? '' : b}n^2 \\iff n \\ge ${b}` };
+    if (fam === 'O-plus3') return { rel: 'O', d: 2, f: [dd, b, a, 0], c: [a + b + dd, 1], key: `n \\ge 1:\\ ${b === 1 ? '' : b}n \\le ${b === 1 ? '' : b}n^2,\\ ${dd} \\le ${dd === 1 ? '' : dd}n^2,\\ \\text{so } f(n) \\le ${a + b + dd}n^2` };
+    if (fam === 'Om-quad') return { rel: 'Ω', d: 2, f: [0, -b, a, 0], c: half ? [1, 2] : [a - 1, 1],
+      key: half ? `n^2 - ${b === 1 ? '' : b}n \\ge \\tfrac{1}{2}n^2 \\iff \\tfrac{1}{2}n^2 \\ge ${b === 1 ? '' : b}n \\iff n \\ge ${2 * b}` : `${polyTex([0, -b, a])} \\ge ${a - 1 === 1 ? '' : a - 1}n^2 \\iff n^2 \\ge ${b === 1 ? '' : b}n \\iff n \\ge ${b}` };
+    if (fam === 'Om-lin') return { rel: 'Ω', d: 1, f: [-b, a, 0, 0], c: half ? [1, 2] : [a - 1, 1],
+      key: half ? `n - ${b} \\ge \\tfrac{1}{2}n \\iff \\tfrac{1}{2}n \\ge ${b} \\iff n \\ge ${2 * b}` : `${polyTex([-b, a])} \\ge ${a - 1 === 1 ? '' : a - 1}n \\iff n \\ge ${b}` };
+    return { rel: 'Ω', d: 2, f: [dd, b, a, 0], c: [a, 1], key: `${b === 1 ? '' : b}n + ${dd} \\ge 0,\\ \\text{so } f(n) \\ge ${a === 1 ? '' : a}n^2 \\text{ for } n \\ge 1` };
+  }
+  const relTex = r => (r === 'O' ? 'O' : r === 'Ω' ? '\\Omega' : '\\Theta');
+  G.register({
+    id: 'gen-310-prove-bound', deck: DECK, lecture: '3', cat: 'Asymptotics', sub: 'Proofs from definitions', assignment: ['a1'],
+    title: 'Prove f = O(g) / Ω(g) / Θ(g) with c and n₀',
+    make(rng) {
+      const kind = chance(rng, 0.55) ? 'pick' : 'prove';
+      const source = src('Lecture 3.pdf (definitions of O, Ω, Θ)');
+      let I = boundInstance(rng);
+      // Θ (prove only): pair an O bound with the matching Ω bound for f = a n^2 ± b n.
+      let theta = null;
+      if (kind === 'prove' && chance(rng, 0.3)) {
+        const a = int(rng, 2, 6), b = int(rng, 1, 9), plus = chance(rng, 0.5);
+        I = plus
+          ? { rel: 'Θ', d: 2, f: [0, b, a, 0], c: [a + 1, 1], key: `${a + 1}n^2 \\ge ${polyTex([0, b, a])} \\iff n \\ge ${b}` }
+          : { rel: 'Θ', d: 2, f: [0, -b, a, 0], c: [a, 1], key: `${polyTex([0, -b, a])} \\le ${a}n^2 \\text{ always}` };
+        theta = plus ? { c1: [a, 1], key1: `${polyTex([0, b, a])} \\ge ${a}n^2 \\text{ for } n \\ge 1` }
+          : { c1: [a - 1, 1], key1: `${polyTex([0, -b, a])} \\ge ${a - 1 === 1 ? '' : a - 1}n^2 \\iff n \\ge ${b}` };
+      }
+      const { rel, d, f } = I;
+      const gT = d === 1 ? 'n' : `n^${d}`, fT = polyTex(f);
+      let n0;
+      if (rel === 'Θ') n0 = Math.max(minN0('O', f, d, I.c), minN0('Ω', f, d, theta.c1));
+      else n0 = minN0(rel, f, d, I.c);
+      const spec = { gen: 'bound', kind, rel, f, d, c: I.c, n0, c1: theta && theta.c1 };
+      const cg = (c, x) => c[0] / c[1] * x ** d;
+      const x0 = Math.max(0, n0 - Math.max(3, Math.ceil(n0 / 2))), x1 = n0 + Math.max(5, n0);
+      const curves = [{ label: M('f(n) = ' + fT), f: x => polyAt(f, x), tone: 'a' }, { label: M(cgTex(I.c, gT)), f: x => cg(I.c, x), tone: 'b' }];
+      if (theta) curves.push({ label: M(cgTex(theta.c1, gT)), f: x => cg(theta.c1, x), tone: 'c' });
+      const side = rel === 'O' ? 'below' : rel === 'Ω' ? 'above' : 'between';
+      const graph = { x: [x0, x1], xLabel: 'n', yLabel: 'value', curves, marks: [{ x: n0, label: M('n_0 = ' + n0) }], from: n0,
+        caption: `From ${M('n_0 = ' + n0)} on, ${M('f')} stays ${side} ${rel === 'Θ' ? 'the two lines' : M(cgTex(I.c, gT))}.` };
+      const goal = `${M('f(n) = ' + fT)} is ${M(relTex(rel) + '(' + gT + ')')}`;
+      if (kind === 'pick') {
+        const a = f[d];
+        const cands = [[I.c, n0 - 1], [I.c, Math.max(1, Math.floor(n0 / 2))], [I.c, 1], [[a, 1], 1], [[a, 1], n0], [[a, 1], 10 * n0], [[a + 1, 1], 1], [[Math.max(1, a - 1), 1], 1], [[a + 2, 1], 1]];
+        const seen = new Set([`${I.c}|${n0}`]), wrong = [];
+        for (const [c, m] of cands) {
+          const k = `${c}|${m}`;
+          if (m < 1 || seen.has(k) || valid(rel, f, d, c, m)) continue;
+          seen.add(k); wrong.push([c, m]);
+        }
+        const opts = sample(rng, wrong, Math.min(3, wrong.length));
+        const text = (c, m) => M(`c = ${cTex(c)},\\ n_0 = ${m}`);
+        const ff = opts.map(([c, m]) => [c, m, firstFail(rel, f, d, c, m)]);
+        const fails = ff.filter(x => Number.isFinite(x[2])).slice(0, 2).map(([c, m, k]) => `${M(`c = ${cTex(c)},\\ n_0 = ${m}`)} fails at ${M('n = ' + k)}.`).join(' ');
+        spec.choices = [{ text: text(I.c, n0), c: I.c, n0 }].concat(opts.map(([c, m]) => ({ text: text(c, m), c, n0: m })));
+        return { type: 'mc', prompt: `Which pair proves ${goal}? (${rel === 'O' ? M('0 \\le f(n) \\le c\\,g(n)') : M('f(n) \\ge c\\,g(n)')} for all ${M('n \\ge n_0')}.)`,
+          answer: text(I.c, n0), options: opts.map(([c, m]) => text(c, m)),
+          why: `${M(I.key)}, so ${M(`c = ${cTex(I.c)},\\ n_0 = ${n0}`)} works. ${fails}`, source, spec, graph };
+      }
+      const pts = rel === 'Θ'
+        ? [`Name ${M('c_1, c_2, n_0')} (e.g. ${M(`c_1 = ${cTex(theta.c1)},\\ c_2 = ${cTex(I.c)},\\ n_0 = ${n0}`)})`, `Show both: ${M(theta.key1)}; ${M(I.key)}`, `Conclude: ${M(`${cgTex(theta.c1, gT)} \\le f(n) \\le ${cgTex(I.c, gT)}`)} for all ${M('n \\ge n_0')}`]
+        : [`Name ${M('c')} and ${M('n_0')} (e.g. ${M(`c = ${cTex(I.c)},\\ n_0 = ${n0}`)})`, `Key inequality: ${M(I.key)}`, `Conclude: it holds for every ${M('n \\ge n_0')}, so ${M('f = ' + relTex(rel) + '(' + gT + ')')}`];
+      const answer = rel === 'Θ'
+        ? `${M(`c_1 = ${cTex(theta.c1)},\\ c_2 = ${cTex(I.c)},\\ n_0 = ${n0}`)}: ${M(theta.key1)} and ${M(I.key)}, so for ${M('n \\ge ' + n0)} f is between them.`
+        : `${M(`c = ${cTex(I.c)},\\ n_0 = ${n0}`)}: ${M(I.key)}, so it holds for all ${M('n \\ge ' + n0)}.`;
+      return { type: 'recall', prompt: `Prove from the definition that ${goal}: name ${rel === 'Θ' ? M('c_1, c_2') : M('c')} and ${M('n_0')}, show the key inequality, conclude.`,
+        answer, points: pts, why: `Other valid constants are fine too.${n0 > 1 ? ` For these ${M('c')}, ${M('n_0 = ' + n0)} is the smallest start (${M('n = ' + (n0 - 1))} fails).` : ''}`, source, spec, graph };
+    },
+  });
+
+  // ═══════════════════════════ 13. Comparing growth by the ratio f/g (Lecture 3, Assignment 1) ═══════════════════════════
+  // Sums of terms c·n^(p6/6)·(lg n)^l. No exponentials or factorials (graded A1 territory).
+  const T6 = (c, p6, l = 0) => ({ c, p6, l });
+  const gcd = (x, y) => (y ? gcd(y, x % y) : Math.abs(x));
+  function expTex(p6) { const g = gcd(p6, 6), num = p6 / g, den = 6 / g; return den === 1 ? String(num) : `${num}/${den}`; }
+  function nPow(p6) { if (p6 === 0) return ''; if (p6 === 6) return 'n'; if (p6 === 3) return '\\sqrt{n}'; return `n^{${expTex(p6)}}`; }
+  const lgPow = l => (l === 0 ? '' : l === 1 ? '\\lg n' : `\\lg^{${l}} n`);
+  function termTex6(t, first) { const body = [nPow(t.p6), lgPow(t.l)].filter(Boolean).join(' '); return (t.c === 1 && body ? '' : String(t.c)) + body; }
+  const sumTex = ts => ts.map(t => termTex6(t)).join(' + ');
+  const termVal = (t, n) => t.c * n ** (t.p6 / 6) * L2(n) ** t.l;
+  const sumVal = (ts, n) => ts.reduce((s, t) => s + termVal(t, n), 0);
+  const lead = ts => ts.slice().sort((x, y) => y.p6 - x.p6 || y.l - x.l)[0];
+  function compareInstance(rng) {
+    const fam = weighted(rng, [['polyDiff', 2], ['polySame', 1.5], ['nlogPow', 1.2], ['logPow', 1.2], ['powPow', 1.2], ['mult', 1]]);
+    const co = () => pick(rng, [1, 1, 2, 3, 4, 5, 7, 10]);
+    if (fam === 'polyDiff') { const [p, r] = sample(rng, [1, 2, 3], 2); const q = int(rng, 0, p - 1); return [fam, [T6(co(), 6 * p)].concat(chance(rng, 0.7) ? [T6(int(rng, 1, 9), 6 * q)] : []), [T6(co(), 6 * r)]]; }
+    if (fam === 'polySame') { const p = pick(rng, [1, 2, 3]); return [fam, [T6(co(), 6 * p), T6(int(rng, 1, 9), 6 * int(rng, 0, p - 1))], [T6(co(), 6 * p), T6(int(rng, 1, 20), 0)]]; }
+    if (fam === 'nlogPow') return [fam, [T6(co(), 6, 1)], [T6(co(), pick(rng, [6, 9, 12]))]];
+    if (fam === 'logPow') return [fam, [T6(1, 0, pick(rng, [2, 3]))], [T6(1, pick(rng, [2, 3, 6]))]];
+    if (fam === 'powPow') { const [x, y] = sample(rng, [2, 3, 6, 9, 12, 18], 2); return [fam, [T6(co(), x)], [T6(co(), y)]]; }
+    const [p6, l] = pick(rng, [[6, 0], [6, 1], [12, 0], [3, 0], [0, 1]]);
+    let a = co(), c = co(); while (c === a) c = co();
+    return [fam, [T6(a, p6, l)], [T6(c, p6, l)]];
+  }
+  G.register({
+    id: 'gen-310-compare-growth', deck: DECK, lecture: '3', cat: 'Asymptotics', sub: 'Comparing growth', assignment: ['a1'],
+    title: 'Compare f and g with the ratio f/g',
+    make(rng) {
+      let [fam, f, g] = compareInstance(rng);
+      if (chance(rng, 0.5)) [f, g] = [g, f];
+      const F = lead(f), Gt = lead(g);
+      const dp = F.p6 - Gt.p6, dl = F.l - Gt.l;
+      const c = dp !== 0 ? Math.sign(dp) : Math.sign(dl);
+      const fT = sumTex(f), gT = sumTex(g);
+      // The ratio of the leading terms, simplified: (a/c) n^dp (lg n)^dl, positive powers on top.
+      const k = gcd(F.c, Gt.c), num = F.c / k, den = Gt.c / k;
+      const top = [num === 1 ? '' : String(num), nPow(Math.max(dp, 0)), lgPow(Math.max(dl, 0))].filter(Boolean).join(' ') || '1';
+      const bot = [den === 1 ? '' : String(den), nPow(Math.max(-dp, 0)), lgPow(Math.max(-dl, 0))].filter(Boolean).join(' ');
+      const ratio = bot ? `\\frac{${top}}{${bot}}` : top;
+      const multi = f.length > 1 || g.length > 1;
+      const Ltex = c === 0 ? ratio : c < 0 ? '0' : '\\infty';
+      const reason = c !== 0 && dp !== 0 && dl !== 0 ? ` (the power of ${M('n')} decides; ${M('\\lg n')} factors cannot change it)` : '';
+      const holds = c === 0 ? `${M('O')}, ${M('\\Omega')}, ${M('\\Theta')} hold; ${M('o')}, ${M('\\omega')} fail` : c < 0 ? `${M('O')} and ${M('o')} hold; ${M('\\Omega')}, ${M('\\omega')}, ${M('\\Theta')} fail` : `${M('\\Omega')} and ${M('\\omega')} hold; ${M('O')}, ${M('o')}, ${M('\\Theta')} fail`;
+      const OPT = { '-1': M('f(n) = o(g(n))'), 0: M('f(n) = \\Theta(g(n))'), 1: M('f(n) = \\omega(g(n))') };
+      const lim = c === 0 && !multi ? `\\frac{f}{g} = ${ratio}` : `\\frac{f}{g} ${multi ? '\\approx' : '='} ${ratio} \\to ${Ltex}`;
+      const why = `${multi ? 'Keep the biggest term of each: ' : ''}${M(lim)}${c === 0 ? ', a positive constant' : ''}${reason}. So ${OPT[c]}: ${holds}.`;
+      // Graph: the exact ratio against m = lg n.
+      const peak = fam === 'logPow' ? (Math.max(F.l, Gt.l) / (Math.max(F.p6, Gt.p6) / 6 * Math.LN2)) : 0;
+      const m1 = Math.max(24, Math.ceil(3 * peak));
+      const r = m => sumVal(f, 2 ** m) / sumVal(g, 2 ** m);
+      const curves = [{ label: M('f(n)/g(n)'), f: r, tone: 'a' }];
+      if (c === 0) curves.push({ label: `limit ${M(ratio)}`, f: () => num / den, tone: 'c' });
+      const graph = { x: [1, m1], logY: c !== 0, xLabel: 'lg n', yLabel: 'f/g', curves,
+        caption: c === 0 ? `The ratio settles at ${M(ratio)}.` : `The ratio ${peak ? 'may rise first, then ' : ''}${c < 0 ? 'falls toward 0' : 'grows without bound'}.` };
+      return { type: 'mc', prompt: `${M('f(n) = ' + fT)}, ${M('g(n) = ' + gT)}.\nWhich holds? (Look at ${M('f(n)/g(n)')} as ${M('n \\to \\infty')}.)`,
+        answer: OPT[c], options: Object.values(OPT).filter(o => o !== OPT[c]), why, source: src('Lecture 3.pdf (o, ω, Θ as limits of f/g)'),
+        spec: { gen: 'compare', fam, f, g }, graph };
     },
   });
 })(globalThis.FC = globalThis.FC || {});

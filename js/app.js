@@ -14,7 +14,17 @@
   const SETTINGS_KEY = 'fc.settings', TOKEN_KEY = 'fc.token';
   const store = log._store();
   let settings = Object.assign({ newLimit: 'all', minutes: 20, exams: {}, off: {}, view: {}, focus: {}, mix: { total: 30, pct: {} } }, readJSON(SETTINGS_KEY));
-  settings.view = settings.view || {}; settings.focus = settings.focus || {};
+  settings.view = settings.view || {};
+  // Old single-assignment "focus" -> the assignment filter (that assignment on, the rest off).
+  for (const [deckId, focus] of Object.entries(settings.focus || {})) {
+    const deck = FC.decks[deckId];
+    if (!focus || !deck) continue;
+    const off = new Set(settings.off[deckId] || []);
+    for (const a of deck.assignments || []) if (a.id !== focus) off.add('A:' + a.id);
+    off.add('A:none');
+    settings.off[deckId] = [...off];
+  }
+  delete settings.focus;
   // v2 (2026-10-16): sessions draw from every card (repeats go to the end of the session)
   // and are bounded by time instead; the old 20-new-cards default made the same 20 cycle.
   if (!settings.v || settings.v < 2) { settings.newLimit = 'all'; settings.v = 2; store.setItem(SETTINGS_KEY, JSON.stringify(settings)); }
@@ -137,7 +147,20 @@
 
   // Topic toggles: settings.off[deckId] lists switched-off "cat" or "cat/sub" keys.
   const offSet = deckId => new Set(settings.off[deckId] || []);
-  const isOn = (off, c) => !off.has(c.cat) && !off.has(c.cat + '/' + c.sub) && !off.has('L:' + c.lecture);
+  // Card selection = three filters that combine (a card is studied only if all three let
+  // it through). Each filter is a set of switched-off keys in settings.off[deck]:
+  //   topic       'Cat' or 'Cat/Sub'
+  //   lecture     'L:<lecture>'
+  //   assignment  'A:<assignment id>', or 'A:none' for cards that belong to no assignment
+  const DIMS = ['topic', 'lecture', 'assignment'];
+  const dimOf = key => key.startsWith('L:') ? 'lecture' : key.startsWith('A:') ? 'assignment' : 'topic';
+  const assignIds = (deck, c) => (c.assignment || []).filter(a => (deck.assignments || []).some(x => x.id === a));
+  const passes = {
+    topic: (off, c) => !off.has(c.cat) && !off.has(c.cat + '/' + c.sub),
+    lecture: (off, c) => !off.has('L:' + c.lecture),
+    assignment: (off, c, deck) => { const ids = assignIds(deck, c); return ids.length ? ids.some(a => !off.has('A:' + a)) : !off.has('A:none'); },
+  };
+  const isOn = (off, c, deck = deckById.get(c.deck) || {}, skip) => DIMS.every(dim => dim === skip || passes[dim](off, c, deck));
   // Exam mode: within 7 days of a class's exam date, History is left out (exam-format
   // practice first, research/04 rule 25) unless it was switched back on for the exam.
   const EXAM_WEEK = 7;
@@ -145,8 +168,8 @@
   const activeCards = deckId => {
     const off = offSet(deckId);
     if (examMode(deckId) && !(settings.examHistory || {})[deckId]) for (const cat of ['History', 'History & stories']) off.add(cat);
-    const focus = settings.focus[deckId];
-    return cardsFor(deckId).filter(c => isOn(off, c) && (!focus || (c.assignment || []).includes(focus)));
+    const deck = deckById.get(deckId);
+    return cardsFor(deckId).filter(c => isOn(off, c, deck));
   };
 
   // Card states, each class with its own exam date.
@@ -227,7 +250,7 @@
     $('newCount').textContent = k.learn;
     $('studyBtn').disabled = k.review + k.learn === 0;
     $('studyNote').textContent = k.review + k.learn ? ''
-      : k.total === 0 ? 'Every topic is switched off.' : 'Nothing left for today with these topics.';
+      : k.total === 0 ? 'No cards selected: your filters below leave nothing. Use “Turn everything on” or pick some.' : 'Nothing left to study today with this selection.';
     $('examDate').value = settings.exams[d.id] || '';
     $('newLimit').value = String(settings.newLimit);
     $('sessionMinutes').value = String(settings.minutes);
@@ -237,74 +260,150 @@
       : ed != null && ed > today() ? `Exam in ${ed - today()} days: review gaps are capped so everything comes back before it.` : '';
     $('examBanner').hidden = !$('examBanner').textContent;
 
-    // Group by topic, lecture, or assignment.
+    renderPicker(d, all, off);
+  }
+
+  // ── Card picker: three filters (topic, lecture, assignment) that combine ─────────
+  // Every tab is one filter with All / None; the summary line says what the combination
+  // leaves, names each filter that is restricting, and clears any of them in one tap.
+  // Row counts are what that row would add given the OTHER two filters, so turning
+  // something on never silently gives nothing.
+  function groupsFor(d, all, dim) {
+    if (dim === 'lecture') return d.lectures.filter(l => all.some(c => c.lecture === l.n))
+      .map(l => ({ key: 'L:' + l.n, title: l.title, lec: l.n, has: c => c.lecture === l.n }));
+    if (dim === 'assignment') return (d.assignments || []).map(a => ({ key: 'A:' + a.id, title: a.title, has: c => assignIds(d, c).includes(a.id) }))
+      .concat([{ key: 'A:none', title: 'Not part of any assignment', has: c => !assignIds(d, c).length }])
+      .filter(g => all.some(g.has));
+    const order = (FC.topics && FC.topics[d.id + 'Order']) || d.catOrder || [];
+    return [...new Set(order.concat(all.map(c => c.cat)))].filter(cat => all.some(c => c.cat === cat))
+      .map(cat => ({ key: cat, title: cat, has: c => c.cat === cat }));
+  }
+  const keysOf = (off, dim) => [...off].filter(k => dimOf(k) === dim);
+
+  function renderPicker(d, all, off) {
     const hasAssignments = (d.assignments || []).some(a => all.some(c => (c.assignment || []).includes(a.id)));
     let view = settings.view[d.id] || 'topic';
     if (view === 'assignment' && !hasAssignments) view = 'topic';
-    document.querySelectorAll('#viewSwitch button').forEach(b => {
-      b.setAttribute('aria-pressed', String(b.dataset.view === view));
-      b.hidden = b.dataset.view === 'assignment' && !hasAssignments;
+    const dims = hasAssignments ? DIMS : DIMS.filter(x => x !== 'assignment');
+    const names = { topic: 'Topics', lecture: 'Lectures', assignment: 'Assignments' };
+    const restricted = dim => keysOf(off, dim).length > 0;
+    const offGroups = dim => groupsFor(d, all, dim).filter(g => dim === 'topic'
+      ? off.has(g.key) || all.some(c => g.has(c) && off.has(c.cat + '/' + c.sub)) : off.has(g.key)).length;
+
+    // Summary: what the filters leave, and each one that is restricting (with a clear button).
+    const chosen = all.filter(c => isOn(off, c, d)).length;
+    const chips = dims.filter(restricted).map(dim => {
+      const gs = groupsFor(d, all, dim);
+      const partly = dim === 'topic' ? gs.filter(g => !off.has(g.key) && all.some(c => g.has(c) && off.has(c.cat + '/' + c.sub))).length : 0;
+      const whole = offGroups(dim) - partly;
+      const text = [whole ? `${whole === gs.length ? 'all' : whole} off` : '', partly ? `${partly} partly off` : ''].filter(Boolean).join(', ');
+      return h('span', { class: 'sel-chip' }, `${names[dim]}: ${text}`,
+        h('button', { class: 'sel-x', type: 'button', 'aria-label': `Turn all ${names[dim].toLowerCase()} back on`, title: `Turn all ${names[dim].toLowerCase()} back on`,
+          onclick: () => setAll(d.id, dim, true) }, '×'));
     });
+    $('selSummary').replaceChildren(
+      h('div', { class: 'sel-line' }, h('span', null, 'Studying ', h('b', null, String(chosen)), ` of ${all.length} cards`),
+        chips.length ? h('button', { class: 'linkbtn', type: 'button', onclick: () => resetAll(d.id) }, 'Turn everything on') : null),
+      ...(chips.length ? [h('div', { class: 'sel-chips' }, chips)] : []));
+
+    // Tabs: one per filter; a restricting filter shows how many of its groups are off.
+    document.querySelectorAll('#viewSwitch button').forEach(b => {
+      const dim = b.dataset.view;
+      b.hidden = !dims.includes(dim);
+      b.setAttribute('aria-pressed', String(dim === view));
+      const k = dims.includes(dim) ? offGroups(dim) : 0;
+      b.replaceChildren(document.createTextNode(names[dim]), k ? h('span', { class: 'tab-badge', title: `${k} off` }, `${k}`, h('span', { class: 'w' }, ' off')) : '');
+    });
+
+    // This tab's All / None and hint.
+    const groups = groupsFor(d, all, view);
+    $('viewTools').replaceChildren(
+      h('p', { class: 'muted view-hint' }, view === 'topic' ? 'Open a topic to pick its parts.'
+        : view === 'lecture' ? 'Lectures in course order.' : 'Cards teach what each assignment needs, never its answers.'),
+      h('div', { class: 'view-all' },
+        h('button', { class: 'btn small', type: 'button', disabled: !restricted(view), onclick: () => setAll(d.id, view, true) }, 'All'),
+        h('button', { class: 'btn small', type: 'button', disabled: groups.every(g => off.has(g.key)), onclick: () => setAll(d.id, view, false) }, 'None')));
+
+    // Rows. Count = cards in the row that the other two filters let through.
+    const others = c => isOn(off, c, d, view);
+    const countText = (inRow, through) => through === inRow.length ? `${inRow.length}` : `${through} of ${inRow.length}`;
     const tree = $('topicTree');
-    if (view === 'lecture') {
-      $('viewHint').textContent = 'Switch lectures on or off.';
-      tree.replaceChildren(...d.lectures.filter(l => all.some(c => c.lecture === l.n)).map(l => {
-        const n = all.filter(c => c.lecture === l.n).length, on = !off.has('L:' + l.n);
-        return h('div', { class: 'topic' }, h('label', { class: 'topic-head' },
-          h('input', { type: 'checkbox', checked: on, onchange: e => toggle(d.id, 'L:' + l.n, e.target.checked) }),
-          h('span', null, l.title), h('span', { class: 'muted' }, ` ${n}`)));
+    if (view !== 'topic') {
+      tree.replaceChildren(...groups.map(g => {
+        const inRow = all.filter(g.has), through = inRow.filter(others).length, on = !off.has(g.key);
+        const title = view === 'lecture' && /^\d+$/.test(g.lec) ? [h('span', { class: 'lec-n' }, `Lecture ${g.lec} · `), g.title] : [g.title];
+        return h('label', { class: 'topic pick-row' + (on ? '' : ' is-off') },
+          h('input', { type: 'checkbox', checked: on, onchange: e => toggle(d.id, g.key, e.target.checked) }),
+          h('span', { class: 'pick-title' }, ...title),
+          h('span', { class: 'pick-n', title: through < inRow.length ? 'Cards here that your other filters allow' : '' }, countText(inRow, through)));
       }));
       return;
     }
-    if (view === 'assignment') {
-      const focus = settings.focus[d.id] || '';
-      $('viewHint').textContent = 'Pick an assignment to study only the concepts it needs. Your answers to the assignment itself are not on any card.';
-      const rows = [{ id: '', title: 'All cards', n: all.length }].concat(d.assignments.map(a => ({ id: a.id, title: a.title, n: all.filter(c => (c.assignment || []).includes(a.id)).length })));
-      tree.replaceChildren(...rows.filter(r => r.n).map(r => h('div', { class: 'topic' }, h('label', { class: 'topic-head' },
-        h('input', { type: 'radio', name: 'focus', checked: focus === r.id, onchange: () => { settings.focus[d.id] = r.id || null; saveSettings(); renderClass(); } }),
-        h('span', null, r.title), h('span', { class: 'muted' }, ` ${r.n}`)))));
-      return;
-    }
-    $('viewHint').textContent = 'Switch topics on or off. Open a topic to pick its parts.';
-    // Topics in the deck's preferred order, each with its subgroups as chips.
-    const order = (FC.topics && FC.topics[d.id + 'Order']) || d.catOrder || [];
-    const cats = [...new Set(order.concat(all.map(c => c.cat)))].filter(cat => all.some(c => c.cat === cat));
-    // Few subgroups: show every chip. Many (Software Testing has ~90): groups start
-    // collapsed so the screen still fits, and you open the one you want to fine-tune.
+    // Topics: each with its parts as chips. Few parts: show all; many: start collapsed.
+    const cats = groups.map(g => g.key);
     const totalSubs = new Set(all.map(c => c.cat + '/' + c.sub)).size;
     if (!expanded.has(d.id)) expanded.set(d.id, new Set(totalSubs <= 30 ? cats : []));
     const open = expanded.get(d.id);
+    const subOrder = (FC.topics && FC.topics[d.id + 'SubOrder']) || d.subOrder || [];
+    const rankOf = sub => { const i = subOrder.indexOf(sub); return i < 0 ? 999 : i; };
     tree.replaceChildren(...cats.map(cat => {
       const inCat = all.filter(c => c.cat === cat);
-      const subOrder = (FC.topics && FC.topics[d.id + 'SubOrder']) || d.subOrder || [];
-      const rankOf = sub => { const i = subOrder.indexOf(sub); return i < 0 ? 999 : i; };
       const subs = [...new Set(inCat.map(c => c.sub))].sort((a, b) => rankOf(a) - rankOf(b));
       const catOn = !off.has(cat);
+      const subsOff = subs.filter(sub => off.has(cat + '/' + sub)).length;
       const isOpen = open.has(cat);
-      const offSubs = subs.filter(sub => off.has(cat + '/' + sub)).length;
-      return h('div', { class: 'topic' },
+      const through = inCat.filter(c => !off.has(c.cat + '/' + c.sub) && others(c)).length;
+      const box = h('input', { type: 'checkbox', checked: catOn && subsOff < subs.length,
+        onchange: e => setTopic(d.id, cat, subs, e.target.checked) });
+      box.indeterminate = catOn && subsOff > 0 && subsOff < subs.length; // some parts off
+      return h('div', { class: 'topic' + (catOn && subsOff < subs.length ? '' : ' is-off') },
         h('div', { class: 'topic-row' },
-          h('label', { class: 'topic-head' },
-            h('input', { type: 'checkbox', checked: catOn, onchange: e => toggle(d.id, cat, e.target.checked) }),
-            h('span', null, cat), h('span', { class: 'muted' }, ` ${inCat.length}`)),
-          h('button', { class: 'linkbtn expand', 'aria-expanded': String(isOpen),
+          h('label', { class: 'topic-head' }, box, h('span', { class: 'pick-title' }, cat),
+            h('span', { class: 'pick-n' }, countText(inCat, catOn ? through : inCat.filter(others).length))),
+          h('button', { class: 'linkbtn expand', type: 'button', 'aria-expanded': String(isOpen),
             onclick: () => { if (isOpen) open.delete(cat); else open.add(cat); renderClass(); } },
-            `${subs.length} topics${offSubs ? ` (${offSubs} off)` : ''} ${isOpen ? '▾' : '▸'}`)),
+            `${subs.length} part${subs.length === 1 ? '' : 's'}${catOn && subsOff ? ` · ${subsOff} off` : ''} ${isOpen ? '▾' : '▸'}`)),
         isOpen && h('div', { class: 'chips' }, subs.map(sub => {
           const on = catOn && !off.has(cat + '/' + sub);
-          return h('button', { class: 'chip', 'aria-pressed': String(on), disabled: !catOn,
-            onclick: () => toggle(d.id, cat + '/' + sub, !on) }, sub, h('span', { class: 'n' }, ` ${inCat.filter(c => c.sub === sub).length}`));
+          return h('button', { class: 'chip', type: 'button', 'aria-pressed': String(on),
+            onclick: () => setPart(d.id, cat, subs, sub, !on) }, sub, h('span', { class: 'n' }, ` ${inCat.filter(c => c.sub === sub).length}`));
         })));
     }));
   }
+
+  // Writes. Every change re-renders, so counts and the summary are always current.
+  function saveOff(deckId, off) { settings.off[deckId] = [...off]; saveSettings(); renderClass(); }
   function toggle(deckId, key, on) {
     if (examMode(deckId) && /^History/.test(key)) { settings.examHistory = Object.assign({}, settings.examHistory, { [deckId]: on }); }
     const off = offSet(deckId);
     if (on) off.delete(key); else off.add(key);
-    settings.off[deckId] = [...off];
-    saveSettings();
-    renderClass();
+    saveOff(deckId, off);
   }
+  // A topic's checkbox: on = the topic and all its parts; off = the whole topic.
+  function setTopic(deckId, cat, subs, on) {
+    if (examMode(deckId) && /^History/.test(cat)) { settings.examHistory = Object.assign({}, settings.examHistory, { [deckId]: on }); }
+    const off = offSet(deckId);
+    subs.forEach(sub => off.delete(cat + '/' + sub));
+    if (on) off.delete(cat); else off.add(cat);
+    saveOff(deckId, off);
+  }
+  // A part's chip. Tapping a part of a switched-off topic turns on just that part.
+  function setPart(deckId, cat, subs, sub, on) {
+    const off = offSet(deckId);
+    if (on && off.has(cat)) { off.delete(cat); subs.forEach(s2 => off.add(cat + '/' + s2)); }
+    if (on) off.delete(cat + '/' + sub); else off.add(cat + '/' + sub);
+    // Every part off = the topic off (one key, so "All" and the summary read it simply).
+    if (subs.every(s2 => off.has(cat + '/' + s2))) { subs.forEach(s2 => off.delete(cat + '/' + s2)); off.add(cat); }
+    saveOff(deckId, off);
+  }
+  function setAll(deckId, dim, on) {
+    const d = deckById.get(deckId), all = cardsFor(deckId), off = offSet(deckId);
+    for (const k of keysOf(off, dim)) off.delete(k);
+    if (!on) for (const g of groupsFor(d, all, dim)) off.add(g.key);
+    if (dim === 'topic' && examMode(deckId)) settings.examHistory = Object.assign({}, settings.examHistory, { [deckId]: on });
+    saveOff(deckId, off);
+  }
+  function resetAll(deckId) { saveOff(deckId, new Set()); }
   $('examDate').addEventListener('change', e => { settings.exams[openDeck] = e.target.value; saveSettings(); renderClass(); });
   document.querySelectorAll('#viewSwitch button').forEach(b => b.addEventListener('click', () => { settings.view[openDeck] = b.dataset.view; saveSettings(); renderClass(); }));
   $('newLimit').addEventListener('change', e => { settings.newLimit = e.target.value === 'all' ? 'all' : +e.target.value; saveSettings(); renderClass(); });

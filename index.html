@@ -131,7 +131,37 @@
     .options-row input[type="date"] { width: auto; padding: 0.4rem 0.6rem; font-size: 14px; }
     .rule-line { font-size: 0.85rem; margin-top: 0.75rem; }
     .exam-banner { color: var(--warn); background: oklch(0.82 0.12 85 / 0.1); border-radius: var(--radius-sm); padding: 0.6rem 0.8rem; font-size: 0.9rem; margin-top: 0.75rem; }
-    .view-switch { display: inline-flex; background: var(--surface); border-radius: 999px; padding: 4px; gap: 2px; margin: 1.5rem 0 0.9rem; }
+    .picker { margin-top: 1.5rem; }
+    .sel-summary { margin-bottom: 0.75rem; }
+    .sel-line { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; font-size: 0.98rem; }
+    .sel-line b { font-size: 1.15rem; }
+    .sel-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.45rem; }
+    .sel-chip { display: inline-flex; align-items: center; gap: 0.15rem; background: var(--accent-soft); color: var(--text); border-radius: 999px; padding: 0.15rem 0.2rem 0.15rem 0.75rem; font-size: 0.85rem; }
+    .sel-x { border: 0; background: none; color: var(--text-2); font-size: 1.1rem; line-height: 1; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; }
+    .sel-x:hover { background: var(--surface-3); color: var(--text); }
+    .tab-badge { margin-left: 0.4rem; font-size: 0.72rem; font-weight: 600; color: var(--warn); white-space: nowrap; }
+    .view-switch button { white-space: nowrap; }
+    @media (max-width: 480px) {
+      .view-switch { display: flex; width: 100%; }
+      .view-switch button { flex: 1 1 0; padding: 0.45rem 0.4rem; }
+      .tab-badge .w { display: none; }
+    }
+    .view-tools { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin: 0.75rem 0; }
+    .view-hint { margin: 0; }
+    .view-all { display: flex; gap: 0.4rem; flex: none; }
+    .btn.small { min-height: 34px; padding: 0.3rem 0.85rem; font-size: 0.85rem; }
+    .pick-row { display: flex; align-items: center; gap: 0.65rem; cursor: pointer; padding: 0.7rem 1rem; }
+    .pick-row input, .topic-head input { width: 1.15rem; height: 1.15rem; flex: none; accent-color: var(--accent); margin: 0; }
+    .pick-title { flex: 1; min-width: 0; font-weight: 600; }
+    .pick-n { flex: none; color: var(--text-2); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+    .lec-n { color: var(--text-2); font-weight: 500; }
+    #screen-class .topic-tree { grid-template-columns: 1fr; gap: 0.5rem; align-items: start; }
+    #screen-class .topic { padding: 0.7rem 1rem; }
+    #screen-class .topic-row { gap: 0.75rem; }
+    #screen-class .topic-head { flex: 1; min-width: 0; }
+    #screen-class .linkbtn.expand { flex: none; white-space: nowrap; }
+    .topic.is-off .pick-title, .topic.is-off .pick-n { color: var(--text-3); }
+    .view-switch { display: inline-flex; background: var(--surface); border-radius: 999px; padding: 4px; gap: 2px; margin: 0; }
     .view-switch button { border: 0; background: none; color: var(--text-2); font: 500 0.88rem var(--font); padding: 0.4rem 0.95rem; border-radius: 999px; cursor: pointer; }
     .view-switch button[aria-pressed="true"] { background: var(--surface-3); color: var(--text); }
     .topic-tree { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.75rem; align-content: start; }
@@ -333,7 +363,7 @@
       #screen-study.fit-measure { grid-template-rows: auto auto auto; align-content: start; align-items: start; }
       #screen-study.fit-measure .answer-area { align-self: start; }
       #screen-study.fit-overflow .qcard { max-height: 100%; }
-      #screen-class .topic-tree { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+      #screen-class .topic-tree { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .container:has(#screen-class:not([hidden])) { max-width: 960px; }
     }
     @media (max-height: 760px) {
@@ -415,12 +445,15 @@
         </div>
         <p class="muted rule-line">New cards need 3 correct “Sure” answers on their first day.</p>
         <p class="exam-banner" id="examBanner" hidden></p>
-        <div class="view-switch" role="group" aria-label="Group cards by" id="viewSwitch">
-          <button data-view="topic" aria-pressed="true">By topic</button>
-          <button data-view="lecture" aria-pressed="false">By lecture</button>
-          <button data-view="assignment" aria-pressed="false">By assignment</button>
-        </div>
-        <p class="muted" id="viewHint" style="margin-bottom:0.75rem"></p>
+        <section class="picker" aria-label="Choose which cards to study">
+          <div id="selSummary" class="sel-summary" aria-live="polite"></div>
+          <div class="view-switch" role="group" aria-label="Filter by" id="viewSwitch">
+            <button data-view="topic" aria-pressed="true">Topics</button>
+            <button data-view="lecture" aria-pressed="false">Lectures</button>
+            <button data-view="assignment" aria-pressed="false">Assignments</button>
+          </div>
+          <div id="viewTools" class="view-tools"></div>
+        </section>
         <div id="topicTree" class="topic-tree"></div>
       </section>
 

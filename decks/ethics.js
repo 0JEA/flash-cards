@@ -2,6 +2,8 @@
 // as a class on 2026-10-16. Multiple choice only. Every card got a `why` on 2026-10-17, options were cut
 // to 2-3 distractors, and the keys were checked: each correction is recorded in that card's `source`
 // ("key corrected" / "reworded"). Known issue kept: the correct option is often the longest.
+// UNVERIFIED keys (kept; no source settles them, 2026-10-17): eth-18, eth-24, eth-25, eth-26, eth-29, eth-30,
+// eth-31, eth-37, eth-39, eth-40. (eth-29/37: SE Code 6.12 suggests raising it with the person first.)
 (function (FC) {
   (FC.decks = FC.decks || {}).ethics = {
     id: "ethics", title: "Software Engineering Ethics", short: "Ethics",

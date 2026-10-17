@@ -1,7 +1,8 @@
 // Software-engineering ethics: the original quiz bank (archive/ethics-questions.js), brought back
 // as a class on 2026-10-16. Multiple choice only. Every card got a `why` on 2026-10-17, options were cut
 // to 2-3 distractors, and the keys were checked: each correction is recorded in that card's `source`
-// ("key corrected" / "reworded"). Known issue kept: the correct option is often the longest.
+// ("key corrected" / "reworded"). Length cue fixed 2026-10-17: on 62 cards the correct option was the
+// longest; answers were trimmed and distractors made equally specific (answer <= ~1.15x longest distractor).
 // UNVERIFIED keys (kept; no source settles them, 2026-10-17): eth-18, eth-24, eth-25, eth-26, eth-29, eth-30,
 // eth-31, eth-37, eth-39, eth-40. (eth-29/37: SE Code 6.12 suggests raising it with the person first.)
 (function (FC) {
@@ -51,11 +52,11 @@
   "sub": "Whistleblowing",
   "type": "mc",
   "prompt": "According to the SECEPP, what is the primary responsibility of a software engineer regarding whistleblowing on unethical practices within their organization?",
-  "answer": "Report the issue to appropriate management or authority figures within the organization",
+  "answer": "Report it to appropriate authorities within the organization",
   "options": [
-   "Report the issue to the media for public awareness",
-   "Report the issue to the client or employer's competitors",
-   "Ignore the issue to avoid conflicts within the workplace"
+   "Report it to the media so the public is warned",
+   "Stay silent unless the client is directly harmed",
+   "Report it anonymously to a competitor of the employer"
   ],
   "why": "The code says to raise concerns with the people involved first, then report significant violations to appropriate authorities. Going to the media or to competitors skips those steps.",
   "source": "Ethics quiz bank (archived question 3)"
@@ -167,11 +168,11 @@
   "type": "mc",
   "noRecall": true,
   "prompt": "Evaluate the ethical considerations surrounding the collection and storage of user data by online service providers. Which consideration should come first in data retention policies?",
-  "answer": "Protecting user privacy and preventing unauthorized access to sensitive data.",
+  "answer": "Protecting user privacy against unauthorized access",
   "options": [
-   "Enabling personalized experiences and targeted advertising.",
-   "Sharing data for research and technological advances.",
-   "Complying with legal regulations and industry standards."
+   "Enabling personalized experiences and targeted ads",
+   "Sharing data to advance research and technology",
+   "Complying with legal regulations and industry standards"
   ],
   "why": "Stored personal data can be breached, misused or repurposed, so retention policies should first limit what is kept and protect it. Legal compliance is a minimum, not the ethical goal.",
   "source": "Ethics quiz bank (archived question 10); prompt reworded 2026-10-17: it asked for the main 'concern' but the keyed answer was the protection goal (SE Code 3.12, 1.03)"
@@ -596,11 +597,11 @@
   "type": "mc",
   "noRecall": true,
   "prompt": "Which of the following statements best distinguishes between divine command theory and Kantianism?",
-  "answer": "Both divine command theory and Kantianism uphold moral objectivity, but divine command theory identifies the good with the will of God communicated through holy books, while Kantianism relies on human reason to determine what is good.",
+  "answer": "Both are objective: divine command theory grounds the good in God's will, Kant in reason",
   "options": [
-   "Divine command theory holds that moral rules are determined by human reason, while Kantianism asserts that moral rules are dictated by divine will.",
-   "Both divine command theory and Kantianism assert that moral rules are subjective and vary based on individual beliefs.",
-   "Divine command theory maintains that moral rules are based on human rationality, whereas Kantianism emphasizes divine revelation as the source of moral rules."
+   "Divine command theory grounds rules in human reason; Kantianism grounds them in divine will",
+   "Both are subjective: moral rules vary with each person's beliefs and upbringing",
+   "Divine command theory is objective, but Kant lets each person's reason set their own rules"
   ],
   "why": "Both hold that right and wrong are objective, but divine command theory finds them in God's will as revealed in holy books, while Kant derives them from reason alone.",
   "source": "Ethics quiz bank (archived question 36)"
@@ -708,11 +709,11 @@
   "sub": "Tech & society",
   "type": "mc",
   "prompt": "Horowitz discusses a 'Moral Operating System.' What is the primary difficulty in hard-coding these ethics into AI?",
-  "answer": "Diverse ethical perspectives make it hard to agree on a single universal set of principles.",
+  "answer": "People and cultures disagree, so there is no single agreed rule set",
   "options": [
-   "AI lacks the processing power to compute moral logic.",
-   "There are no books written on ethics for engineers.",
-   "Morality is purely mathematical and AI cannot understand emotions."
+   "AI lacks the processing power to evaluate moral logic in real time",
+   "There are no published ethics frameworks written for engineers",
+   "Morality is purely mathematical, but AI cannot process emotions"
   ],
   "why": "People and cultures disagree about what is right, so there is no single agreed rule set to encode. Computing power is not the obstacle.",
   "source": "Ethics quiz bank (archived question 43)"
@@ -724,11 +725,11 @@
   "sub": "Tech & society",
   "type": "mc",
   "prompt": "Which concept addresses the 'Innovation Trade-off' mentioned in class?",
-  "answer": "The balance between rapid technological progress and taking time to consider societal impacts.",
+  "answer": "Balancing rapid progress against time to weigh societal impacts",
   "options": [
-   "The choice between using Open Source vs. Proprietary software.",
-   "The cost difference between hiring an ethicist and a junior dev.",
-   "The speed of a processor vs. its heat output."
+   "Choosing between open-source and proprietary software licences",
+   "Trading a processor's speed against its heat output and power",
+   "Weighing the cost of hiring an ethicist against a junior developer"
   ],
   "why": "Moving fast brings benefits sooner but leaves less time to foresee harms. The trade-off is how much speed to give up to weigh effects on society first.",
   "source": "Ethics quiz bank (archived question 44)"
@@ -788,11 +789,11 @@
   "sub": "Kantianism",
   "type": "mc",
   "prompt": "Under Kant's Categorical Imperative, why would 'making a lying promise to a client' be unethical?",
-  "answer": "Because if everyone made lying promises, the concept of a promise would become meaningless.",
+  "answer": "Because if everyone did it, promises would mean nothing",
   "options": [
-   "Because it might cause the client to lose money.",
-   "Because the engineer might feel guilty.",
-   "Because it violates company policy."
+   "Because it would probably cause the client to lose money",
+   "Because the engineer would feel guilty about it afterwards",
+   "Because it violates the company's code of conduct"
   ],
   "why": "Kant's universalizability test: if everyone made lying promises, no one would trust a promise, so the maxim defeats itself. Possible money loss is a consequence, which Kant does not use.",
   "source": "Ethics quiz bank (archived question 48)"
@@ -804,11 +805,11 @@
   "sub": "Kantianism",
   "type": "mc",
   "prompt": "Kant’s 'Principle of Humanity' states that you should never treat a person merely as a means to an end. In software, this means:",
-  "answer": "Not using users as data-generating tools without their informed consent.",
+  "answer": "Not using users as data sources without informed consent",
   "options": [
-   "Always giving users free software.",
-   "Ensuring the UI is easy to use.",
-   "Paying employees a fair wage."
+   "Always releasing the software to users free of charge",
+   "Making the interface easy enough for every user to learn",
+   "Paying everyone who works on the product a fair wage"
   ],
   "why": "Using people merely as means is using them for your ends, such as harvesting their data, without their informed consent. Consent lets them share the end as rational agents.",
   "source": "Ethics quiz bank (archived question 49)"
@@ -836,11 +837,11 @@
   "sub": "Utilitarianism",
   "type": "mc",
   "prompt": "A Rule Utilitarian would likely argue that we should *always* tell the truth about software vulnerabilities because:",
-  "answer": "A general rule of honesty creates more societal trust and long-term happiness than lying.",
+  "answer": "A rule of honesty yields more trust and long-term happiness",
   "options": [
-   "The Bible says lying is a sin.",
-   "Lying is a logical contradiction of the self.",
-   "The engineer might get caught and fired."
+   "Scripture forbids lying, so honesty is commanded by God",
+   "Lying is self-contradictory when universalized as a maxim",
+   "The engineer who lies might be caught and fired for it"
   ],
   "why": "Rule utilitarianism judges rules by the results of everyone following them, and universal honesty builds the trust security depends on. 'Lying contradicts itself' is Kantian reasoning.",
   "source": "Ethics quiz bank (archived question 51)"
@@ -852,11 +853,11 @@
   "sub": "Other theories",
   "type": "mc",
   "prompt": "Social Contract Theory suggests we follow laws (like not pirating software) because:",
-  "answer": "We have agreed to follow common rules in exchange for the benefits of a stable society.",
+  "answer": "We agree to common rules in exchange for a stable society",
   "options": [
-   "God has commanded us to follow the law.",
-   "Piracy is a logical impossibility.",
-   "Piracy reduces the total happiness in the world."
+   "God has commanded us to obey the laws of our rulers",
+   "Piracy fails as a maxim when universalized by everyone",
+   "Piracy reduces total happiness across everyone affected"
   ],
   "why": "Rational people accept rules like respecting others' property because everyone is better off when all follow them. 'Piracy reduces total happiness' is a utilitarian reason.",
   "source": "Ethics quiz bank (archived question 52)"
@@ -868,11 +869,11 @@
   "sub": "Other theories",
   "type": "mc",
   "prompt": "In Virtue Ethics, the focus of a software engineer should be on:",
-  "answer": "Developing the character traits of an honest, diligent, and fair professional.",
+  "answer": "Developing the traits of an honest, diligent, fair professional",
   "options": [
-   "Calculating the consequences of every line of code.",
-   "Following a checklist of rules provided by the manager.",
-   "Maximizing personal profit while staying within the law."
+   "Calculating the consequences of every line of code written",
+   "Following the checklist of rules provided by the manager",
+   "Maximizing personal profit while staying within the law"
   ],
   "why": "Virtue ethics asks what a good person would do, so it focuses on building traits such as honesty and diligence rather than calculating outcomes or following checklists.",
   "source": "Ethics quiz bank (archived question 53)"
@@ -900,11 +901,11 @@
   "sub": "Privacy",
   "type": "mc",
   "prompt": "A 'checkout clerk' asking for your phone number is a privacy concern because:",
-  "answer": "It collects personal data without a clear, necessary purpose or express consent for its secondary use.",
+  "answer": "It collects personal data with no clear need or consent for reuse",
   "options": [
-   "It takes too much time during the transaction.",
-   "The clerk might use the number to call you for a date.",
-   "Phone numbers are top-secret government information."
+   "It slows down checkout and wastes every customer's time",
+   "Phone numbers are confidential government-issued information",
+   "The clerk could personally use the number to contact you"
   ],
   "why": "Data should not be collected without need or reused without consent. A phone number at checkout links your purchases to you for marketing.",
   "source": "Ethics quiz bank (archived question 55)"
@@ -948,11 +949,11 @@
   "sub": "Attacks",
   "type": "mc",
   "prompt": "Why is an XSS (Cross-Site Scripting) attack an ethical failure for a developer?",
-  "answer": "It represents a failure to protect users from malicious code being treated as 'trusted.'",
+  "answer": "It fails to protect users from malicious code treated as trusted",
   "options": [
-   "It makes the website load slower.",
-   "It requires too much bandwidth.",
-   "It is only a problem if the attacker is caught."
+   "It wastes server bandwidth that other users have paid for",
+   "It is only a problem if the attacker is eventually caught",
+   "It slows page loads and degrades the site's performance"
   ],
   "why": "XSS works because a site runs attacker input as if it were its own trusted script. Developers owe the users who trust their site protection from that.",
   "source": "Ethics quiz bank (archived question 58)"
@@ -980,11 +981,11 @@
   "sub": "Attacks",
   "type": "mc",
   "prompt": "A developer uses 'parameterized queries' to prevent SQL Injection. This aligns with which professional responsibility?",
-  "answer": "Ensuring the safety and integrity of the product and user data.",
+  "answer": "Protecting the integrity of the product and user data",
   "options": [
-   "Meeting the shortest possible deadline.",
-   "Reducing the amount of code they have to write.",
-   "Winning a coding competition."
+   "Meeting the shortest possible deadline for the release",
+   "Reducing the amount of code the team has to maintain",
+   "Keeping the product's database queries fast and efficient"
   ],
   "why": "Parameterized queries stop attackers reading or altering the database. Protecting users' data and the product's integrity is a core professional duty.",
   "source": "Ethics quiz bank (archived question 60)"
@@ -996,11 +997,11 @@
   "sub": "Attacks",
   "type": "mc",
   "prompt": "A 'Backdoor Trojan' is particularly deceptive because it:",
-  "answer": "Disguises itself as harmless software to bypass security and grant unauthorized access.",
+  "answer": "It disguises itself as harmless software to gain secret access",
   "options": [
-   "It only works on older computers.",
-   "It requires the user to type in their password five times.",
-   "It is created by government agencies only."
+   "It only runs on older computers with unpatched systems",
+   "It is written exclusively by government intelligence agencies",
+   "It spreads by itself across networks with no user action"
   ],
   "why": "A Trojan looks like useful software, so users install it themselves; once in, its backdoor gives the attacker secret remote access.",
   "source": "Ethics quiz bank (archived question 61)"
@@ -1012,11 +1013,11 @@
   "sub": "Attacks",
   "type": "mc",
   "prompt": "Is 'White Hat' hacking ethical if you exploit a system without permission to show it can be done?",
-  "answer": "It is controversial; while it exposes flaws, it still involves unauthorized access without consent.",
+  "answer": "Controversial: it exposes flaws but is still unauthorized access",
   "options": [
-   "Yes, it is always ethical to show someone their mistakes.",
-   "No, hacking is always a sin under Divine Command Theory.",
-   "Yes, but only if you don't steal any money."
+   "Yes, showing someone their security mistakes is always ethical",
+   "No, hacking is always a sin under divine command theory",
+   "Yes, as long as you do not steal money or damage data"
   ],
   "why": "Good intentions aside, entering a system without the owner's consent is unauthorized and can cause harm, so it is not clearly ethical.",
   "source": "Ethics quiz bank (archived question 62)"
@@ -1028,11 +1029,11 @@
   "sub": "Copyright & patents",
   "type": "mc",
   "prompt": "What is the primary ethical goal of 'Fair Use' in copyright law?",
-  "answer": "To balance the creator's right to profit with the public's right to information and education.",
+  "answer": "Balancing creators' profit with public access for education",
   "options": [
-   "To allow people to get software for free if they are students.",
-   "To prevent companies from ever making a profit.",
-   "To ensure that all books are eventually turned into movies."
+   "Letting students obtain any copyrighted software for free",
+   "Preventing companies from profiting from public-domain works",
+   "Ensuring creators are paid whenever their work is quoted"
   ],
   "why": "Fair use lets the public quote, criticize, teach and research without permission, while creators still profit from their work.",
   "source": "Ethics quiz bank (archived question 63)"
@@ -1044,11 +1045,11 @@
   "sub": "Copyright & patents",
   "type": "mc",
   "prompt": "Why might a patent be 'worse' for society than a trade secret for software?",
-  "answer": "A patent grants a 20-year monopoly that can stifle innovation in that specific technical area.",
+  "answer": "It grants a 20-year monopoly that can stifle related innovation",
   "options": [
-   "A patent is easier to steal than a trade secret.",
-   "Patents are only for hardware, not software.",
-   "Trade secrets are legally required for all code."
+   "A patent's contents are easier to steal than a trade secret",
+   "Patents only cover hardware, so software is left unprotected",
+   "Trade secrets are legally required to be published after 20 years"
   ],
   "why": "A patent gives 20 years of exclusive control, even against independent inventors. A trade secret only stops copying, so others may still build the same thing.",
   "source": "Ethics quiz bank (archived question 64)"
@@ -1140,11 +1141,11 @@
   "sub": "Tech & society",
   "type": "mc",
   "prompt": "Internet addiction is often viewed through the lens of 'unintended consequences.' Who is ethically responsible for mitigating this?",
-  "answer": "Both the developers who design 'sticky' algorithms and the users who must practice self-regulation.",
+  "answer": "Both the developers of 'sticky' designs and the users themselves",
   "options": [
-   "The government only.",
-   "Nobody; it's a personal choice with no ethical dimensions.",
-   "The ISPs who provide the connection."
+   "Only the government, through regulation of the app industry",
+   "Nobody; it is a personal choice with no ethical dimension",
+   "Only the ISPs, since they provide the internet connection"
   ],
   "why": "Developers who design engagement-maximizing features share responsibility for compulsive use; users remain responsible for their own habits.",
   "source": "Ethics quiz bank (archived question 70)"
@@ -1156,11 +1157,11 @@
   "sub": "Tech & society",
   "type": "mc",
   "prompt": "Using algorithmic moderation to silence political dissent is an example of:",
-  "answer": "Censorship that undermines free expression and democratic principles.",
+  "answer": "Censorship that undermines free expression and democracy",
   "options": [
-   "Efficient community management.",
-   "A necessary sacrifice for national security.",
-   "Kantian logic at work."
+   "Efficient and neutral community management at scale",
+   "A justified sacrifice made in the name of national security",
+   "Applying Kant's categorical imperative to online speech"
   ],
   "why": "Removing speech because it criticizes those in power is censorship, whatever tool does it, and it undermines the open debate democracy needs.",
   "source": "Ethics quiz bank (archived question 71)"
@@ -1172,11 +1173,11 @@
   "sub": "Tech & society",
   "type": "mc",
   "prompt": "A programmer realizes their AI model for hiring is biased against women. Ethically, they should:",
-  "answer": "Disclose the bias and work to correct the training data before deployment.",
+  "answer": "Disclose the bias and fix the training data before deployment",
   "options": [
-   "Deploy it anyway because 'the math is neutral.'",
-   "Delete the project and pretend it never happened.",
-   "Blame the women for not having the right resumes."
+   "Deploy it anyway, since the underlying math is neutral",
+   "Quietly delete the project and pretend it never existed",
+   "Deploy it and let hiring managers correct the results"
   ],
   "why": "Deploying a tool known to be biased would harm applicants unfairly. Disclose the problem and fix the data before release rather than hiding it.",
   "source": "Ethics quiz bank (archived question 72)"
@@ -1188,11 +1189,11 @@
   "sub": "SE Code of Ethics",
   "type": "mc",
   "prompt": "If a software engineer is not 'qualified' for a safety-critical medical project, they should:",
-  "answer": "Honestly state their limitations and seek the necessary training or expert help.",
+  "answer": "State their limitations honestly and get training or expert help",
   "options": [
-   "Accept the job and hope they can learn it on YouTube.",
-   "Delegate all the hard work to an intern.",
-   "Charge double because the work is high-risk."
+   "Accept the job and learn the domain on the fly from videos",
+   "Accept it, then delegate the hardest parts to an intern",
+   "Accept it but charge more because the work is high-risk"
   ],
   "why": "Engineers must work within their competence and be honest about limits. On safety-critical work, faked competence risks lives, so get training or expert help.",
   "source": "Ethics quiz bank (archived question 73)"
@@ -1204,11 +1205,11 @@
   "sub": "Whistleblowing",
   "type": "mc",
   "prompt": "Whistleblowing is considered a 'last resort' ethically because:",
-  "answer": "It can harm the organization and the whistleblower's career, so internal channels should be exhausted first.",
+  "answer": "It harms the firm and the whistleblower; internal routes come first",
   "options": [
-   "It is illegal in all 50 states.",
-   "Managers are always right under the Social Contract.",
-   "It violates the Principle of Lifelong Learning."
+   "It is illegal in every US state, whatever the motive",
+   "The social contract obliges employees to defer to managers",
+   "It violates the principle of lifelong learning in the code"
   ],
   "why": "It can damage the organization and the whistleblower's career, so the code asks engineers to raise concerns with the people involved first and go outside only when that fails.",
   "source": "Ethics quiz bank (archived question 74)"
@@ -1220,11 +1221,11 @@
   "sub": "SE Code of Ethics",
   "type": "mc",
   "prompt": "The 'Digital Divide' (access to tech) is an ethical concern for software engineers because:",
-  "answer": "Allocating resources and benefits unfairly based on economic status diminishes public good.",
+  "answer": "It distributes software's benefits unfairly by economic status",
   "options": [
-   "Poor people don't buy enough software to make it profitable.",
-   "It makes the internet load slower for everyone else.",
-   "It is a violation of Copyright law."
+   "Poor customers buy too little software to make it profitable",
+   "Slow connections in poor areas slow the internet for everyone",
+   "Sharing software with those who cannot pay violates copyright"
   ],
   "why": "The code asks engineers to consider economic disadvantage and other factors that limit access to software's benefits, so those benefits do not go only to the well-off.",
   "source": "Ethics quiz bank (archived question 75)"
@@ -1236,11 +1237,11 @@
   "sub": "SE Code of Ethics",
   "type": "mc",
   "prompt": "A software engineer volunteers to teach coding at a local library. This aligns with:",
-  "answer": "The responsibility to contribute to public education concerning the discipline.",
+  "answer": "The duty to contribute to public education about the discipline",
   "options": [
-   "The need to find cheap labor for their company.",
-   "The 'Egoist' desire for fame.",
-   "The 'Divine Command' to work on weekends."
+   "The need to find cheap junior labour for their own company",
+   "The egoist's pursuit of personal fame and a better reputation",
+   "The duty of lifelong learning to keep one's own skills current"
   ],
   "why": "Principle 1 encourages engineers to volunteer their skills to good causes and to contribute to public education about the discipline.",
   "source": "Ethics quiz bank (archived question 76)"
@@ -1252,11 +1253,11 @@
   "sub": "Utilitarianism",
   "type": "mc",
   "prompt": "Why is 'Spam' considered a moral issue in a Utilitarian framework?",
-  "answer": "The minor convenience for one sender is outweighed by the collective time and resources lost by millions of recipients.",
+  "answer": "The sender's small gain is outweighed by the total cost to millions",
   "options": [
-   "It is a form of digital art.",
-   "It uses too much colorful text.",
-   "God did not intend for email to be used for ads."
+   "It breaks God's intended use of email as private correspondence",
+   "It treats recipients merely as means, violating their dignity",
+   "It is a form of digital art protected as free expression"
   ],
   "why": "Spam costs the sender almost nothing, but millions of recipients each lose time and the network carries the load; the total harm outweighs the sender's gain.",
   "source": "Ethics quiz bank (archived question 77)"
@@ -1268,11 +1269,11 @@
   "sub": "Privacy",
   "type": "mc",
   "prompt": "If a developer is asked to write code that monitors employee bathroom breaks, they should consider:",
-  "answer": "Whether this violates the privacy and human dignity of the employees.",
+  "answer": "Whether it violates the employees' privacy and dignity",
   "options": [
-   "If the code will be written in Python or Java.",
-   "How much the company will pay in bonuses for the code.",
-   "If the bathroom has good Wi-Fi."
+   "Whether the code should be written in Python or in Java",
+   "How large a bonus the company will pay for the code",
+   "Whether the code will run on the company's existing Wi-Fi"
   ],
   "why": "Monitoring bathroom breaks intrudes on a private moment and treats employees as objects to watch. Weigh their privacy and dignity before writing it.",
   "source": "Ethics quiz bank (archived question 78)"
@@ -1284,11 +1285,11 @@
   "sub": "Tech & society",
   "type": "mc",
   "prompt": "What is the 'nuanced dilemma' of targeted advertising?",
-  "answer": "It provides relevant content but also manipulates behavior and invades privacy.",
+  "answer": "It offers relevant content but manipulates and invades privacy",
   "options": [
-   "It makes ads look too pretty.",
-   "It only works on mobile phones.",
-   "It costs too much for small businesses."
+   "It makes ads look too polished to be trusted by viewers",
+   "It only works on mobile phones, not desktop browsers",
+   "It costs too much for small businesses to compete with"
   ],
   "why": "The same tracking that makes ads relevant lets advertisers profile and steer people, so the benefit and the harm come from one practice.",
   "source": "Ethics quiz bank (archived question 79)"
@@ -1300,11 +1301,11 @@
   "sub": "SE Code of Ethics",
   "type": "mc",
   "prompt": "Treating software maintenance with the 'same professionalism' as new code means:",
-  "answer": "Bug fixes deserve the same testing and quality standards as the initial release.",
+  "answer": "Fixes get the same testing and quality standards as new code",
   "options": [
-   "Maintenance should be done for free.",
-   "Maintenance is more important than new features.",
-   "You should never delete old code."
+   "Maintenance work should be done free of charge for clients",
+   "Maintenance always takes priority over building new features",
+   "Old code should never be deleted, only marked as deprecated"
   ],
   "why": "The code says to treat maintenance with the same professionalism as new development: changes need the same testing, review and documentation.",
   "source": "Ethics quiz bank (archived question 80)"
@@ -1316,11 +1317,11 @@
   "sub": "Copyright & patents",
   "type": "mc",
   "prompt": "A developer discovers a colleague is using pirated development tools. Ethically, they should:",
-  "answer": "Encourage the colleague to adhere to the professional code and use legal tools.",
+  "answer": "Encourage the colleague to follow the code and use legal tools",
   "options": [
-   "Ignore it because it doesn't affect their own code.",
-   "Report them to the FBI immediately.",
-   "Start pirating tools as well to be fair."
+   "Ignore it, since it does not affect the quality of their own code",
+   "Report them to the police immediately, without speaking to them",
+   "Start using the pirated tools as well, to stay competitive"
   ],
   "why": "Engineers must not knowingly use illegally obtained software and should encourage colleagues to follow the code, starting with a direct conversation.",
   "source": "Ethics quiz bank (archived question 81)"
@@ -1332,11 +1333,11 @@
   "sub": "Kantianism",
   "type": "mc",
   "prompt": "The 'Social Dilemma' suggests that users are the 'product.' From a Kantian perspective, this is wrong because:",
-  "answer": "It treats humans as a means (data) rather than ends in themselves.",
+  "answer": "It treats people merely as means (data), not as ends",
   "options": [
-   "It makes people unhappy.",
-   "It is a violation of the law.",
-   "It uses too much electricity."
+   "It makes people less happy than they would otherwise be",
+   "It violates the data-protection laws of most countries",
+   "It wastes electricity running the data centres behind it"
   ],
   "why": "Kant says treat people as ends, never merely as means. Selling users' attention and data treats them as raw material, not as persons who consented.",
   "source": "Ethics quiz bank (archived question 82)"
@@ -1364,11 +1365,11 @@
   "sub": "SE Code of Ethics",
   "type": "mc",
   "prompt": "The 'Morality of Breaking the Law' suggests that an engineer might break a non-disclosure agreement (NDA) if:",
-  "answer": "The software is a grave danger to the public or environment.",
+  "answer": "The software poses a grave danger to the public or environment",
   "options": [
-   "They find a better job at a competitor.",
-   "They are bored with the project.",
-   "The NDA is too long to read."
+   "They are offered a better-paying job at a competitor",
+   "They are bored with the project and want to leave it",
+   "The NDA is too long and complex for them to read fully"
   ],
   "why": "The code says obey the law unless, in exceptional cases, that conflicts with the public interest. Grave danger to the public can justify it; personal convenience cannot.",
   "source": "Ethics quiz bank (archived question 84)"
@@ -1380,11 +1381,11 @@
   "sub": "SE Code of Ethics",
   "type": "mc",
   "prompt": "Why should engineers provide an 'uncertainty assessment' with their cost estimates?",
-  "answer": "To avoid deceptive or speculative claims about what a project can realistically achieve.",
+  "answer": "To avoid deceptive or speculative claims about the project",
   "options": [
-   "To make the project look more complicated than it is.",
-   "Because the law requires all numbers to have a +/- 5% error.",
-   "To hide the fact that they don't know what they are doing."
+   "To make the project look more complex than it really is",
+   "Because the law requires every estimate to show +/- 5%",
+   "To hide the fact that they lack the needed expertise"
   ],
   "why": "Estimates are uncertain. Stating the uncertainty lets clients decide on accurate information instead of trusting a single number that may be speculative.",
   "source": "Ethics quiz bank (archived question 85)"
@@ -1396,11 +1397,11 @@
   "sub": "Attacks",
   "type": "mc",
   "prompt": "If a student hacks a school grading system 'just to see if they can,' they have violated:",
-  "answer": "The privacy and property rights of the institution and other students.",
+  "answer": "The property and privacy rights of the school and students",
   "options": [
-   "Only the school's dress code.",
-   "The Principle of Lifelong Learning.",
-   "Nothing, as long as they didn't change any grades."
+   "Nothing, as long as they did not change any of the grades",
+   "The duty of lifelong learning in the software engineering code",
+   "Only copyright law, by copying the grading software"
   ],
   "why": "Breaking in without permission violates the school's property and exposes other students' records, even if nothing was changed.",
   "source": "Ethics quiz bank (archived question 86)"
@@ -1412,11 +1413,11 @@
   "sub": "Tech & society",
   "type": "mc",
   "prompt": "Deepfake technology is an ethical concern primarily because it:",
-  "answer": "Undermines our ability to trust visual evidence and truth.",
+  "answer": "It undermines trust in visual evidence and truth",
   "options": [
-   "Takes too much GPU power to render.",
-   "Is only used for making funny memes.",
-   "Violates the patent on video files."
+   "It uses too much GPU power and energy to render",
+   "It is mostly used for harmless memes and parody",
+   "It infringes patents on video encoding formats"
   ],
   "why": "Deepfakes show people saying or doing things they never did, so video stops being reliable evidence and real footage can be dismissed as fake.",
   "source": "Ethics quiz bank (archived question 87)"
@@ -1444,11 +1445,11 @@
   "sub": "Other theories",
   "type": "mc",
   "prompt": "A 'Moral OS' would need to handle 'Global Norms.' This is hard because:",
-  "answer": "What is considered 'private' or 'offensive' varies wildly across cultures.",
+  "answer": "What counts as 'private' or 'offensive' varies across cultures",
   "options": [
-   "The internet doesn't work in some countries.",
-   "English is the only language for code.",
-   "Norms are only for people, not computers."
+   "The internet is blocked or unavailable in some countries",
+   "English is the only language code can be written in",
+   "Norms apply only to people, so computers cannot follow them"
   ],
   "why": "Privacy expectations and what counts as offensive differ between cultures, so one rule set cannot fit every user.",
   "source": "Ethics quiz bank (archived question 89)"
@@ -1460,11 +1461,11 @@
   "sub": "Tech & society",
   "type": "mc",
   "prompt": "In the context of Rogue Web Hosting, 'systematically identifying moral dimensions' means:",
-  "answer": "Looking at how the service affects users, society, laws, and professional standards.",
+  "answer": "Examining effects on users, society, law and professional standards",
   "options": [
-   "Checking if the servers are plugged in.",
-   "Calculating the monthly electricity bill.",
-   "Identifying which hacker is the best."
+   "Checking that the servers are online and properly configured",
+   "Calculating the hosting company's monthly electricity bill",
+   "Identifying which hacker using the host is the most skilled"
   ],
   "why": "It means listing every stakeholder and how they are affected, plus the laws and professional duties involved, before reaching a judgment.",
   "source": "Ethics quiz bank (archived question 90)"
@@ -1476,11 +1477,11 @@
   "sub": "Tech & society",
   "type": "mc",
   "prompt": "The 'Tragedy of the Commons' in tech often refers to:",
-  "answer": "Individual companies exploiting a shared resource (like user trust or bandwidth) until it is ruined for everyone.",
+  "answer": "Each firm overusing a shared resource until it is ruined for all",
   "options": [
-   "A server room catching fire.",
-   "A code repository getting deleted.",
-   "When too many people use a free app at once."
+   "A fire in a shared server room that destroys everyone's data",
+   "A shared code repository being deleted by one careless user",
+   "A free app crashing because too many people use it at once"
   ],
   "why": "Each actor gains by overusing a shared resource while the cost is spread over everyone, until the resource is ruined for all.",
   "source": "Ethics quiz bank (archived question 91)"
@@ -1492,11 +1493,11 @@
   "sub": "SE Code of Ethics",
   "type": "mc",
   "prompt": "If a manager asks you to bypass 'adequate testing' to meet a launch date, you should:",
-  "answer": "Point out that this violates professional standards and compromises the public interest.",
+  "answer": "Point out it violates professional standards and the public interest",
   "options": [
-   "Do it, because the manager is responsible for the outcome.",
-   "Quit and start your own company.",
-   "Ask for a bribe to keep quiet."
+   "Do it, because the manager takes responsibility for the outcome",
+   "Quit immediately and report the company to the news media",
+   "Do it, but document that you were ordered to skip testing"
   ],
   "why": "The code requires adequate testing and approving software only if it is safe. Raise the issue: a manager's pressure does not remove your responsibility.",
   "source": "Ethics quiz bank (archived question 92)"
@@ -1508,11 +1509,11 @@
   "sub": "Attacks",
   "type": "mc",
   "prompt": "Parameterized queries prevent SQLi by:",
-  "answer": "Treating input as data only, preventing it from being executed as code.",
+  "answer": "Treating input as data only, never as executable code",
   "options": [
-   "Encrypting the entire database.",
-   "Deleting any input that contains the word 'SELECT'.",
-   "Requiring a password for every query."
+   "Encrypting the entire database so stolen data is unreadable",
+   "Rejecting any input that contains the word 'SELECT'",
+   "Requiring a separate password for every query sent"
   ],
   "why": "The query and the input are sent separately, so input is always treated as a value and never parsed as SQL.",
   "source": "Ethics quiz bank (archived question 93)"
@@ -1524,11 +1525,11 @@
   "sub": "SE Code of Ethics",
   "type": "mc",
   "prompt": "A developer 'credits fully the work of others' by:",
-  "answer": "Properly documenting and attributing libraries or code snippets used.",
+  "answer": "Properly attributing the libraries and code snippets used",
   "options": [
-   "Paying the other developers in cash.",
-   "Putting the other developers' names in the app's title.",
-   "Never using code written by others."
+   "Paying the original developers directly for their code",
+   "Putting the other developers' names in the app title",
+   "Avoiding using any code that was written by other developers"
   ],
   "why": "Crediting others means attributing borrowed code and libraries properly, in the documentation and as their licenses require.",
   "source": "Ethics quiz bank (archived question 94)"
@@ -1540,11 +1541,11 @@
   "sub": "Tech & society",
   "type": "mc",
   "prompt": "Treating users with 'Irrelevant Prejudices' in software design might look like:",
-  "answer": "Designing an app that is unusable for people with certain physical disabilities without justification.",
+  "answer": "Making an app unusable for people with disabilities, without reason",
   "options": [
-   "Using a color scheme that only 10% of people like.",
-   "Charging more for the Pro version.",
-   "Naming the app after a cat."
+   "Choosing a colour scheme that only a small share of users like",
+   "Charging Pro users more than basic users for extra features",
+   "Naming the app after a pet instead of its main function"
   ],
   "why": "The code forbids unfair treatment from irrelevant prejudices and asks engineers to consider physical disabilities that limit access. Excluding disabled users without reason breaks both.",
   "source": "Ethics quiz bank (archived question 95)"
@@ -1556,11 +1557,11 @@
   "sub": "Attacks",
   "type": "mc",
   "prompt": "A 'Backdoor' in a script is dangerous because:",
-  "answer": "It creates a permanent security hole that can be found by anyone, not just the original creator.",
+  "answer": "Anyone who finds it, not just its creator, can use it",
   "options": [
-   "It makes the file size too large.",
-   "It requires a high-speed internet connection.",
-   "It only works at night."
+   "It increases the script's file size and slows its startup",
+   "It only works when the attacker has a fast connection",
+   "It can only be used by the person who originally wrote it"
   ],
   "why": "A backdoor bypasses normal authentication, and anyone who discovers it, not only its creator, can use it.",
   "source": "Ethics quiz bank (archived question 96)"
@@ -1572,11 +1573,11 @@
   "sub": "Whistleblowing",
   "type": "mc",
   "prompt": "Whistleblower protection generally covers employees who:",
-  "answer": "Report internal wrongdoing to authorities to protect the public interest.",
+  "answer": "Report wrongdoing to authorities to protect the public",
   "options": [
-   "Leak secrets to help a competitor.",
-   "Complain about the quality of the office coffee.",
-   "Report their boss for being 'mean.'"
+   "Leak trade secrets to a competitor in exchange for a job",
+   "Complain publicly about the quality of the office coffee",
+   "Report their boss to HR for being rude in meetings"
   ],
   "why": "Whistleblower laws protect people who report illegal or dangerous wrongdoing to proper authorities, not personal grievances or leaks for gain.",
   "source": "Ethics quiz bank (archived question 97)"
@@ -1604,11 +1605,11 @@
   "sub": "Tech & society",
   "type": "mc",
   "prompt": "A 'Virtuous' programmer handles a project failure by:",
-  "answer": "Taking responsibility, documenting the errors, and learning how to avoid them next time.",
+  "answer": "Owning the failure, documenting the errors, and learning from them",
   "options": [
-   "Blaming the hardware manufacturer.",
-   "Hiding the failure from the client.",
-   "Changing their name and moving to a new city."
+   "Blaming the hardware vendor whose components were faulty",
+   "Quietly fixing it without telling the client it ever failed",
+   "Calculating whether admitting fault maximizes total happiness"
   ],
   "why": "Virtue ethics asks what a person of good character would do: own the failure, be honest about it, and learn from it.",
   "source": "Ethics quiz bank (archived question 99)"
@@ -1652,11 +1653,11 @@
   "sub": "SE Code of Ethics",
   "type": "mc",
   "prompt": "The 'Fair Hearing' principle for colleagues means:",
-  "answer": "Listening to their technical concerns or complaints objectively.",
+  "answer": "Listening to their concerns or complaints objectively",
   "options": [
-   "Giving them a microphone during meetings.",
-   "Letting them win every argument.",
-   "Taking them to court."
+   "Giving everyone equal speaking time at every meeting",
+   "Letting them win arguments to keep the team happy",
+   "Taking disputes to a formal tribunal for judgement"
   ],
   "why": "The code asks engineers to give a fair hearing to colleagues' opinions, concerns and complaints, judging them on their merits.",
   "source": "Ethics quiz bank (archived question 102)"
@@ -1668,11 +1669,11 @@
   "sub": "SE Code of Ethics",
   "type": "mc",
   "prompt": "'Lifelong Learning' in software ethics is a duty because:",
-  "answer": "Tech changes so fast that old methods can become unsafe or unethical.",
+  "answer": "Tech changes fast, so old methods can become unsafe",
   "options": [
-   "It allows you to charge more per hour.",
-   "It is the only way to get a PhD.",
-   "The Code of Ethics says you must read 10 books a year."
+   "It lets you charge clients more per hour of work",
+   "It is the only way to qualify for a graduate degree",
+   "The code requires a set number of course hours each year"
   ],
   "why": "Practices, tools and threats change quickly, and outdated methods can produce unsafe software, so the code asks engineers to keep learning throughout their careers.",
   "source": "Ethics quiz bank (archived question 103)"
@@ -1686,9 +1687,9 @@
   "prompt": "An SQL injection that extracts an entire database violates which privacy principle?",
   "answer": "Confidentiality and Integrity",
   "options": [
-   "Availability",
-   "Cost Efficiency",
-   "Public Education"
+   "Availability and Usability",
+   "Cost Efficiency and Scalability",
+   "Public Education and Outreach"
   ],
   "why": "Dumping the database exposes data to unauthorized people, a confidentiality breach, and shows the system cannot guarantee its data's integrity. Nothing was made unavailable.",
   "source": "Ethics quiz bank (archived question 104)"
@@ -1700,11 +1701,11 @@
   "sub": "Privacy",
   "type": "mc",
   "prompt": "Why is it unethical to use accurate data in 'unauthorized ways'?",
-  "answer": "It violates the trust and consent of the person who provided the data.",
+  "answer": "It violates the trust and consent of the person who gave it",
   "options": [
-   "It makes the data less accurate.",
-   "It uses too much database storage.",
-   "It is only a problem if the data is false."
+   "It reduces the data's accuracy each time it is reused",
+   "It uses up database storage the user has not paid for",
+   "It only matters when the data turns out to be false"
   ],
   "why": "People give data for a purpose. Using even accurate data in ways they did not authorize breaks the trust and consent under which it was given.",
   "source": "Ethics quiz bank (archived question 105)"
@@ -1716,11 +1717,11 @@
   "sub": "SE Code of Ethics",
   "type": "mc",
   "prompt": "A manager who punishes an engineer for expressing ethical concerns is:",
-  "answer": "Violating the professional standards of management.",
+  "answer": "Violating the professional standards of management",
   "options": [
-   "Being a 'strong' leader.",
-   "Practicing Act Utilitarianism.",
-   "Following the Social Contract."
+   "Being a strong leader who keeps the team on schedule",
+   "Practicing act utilitarianism for the team's benefit",
+   "Upholding the social contract within the company"
   ],
   "why": "The code says managers must not punish anyone for expressing ethical concerns about a project.",
   "source": "Ethics quiz bank (archived question 106)"
@@ -1732,11 +1733,11 @@
   "sub": "SE Code of Ethics",
   "type": "mc",
   "prompt": "Software engineering 'Integrity' means:",
-  "answer": "Maintaining professional objectivity even under pressure from clients or bosses.",
+  "answer": "Staying objective even under pressure from clients or bosses",
   "options": [
-   "Always writing code that is 100% bug-free.",
-   "Never working for a company that makes less than $1 million.",
-   "Using the same password for everything."
+   "Always shipping code that has been proven 100% bug-free",
+   "Only working for clients whose values match your own",
+   "Keeping the code base internally consistent and unmodified"
   ],
   "why": "Integrity under the Judgment principle means keeping professional judgment independent and objective, even when clients or managers push for a different answer.",
   "source": "Ethics quiz bank (archived question 107)"
@@ -1748,11 +1749,11 @@
   "sub": "Tech & society",
   "type": "mc",
   "prompt": "If a country censors the internet to 'promote social cohesion,' they are prioritizing:",
-  "answer": "The State's goals over individual freedom of expression.",
+  "answer": "The State's goals over individual freedom of expression",
   "options": [
-   "The Social Contract.",
-   "Kantian Deontology.",
-   "Virtue Ethics."
+   "Individual expression over the State's collective goals",
+   "Kantian duty over the overall happiness of citizens",
+   "Minority rights over the views of the majority"
   ],
   "why": "Censoring speech for the sake of unity puts the state's goals ahead of each person's freedom of expression; the stated aim does not change that trade-off.",
   "source": "Ethics quiz bank (archived question 108)"
@@ -1764,11 +1765,11 @@
   "sub": "Copyright & patents",
   "type": "mc",
   "prompt": "A copyright protects the 'Expression' of code. This means:",
-  "answer": "Someone can't copy your exact code, but they can write their own version of the same 'idea.'",
+  "answer": "Others can't copy your exact code but may reimplement the idea",
   "options": [
-   "No one can ever use a loop again.",
-   "Your code is a secret that no one can see.",
-   "You own the rights to the word 'Java.'"
+   "No one may use the same loop or algorithm as you again",
+   "Your code must be kept secret so no one else can see it",
+   "You own the idea, so others cannot reimplement it at all"
   ],
   "why": "Copyright covers the specific code you wrote, not the idea or algorithm behind it, so others may write their own implementation of the same idea.",
   "source": "Ethics quiz bank (archived question 109)"
@@ -1796,11 +1797,11 @@
   "sub": "SE Code of Ethics",
   "type": "mc",
   "prompt": "Why is 'Double Billing' (charging two clients for the same hour of work) unethical?",
-  "answer": "It is a deceptive financial practice that violates professional judgment and honesty.",
+  "answer": "It is a deceptive financial practice that violates honesty",
   "options": [
-   "It makes the engineer too rich.",
-   "It is only wrong if you get caught.",
-   "It's actually smart business according to Virtue Ethics."
+   "It gives the engineer an unfair advantage over competitors",
+   "It is only wrong if a client actually notices the overlap",
+   "It infringes the client's copyright in the delivered code"
   ],
   "why": "Double billing deceives clients about the work they pay for. The code names it, with bribery, as a deceptive financial practice.",
   "source": "Ethics quiz bank (archived question 111)"
@@ -1812,11 +1813,11 @@
   "sub": "Kantianism",
   "type": "mc",
   "prompt": "In the 'Trolley Dilemma,' if you do nothing and 5 people die, a Kantian might say:",
-  "answer": "You are not responsible because you didn't commit an 'act' of murder.",
+  "answer": "You are not responsible, since you did not act to kill",
   "options": [
-   "You are a hero.",
-   "You should have killed the one person.",
-   "You failed to maximize happiness."
+   "You are a hero, since refusing to act is always right",
+   "You were obliged to divert it and kill the one instead",
+   "You failed to maximize happiness by letting five die"
   ],
   "why": "Kant distinguishes doing from allowing: diverting the trolley would use one person as a means, while not acting does not make you a killer. Maximizing happiness is the utilitarian concern.",
   "source": "Ethics quiz bank (archived question 112)"
@@ -1828,11 +1829,11 @@
   "sub": "Tech & society",
   "type": "mc",
   "prompt": "Social media 'Echo Chambers' are an ethical concern because they:",
-  "answer": "Polarize society and reduce the diversity of online discourse.",
+  "answer": "Polarize society and reduce the diversity of discourse",
   "options": [
-   "Make the apps load slower.",
-   "Require too many notifications.",
-   "Are only a problem in North America."
+   "Slow down the apps by loading too much similar content",
+   "Overwhelm users with too many repetitive notifications",
+   "Are a problem only in North American political debates"
   ],
   "why": "Feeds show people more of what they already believe, so groups see less of each other's views and society becomes more polarized.",
   "source": "Ethics quiz bank (archived question 113)"
@@ -1844,11 +1845,11 @@
   "sub": "SE Code of Ethics",
   "type": "mc",
   "prompt": "An engineer who 'Accepts full responsibility' for their work (1.01) would:",
-  "answer": "Admit to a mistake in the code rather than blaming a teammate or the user.",
+  "answer": "Admit a mistake rather than blame a teammate or the user",
   "options": [
-   "Demand a higher salary.",
-   "Work alone and never show anyone their code.",
-   "Never sleep until the project is done."
+   "Demand a higher salary to reflect the extra responsibility",
+   "Work alone and never let anyone review their code",
+   "Never stop working until the project is fully done"
   ],
   "why": "Accepting full responsibility means owning your mistakes instead of shifting the blame onto teammates or users.",
   "source": "Ethics quiz bank (archived question 114)"
@@ -1860,11 +1861,11 @@
   "sub": "Copyright & patents",
   "type": "mc",
   "prompt": "A software patent lasts for 20 years. This duration is intended to:",
-  "answer": "Encourage disclosure of inventions while rewarding the inventor with a limited monopoly.",
+  "answer": "Reward the inventor with a limited monopoly for disclosure",
   "options": [
-   "Ensure the inventor becomes a billionaire.",
-   "Make sure no one ever uses the technology.",
-   "Comply with the 10 Commandments."
+   "Ensure the inventor earns enough to become very wealthy",
+   "Keep the technology secret from competitors for 20 years",
+   "Stop anyone from ever using the technology commercially"
   ],
   "why": "A patent gives the inventor temporary exclusive rights in return for publishing how the invention works; after 20 years anyone may use it.",
   "source": "Ethics quiz bank (archived question 115)"
@@ -1876,11 +1877,11 @@
   "sub": "SE Code of Ethics",
   "type": "mc",
   "prompt": "Why should engineers avoid 'Speculative' claims about software performance?",
-  "answer": "It deceives the client and public about what the product can actually do.",
+  "answer": "They mislead clients about what the product can actually do",
   "options": [
-   "It makes the marketing team's job too easy.",
-   "It is a violation of the laws of physics.",
-   "It is fine as long as the software eventually works."
+   "They make sales harder by setting expectations too high",
+   "They are fine as long as the software eventually works",
+   "They breach the software's licence agreement with clients"
   ],
   "why": "The code asks engineers to avoid false, speculative or misleading claims about software, since clients and the public rely on them.",
   "source": "Ethics quiz bank (archived question 116)"
@@ -1892,11 +1893,11 @@
   "sub": "Privacy",
   "type": "mc",
   "prompt": "If an app tracks your location 24/7 to 'improve performance' but doesn't tell you, it violates:",
-  "answer": "The principle of transparency and informed consent.",
+  "answer": "Transparency and informed consent",
   "options": [
-   "The speed of the processor.",
-   "The terms of the GPL license.",
-   "The Social Contract."
+   "Data accuracy and integrity",
+   "The terms of the GPL licence",
+   "Copyright in the location data"
   ],
   "why": "Hidden constant tracking collects sensitive data without telling users or asking consent, so they cannot decide whether to accept it.",
   "source": "Ethics quiz bank (archived question 117)"
@@ -1908,11 +1909,11 @@
   "sub": "Utilitarianism",
   "type": "mc",
   "prompt": "A Rule Utilitarian might support 'Freedom of Expression' because:",
-  "answer": "Society is generally happier and more innovative when ideas can be shared freely.",
+  "answer": "Free sharing of ideas makes society happier and more innovative",
   "options": [
-   "It is a logical requirement of the Categorical Imperative.",
-   "The law says so.",
-   "God wants us to talk a lot."
+   "It is a logical requirement of the categorical imperative",
+   "The constitution guarantees it, so obeying it is a duty",
+   "God commands that truth be spoken freely by everyone"
   ],
   "why": "A rule utilitarian adopts the rule whose general practice produces the most happiness; free expression spreads ideas and exposes errors, benefiting society.",
   "source": "Ethics quiz bank (archived question 118)"
@@ -1956,11 +1957,11 @@
   "sub": "Tech & society",
   "type": "mc",
   "prompt": "If a robot kills a person, who is ethically responsible according to the class discussions?",
-  "answer": "The creators and programmers of the AI system, and the organizations that deployed it.",
+  "answer": "Its creators, programmers and the organizations that deployed it",
   "options": [
-   "The robot itself.",
-   "The victim for getting in the way.",
-   "Nobody; it's an 'act of God.'"
+   "The robot itself, since it acted as an autonomous moral agent",
+   "Only the person operating it at the time of the incident",
+   "Nobody; it's an 'act of God' like a natural disaster"
   ],
   "why": "A robot is not a moral agent, so responsibility falls on the people who designed, programmed and deployed it.",
   "source": "Ethics quiz bank (archived question 121)"
@@ -1972,11 +1973,11 @@
   "sub": "Other theories",
   "type": "mc",
   "prompt": "Finally, why is 'Professional Objectivity' important in software evaluation?",
-  "answer": "It ensures that software is judged on its merits rather than personal gain or bias.",
+  "answer": "Software is judged on its merits, not personal gain or bias",
   "options": [
-   "It makes the evaluation faster.",
-   "It is required by the building code.",
-   "It allows you to ignore the user's needs."
+   "It makes evaluations faster and cheaper for the client",
+   "It is required by law for all safety-critical software",
+   "It lets evaluators disregard user needs in favour of specs"
   ],
   "why": "Professional objectivity means judging software on its merits, not on friendships, payments or rivalries, so the evaluation can be trusted.",
   "source": "Ethics quiz bank (archived question 122)"

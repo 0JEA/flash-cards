@@ -49,3 +49,13 @@ test('answer modes: mode is quick|write on recall cards; noRecall only on mc', (
     if (c.type === 'recall' && c.mode === 'quick') assert.ok(!c.points || c.points.length <= 2, `${d.id}/${c.id}: a quick card has one idea`);
   }
 });
+
+// research/02 (Pham 2018; Haladyna 2002): when the right option is clearly the longest,
+// students can answer without knowing the content.
+test('multiple choice: the answer is never clearly the longest option (length cue)', () => {
+  for (const d of Object.values(decks)) for (const c of d.cards) {
+    if (c.type !== 'mc') continue;
+    const longest = Math.max(...c.options.map(o => String(o).length)), a = String(c.answer).length;
+    assert.ok(!(a > longest * 1.25 && a - longest > 12), `${d.id}/${c.id}: answer ${a} chars vs longest option ${longest}`);
+  }
+});

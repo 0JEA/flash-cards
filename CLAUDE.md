@@ -18,7 +18,7 @@
 
 ## What it is
 
-A static, single-page study app: no build step and no backend. Classes: AUCSC 370 Programming Languages, AUCSC 310 Algorithm Design & Analysis, AUCSC 325 Software Testing, and the Ethics quiz. Each class screen groups cards by topic, lecture, or assignment.
+A static, single-page study app: no build step and no backend. Classes: AUCSC 370 Programming Languages, AUCSC 310 Algorithm Design & Analysis, AUCSC 325 Software Testing, and the Ethics quiz. Each class screen picks cards with three filters that COMBINE: topics, lectures, assignments (a card is studied only if all three let it through; settings.off keys 'Cat', 'Cat/Sub', 'L:<n>', 'A:<id>', 'A:none'). Every tab has All/None; the summary line shows what's left and clears any filter.
 
 The design, and the paper behind each learning rule, are in `docs/superpowers/specs/2026-10-16-csc370-study-app-design.md`. The research notes it cites are in `research/`.
 
@@ -31,6 +31,7 @@ The design, and the paper behind each learning rule, are in `docs/superpowers/sp
 | `js/sync.js` | Sync to branch `progress` through the GitHub contents API (per-month files, SHA retry) |
 | `js/generators.js` | Generator contract: a card that builds a new problem (values, names, code) each time it is shown |
 | `js/gen-csc370.js`, `js/gen-softtest.js`, `js/gen-csc310.js` | The generators; each has a test file that re-solves every answer independently |
+| `js/gen-csc310-rt.js` | CSC 310 Assignment 2 practice: fill recursion trees, depth/leaves/level cost/Θ, uneven splits (never thirds: Assignment 2 is T(n/3)+T(2n/3)+cn) |
 | `js/gen-csc310-heap.js` | CSC 310 heap practice answered ON a drawn heap (`swaps`: heapify, build-heap, insert/increase-key, extract; `fill`; read-the-heap checks). Tests re-run her pseudocode and replay each swap sequence |
 | `js/gen-csc310-trees.js` | CSC 310 tree practice answered ON a tree: decision trees of insertion/merge/quick sort on 3 elements (`tree` build, `path` follow an input, facts with the tree drawn), binary search as a `path` in the tree of midpoints, QUICKSORT and MergeSort call trees (`fill`). Tests re-run each algorithm with a comparison logger / call recorder and pin Figure 8.1 and her lecture examples |
 | `js/app.js` | UI controller. Card text goes through `textContent` or KaTeX (`math()`), never `innerHTML` (the page holds a token) |
@@ -38,7 +39,7 @@ The design, and the paper behind each learning rule, are in `docs/superpowers/sp
 | `decks/softtest-{a,b,c}.js` + `decks/softtest.js` | CSC 325 cards + assembler |
 | `decks/csc310-{a,b}.js` + `decks/csc310.js` | CSC 310 cards + assembler (lectures, assignments, topic order) |
 | `decks/ethics.js` | Ethics quiz (MC) |
-| `decks/csc310-help*.js` | Help walkthroughs (`FC.help[cardId]`: asks, idea, steps, graph, tree, answer, mistake, tryIt). Format in `decks/csc310-help.js`. As of 2026-10-16: all 49 Assignment 1 cards (help, -a, -b, -c) and all 25 Assignment 2 cards (-d, -e); other cards have no Help button yet. Opening Help before answering counts the card as not known |
+| `decks/csc310-help*.js` | Help walkthroughs (`FC.help[cardId]`: asks, idea, steps, graph, tree, heap/heapSteps, answer, mistake, tryIt). Format in `decks/csc310-help.js`. Written per assignment (help, -a … -h: all five assignments' cards) and per lecture batch (-i … -p, 2026-10-16). Cards without an entry show no Help button. Opening Help before answering counts the card as not known |
 | `js/tree.js` | Trees: auto-oriented drawing, node diff, and the tree answer types `tree` (build), `swaps` (heap repair, checked per swap), `fill` (type blank nodes), `path` (tap in order). Formats in its header. `heap`/`tree` on any other card is drawn under the question |
 | `vendor/pretext-0.0.9.min.js`, `vendor/katex/` | Text fitting; math rendering |
 | `tools/fit-sweep.js` | Headless fit check of every card at a given viewport |
@@ -52,7 +53,7 @@ Then update the `<script>` tag in `index.html`.
 
 ## Commands
 
-- Tests (392 as of 2026-10-16, about 25 s; needs python3, gcc, node, bash, guile, ecl, javac/java; python3 with mpmath for the CSC 310 growth checks): `node --test tests/`
+- Tests (463 as of 2026-10-16, about 40 s; needs python3, gcc, node, bash, guile, ecl, javac/java; python3 with mpmath for the CSC 310 growth checks): `node --test tests/`
 - Run locally: `python3 -m http.server 8765 --bind 127.0.0.1`, then open http://127.0.0.1:8765/. Opening `index.html` directly from disk also works.
 
 ## Deployed vs repo-only

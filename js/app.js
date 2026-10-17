@@ -1099,7 +1099,10 @@
     $('screen-study').classList.add('answered');
 
     const fb = h('div', { class: 'feedback', role: 'status', 'aria-live': 'polite' });
-    const selfGrade = card.type === 'recall' && !p.gaveUp && !p.quick;
+    // A Quick card that asks for a list shows its items as a checklist once revealed: tick
+    // what you had (research/04 rule 15: grade a multi-part answer item by item).
+    const quickList = p.quick && card.points && card.points.length > 1;
+    const selfGrade = card.type === 'recall' && !p.gaveUp && (!p.quick || quickList);
     const verdict = h('div', { class: 'verdict' });
     const alert = h('div', { class: 'alert', 'data-fit': '' });
     // A teacher's pen mark, drawn stroke by stroke: a tick for right, a cross for wrong. The
@@ -1113,7 +1116,7 @@
     function paintVerdict() {
       fb.classList.toggle('good', p.ok === true);
       fb.classList.toggle('bad', p.ok === false && !p.gaveUp);
-      const word = p.ok === null ? (p.quick ? 'Did you have it?' : 'How did you do?') : p.ok ? (p.sure ? 'Right' : 'Right (a guess)') : p.gaveUp ? 'Here’s the answer' : 'Not quite';
+      const word = p.ok === null ? (quickList ? 'Tick what you had' : p.quick ? 'Did you have it?' : 'How did you do?') : p.ok ? (p.sure ? 'Right' : 'Right (a guess)') : p.gaveUp ? 'Here’s the answer' : 'Not quite';
       verdict.replaceChildren(...(p.ok === true ? [pen('tick')] : p.ok === false && !p.gaveUp ? [pen('cross')] : []), h('span', { 'data-fit': '' }, word));
       alert.hidden = true;
     }
@@ -1131,7 +1134,7 @@
         h('div', { class: 'val' + mono, 'data-fit': 'pre' }, Array.isArray(p.given) ? numbered(p.given) : card.type === 'mc' ? math(p.given) : p.given)));
     }
     // A recall answer that is just its checklist (e.g. a memory diagram) is shown once, as the checklist.
-    const answerIsChecklist = selfGrade && card.points && card.points.join('\n') === String(card.answer);
+    const answerIsChecklist = quickList || (selfGrade && card.points && card.points.join('\n') === String(card.answer));
     if (card.type === 'swaps' || card.type === 'fill' || card.type === 'path') {
       fb.classList.add('fb-fill');
       let tree, opts = { render: math, fill: true, orient: 'v' }, label = 'Answer', strip = null;
@@ -1175,7 +1178,7 @@
     const checks = [];
     if (selfGrade) {
       const pts = card.points && card.points.length ? card.points : [String(card.answer)];
-      fb.append(h('div', { class: 'fb-block' }, h('div', { class: 'label' }, 'Tick what your answer said'),
+      fb.append(h('div', { class: 'fb-block' }, quickList ? null : h('div', { class: 'label' }, 'Tick what your answer said'),
         h('div', { class: 'checklist' }, pts.map((pt, i) => {
           const box = h('input', { type: 'checkbox', id: 'pt' + i });
           checks.push({ box, pt });
@@ -1186,7 +1189,7 @@
 
     const row = h('div', { class: 'btn-row' });
     const cont = () => commit();
-    if (p.quick) {
+    if (p.quick && !quickList) {
       // Quick: you thought of an answer; say honestly whether it matched.
       const missed = h('button', { class: 'btn', type: 'button', id: 'missBtn', onclick: () => { p.ok = false; cont(); } }, 'Missed it', h('span', { class: 'kbd' }, '1'));
       const got = h('button', { class: 'btn primary', type: 'button', id: 'contBtn', onclick: () => { p.ok = true; cont(); } }, 'Got it', h('span', { class: 'kbd' }, '2'));
@@ -1241,7 +1244,7 @@
     if (e.defaultPrevented || $('screen-study').hidden || !$('screen-help').hidden || !current || animating) return;
     const typing = /^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName) && !document.activeElement.disabled;
     if (current.pending) {
-      if (current.pending.quick && current.pending.ok === null) {
+      if (current.pending.quick && current.pending.ok === null && !(current.card.points && current.card.points.length > 1)) {
         if (e.key === '1') { e.preventDefault(); $('missBtn')?.click(); }
         if (e.key === '2') { e.preventDefault(); $('contBtn')?.click(); }
         return;

@@ -39,7 +39,7 @@ The design, and the paper behind each learning rule, are in `docs/superpowers/sp
 | `decks/softtest-{a,b,c}.js` + `decks/softtest.js` | CSC 325 cards + assembler |
 | `decks/csc310-{a,b}.js` + `decks/csc310.js` | CSC 310 cards + assembler (lectures, assignments, topic order) |
 | `decks/ethics.js` | Ethics quiz (MC) |
-| `decks/csc310-help*.js` | Help walkthroughs (`FC.help[cardId]`: asks, idea, steps, graph, tree, heap/heapSteps, answer, mistake, tryIt). Format in `decks/csc310-help.js`. Written per assignment (help, -a … -h: all five assignments' cards) and per lecture batch (-i … -p, 2026-10-16). Cards without an entry show no Help button. Opening Help before answering counts the card as not known |
+| `decks/csc310-help*.js` | Help walkthroughs (`FC.help[cardId]`: asks, idea, steps, graph, tree, heap/heapSteps, answer, mistake, tryIt). Format in `decks/csc310-help.js`. Every CSC 310 card has an entry (484/484, verified 2026-10-16 by loading all help files against FC.decks.csc310.cards); other classes have none yet. Cards without an entry show no Help button. Opening Help before answering counts the card as not known |
 | `js/tree.js` | Trees: auto-oriented drawing, node diff, and the tree answer types `tree` (build), `swaps` (heap repair, checked per swap), `fill` (type blank nodes), `path` (tap in order). Formats in its header. `heap`/`tree` on any other card is drawn under the question |
 | `vendor/pretext-0.0.9.min.js`, `vendor/katex/` | Text fitting; math rendering |
 | `tools/fit-sweep.js` | Headless fit check of every card at a given viewport |
@@ -53,7 +53,7 @@ Then update the `<script>` tag in `index.html`.
 
 ## Commands
 
-- Tests (463 as of 2026-10-16, about 40 s; needs python3, gcc, node, bash, guile, ecl, javac/java; python3 with mpmath for the CSC 310 growth checks): `node --test tests/`
+- Tests (815 as of 2026-10-16, about 60 s; needs python3, gcc, node, bash, guile, ecl, javac/java; python3 with mpmath for the CSC 310 growth checks): `node --test tests/`
 - Run locally: `python3 -m http.server 8765 --bind 127.0.0.1`, then open http://127.0.0.1:8765/. Opening `index.html` directly from disk also works.
 
 ## Deployed vs repo-only

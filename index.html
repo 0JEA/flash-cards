@@ -278,6 +278,7 @@
     .graph rect.tone-c { fill: var(--correct); stroke: none; opacity: 0.55; } .graph rect.tone-d { fill: var(--warn); stroke: none; opacity: 0.55; }
     .graph-marks { position: absolute; inset: 0.75rem 0.75rem auto; pointer-events: none; }
     .graph-mark { position: absolute; top: -0.2rem; transform: translateX(4px); font-size: 0.78rem; color: var(--text-2); white-space: nowrap; }
+    .graph-mark.left { transform: translateX(calc(-100% - 4px)); }
     .legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1.1rem; margin-top: 0.5rem; font-size: 0.9rem; }
     .legend span.sw { display: inline-block; width: 1.1rem; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 0.45rem; }
     .sw.tone-a { background: var(--accent); } .sw.tone-b { background: var(--wrong); } .sw.tone-c { background: var(--correct); } .sw.tone-d { background: var(--warn); }

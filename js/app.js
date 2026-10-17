@@ -534,7 +534,8 @@
     }
     for (const m of g.marks || []) plotArea.append(s('line', { class: 'mark', x1: sx(m.x), x2: sx(m.x), y1: T, y2: H - B }));
     svg.append(plotArea);
-    const marks = h('div', { class: 'graph-marks' }, (g.marks || []).map(m => h('div', { class: 'graph-mark', style: `left:${(sx(m.x) / W * 100).toFixed(2)}%` }, helpMath(m.label || ''))));
+    // Labels sit right of their line, or left of it near the right edge (never off the page).
+    const marks = h('div', { class: 'graph-marks' }, (g.marks || []).map(m => h('div', { class: 'graph-mark' + (sx(m.x) / W > 0.62 ? ' left' : ''), style: `left:${(sx(m.x) / W * 100).toFixed(2)}%` }, helpMath(m.label || ''))));
     const legend = h('div', { class: 'legend' }, curves.map(c => h('span', null, h('span', { class: 'sw tone-' + (c.tone || 'a') }), helpMath(c.label || ''))),
       g.bars ? h('span', null, h('span', { class: 'sw tone-' + (g.bars.tone || 'b') }), helpMath(g.bars.label || '')) : null);
     return h('figure', { class: 'graph' + (compact ? ' fb-graph' : '') }, svg, marks, legend, g.caption ? h('figcaption', { class: 'graph-cap' }, helpMath(g.caption)) : null);

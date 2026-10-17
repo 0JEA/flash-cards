@@ -246,7 +246,7 @@
   }
   function renderClasses() {
     const list = $('classList');
-    const pct = r => r.total ? Math.round(100 * r.right / r.total) + '%' : '—';
+    const pct = r => r.total ? Math.round(100 * r.right / r.total) + '%' : 'Not yet';
     const passes = DECKS.map(d => {
       const k = counts(activeCards(d.id)), ids = new Set(cardsFor(d.id).map(c => c.id));
       const r = sched.delayedRecall(events.filter(e => ids.has(e.c)), today(), 14);
@@ -254,7 +254,8 @@
       return { d, color: colorOf(d.id), name: nameOf(d), code: codeOf(d), due: k.review, fresh: k.learn, recall: pct(r),
         exam: ed != null && ed >= today() ? fmtDay(ed) : null, days: daysStudied(ids),
         go: btn => { openDeck = d.id; withSync(btn, () => startSession(activeCards(d.id), { from: 'classes' })); },
-        more: () => { openDeck = d.id; show('class'); }, moreLabel: 'Cards' };
+        more: () => { openDeck = d.id; show('class'); }, moreLabel: 'Choose cards',
+        setExam: () => { openDeck = d.id; show('class'); $('examDate').focus(); $('examDate').scrollIntoView({ block: 'center' }); } };
     });
     const all = DECKS.reduce((t, x) => t.concat(cardsFor(x.id)), []);
     const mixDue = passes.reduce((t, p) => t + p.due, 0), mixNew = passes.reduce((t, p) => t + p.fresh, 0);
@@ -275,12 +276,15 @@
         h('div', { class: 'route', 'aria-hidden': String(!open) },
           h('div', { class: 'code3' }, h('small', null, p.d ? 'Course' : 'Every class'), p.code),
           h('div', { class: 'flight' }),
-          p.d ? h('div', { class: 'code3 r' + (p.exam ? '' : ' unset') }, h('small', null, 'Exam'), p.exam || 'No date') : h('div', { class: 'code3 r unset' }, h('small', null, 'You choose'), 'the share')),
+          p.d ? h('div', { class: 'code3 r' + (p.exam ? '' : ' unset') }, h('small', null, 'Exam'),
+            p.exam || h('button', { class: 'set-exam', type: 'button', onclick: e => { e.stopPropagation(); p.setExam(); } }, 'Set date'))
+            : h('div', { class: 'code3 r unset' }, h('small', null, 'You choose'), 'the share')),
         h('div', { class: 'pass-fields' },
           h('div', null, h('small', null, 'To review'), h('b', null, String(p.due))),
           h('div', null, h('small', null, 'New'), h('b', null, String(p.fresh))),
           h('div', null, h('small', null, 'Remembered later'), h('b', null, p.recall)),
-          h('div', { class: 'days', role: 'img', 'aria-label': `Studied on ${p.days.filter(Boolean).length} of the last 14 days` }, p.days.map(on => h('i', { class: on ? 'on' : null })))),
+          h('div', { class: 'days-f' }, h('small', null, 'Last 14 days'),
+            h('div', { class: 'days', role: 'img', 'aria-label': `Studied on ${p.days.filter(Boolean).length} of the last 14 days` }, p.days.map(on => h('i', { class: on ? 'on' : null }))))),
         h('div', { class: 'pass-actions' },
           p.more ? h('button', { type: 'button', tabindex: open ? null : '-1', onclick: e => { e.stopPropagation(); p.more(); } }, p.moreLabel) : null, goBtn));
       return el;
@@ -391,7 +395,7 @@
       const groups = groupsFor(d, all, dim), others = c => isOn(off, c, d, dim);
       const offN = offGroups(dim), rows = [];
       // "All (n)": on when nothing in this column is off; ticking it turns them all on, unticking all off.
-      rows.push(row('all', offN === 0, offN > 0 && offN < groups.length, on => setAll(d.id, dim, on), `All (${groups.length})`, String(all.filter(others).length)));
+      rows.push(row('all', offN === 0, offN > 0 && offN < groups.length, on => setAll(d.id, dim, on), `All ${groups.length} ${names[dim].toLowerCase()}`, String(all.filter(others).length)));
       if (dim !== 'topic') {
         for (const g of groups) {
           const inRow = all.filter(g.has), on = !off.has(g.key);
@@ -800,6 +804,7 @@
     closeHelp(true);
     for (const name of screens) $('screen-' + name).hidden = name !== 'done';
     $('navBack').hidden = true;
+    $('navSettings').hidden = false;
     window.scrollTo(0, 0);
   }
   $('doneBack').addEventListener('click', () => show(returnTo));
@@ -920,6 +925,9 @@
     // rounding at an exact boundary.
     for (let k = 0; k < 6 && sc > FIT_MIN && overflowing(); k++) apply(sc = Math.max(FIT_MIN, sc - 0.03));
     if (overflowing()) sec.classList.add('fit-overflow');
+    // The newcomer's hint under Guess/Sure only stays if the card still fits comfortably with it.
+    const hint = sec.querySelector('.commit-hint:not([hidden])');
+    if (hint && (sec.classList.contains('fit-overflow') || sc < 0.9)) { hint.hidden = true; fitAsk(); }
   }
 
   // Feedback: one scale for the whole screen (question + feedback together), chosen by the
@@ -1001,7 +1009,7 @@
     } else if (card.type === 'typed' || card.type === 'cloze' || card.type === 'set') {
       const input = h('input', { type: 'text', id: 'ans', class: card.verify ? 'mono' : null, 'aria-label': 'Your answer',
         autocomplete: 'off', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false',
-        placeholder: card.type === 'set' ? 'Separate items with commas (any order)' : card.verify ? 'Exact output (spacing and line breaks don’t matter)' : 'Your answer' });
+        placeholder: card.type === 'set' ? 'Separate items with commas (any order)' : card.verify ? 'The exact output' : 'Your answer' });
       wrap.append(input);
       read = () => ({ given: input.value, ready: input.value.trim().length > 0 });
       // stopPropagation: the same Enter must not reach the document handler, which would
@@ -1065,10 +1073,13 @@
 
     // UIAlertController's joined pair (Guess | Sure); "I don't know" stands apart, like Cancel.
     const multi = card.type === 'recall' || card.type === 'tree' || card.type === 'fill';
-    const sureBtn = h('button', { class: 'btn primary', type: 'button', onclick: () => submit(true) }, 'Sure', h('span', { class: 'kbd' }, multi ? 'Ctrl ⏎' : '⏎'));
-    const guessBtn = h('button', { class: 'btn', type: 'button', onclick: () => submit(false) }, 'Guess', h('span', { class: 'kbd' }, multi ? 'Ctrl ⇧⏎' : '⇧⏎'));
+    const sureBtn = h('button', { class: 'btn primary', type: 'button', title: 'You know it', onclick: () => submit(true) }, 'Sure', h('span', { class: 'kbd' }, multi ? 'Ctrl ⏎' : '⏎'));
+    const guessBtn = h('button', { class: 'btn', type: 'button', title: 'You’re not certain: it comes back sooner', onclick: () => submit(false) }, 'Guess', h('span', { class: 'kbd' }, multi ? 'Ctrl ⇧⏎' : '⇧⏎'));
     const idkBtn = h('button', { class: 'btn idk', type: 'button', onclick: () => giveUp() }, 'I don’t know');
-    $('actions').replaceChildren(h('div', { class: 'commit' }, idkBtn, h('div', { class: 'pair' }, guessBtn, sureBtn)));
+    // First sessions only: what Guess and Sure mean (a guessed right answer isn't counted as learned).
+    const newcomer = events.filter(e => e.k === 'r').length < 15;
+    $('actions').replaceChildren(h('div', { class: 'commit' }, idkBtn, h('div', { class: 'pair' }, guessBtn, sureBtn)),
+      newcomer ? h('p', { class: 'commit-hint' }, 'Sure: you know it. Guess: you’re not certain (it comes back sooner).') : null);
     function updateReady() { const r = read().ready; sureBtn.disabled = !r; guessBtn.disabled = !r; }
     wrap.addEventListener('input', updateReady);
     if (wrap.draw) wrap.draw(); else updateReady();
@@ -1266,7 +1277,7 @@
   // ── Settings + sync ────────────────────────────────────────────────────
   function renderSettings() {
     $('token').value = store.getItem(TOKEN_KEY) || '';
-    $('logSize').textContent = `${events.length} events stored on this device.`;
+    $('logSize').textContent = `${events.filter(e => e.k === 'r').length} answers saved on this device.`;
     const reports = events.filter(e => e.k === 'f');
     $('reportList').replaceChildren(...(reports.length ? reports.slice(-50).reverse().map(r =>
       h('li', null, h('b', null, r.c), ': ', r.v || '(no note)', h('div', { class: 'muted' }, r.q || ''))) : [h('li', { class: 'muted' }, 'None yet.')]));
@@ -1285,10 +1296,12 @@
     document.body.append(a); a.click(); a.remove();
   });
 
+  // Sync status, in words beside the dot (a dot alone means nothing to a new user).
   function setSync(state, message) {
     $('syncDot').className = 'sync-dot' + (state ? ' ' + state : '');
-    $('syncDot').setAttribute('aria-label', 'Sync status: ' + (message || 'off'));
-    $('syncDot').title = message || 'Sync off (add a token in Settings)';
+    $('syncDot').setAttribute('aria-hidden', 'true');
+    $('syncLabel').textContent = state === 'ok' ? 'Synced' : state === 'busy' ? 'Syncing…' : state === 'err' ? 'Sync failed' : 'Not synced';
+    $('syncLabel').title = message || 'Progress is saved on this device. Add a sync key in Settings to share it with your other devices.';
     const st = $('syncStatus');
     st.textContent = message || '';
     st.className = 'status' + (state === 'ok' ? ' ok' : state === 'err' ? ' err' : '');
@@ -1309,7 +1322,7 @@
         log.save(events);
         setSync('ok', `Synced ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · ${events.length} events`);
         if (!$('screen-classes').hidden) renderClasses();
-        if (!$('screen-settings').hidden) $('logSize').textContent = `${events.length} events stored on this device.`;
+        if (!$('screen-settings').hidden) renderSettings();
       } catch (e) {
         setSync('err', e.message || 'Sync failed. Your progress is safe on this device; try again later.');
       } finally {

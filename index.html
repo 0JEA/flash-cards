@@ -67,7 +67,9 @@
     .navbtn { background: none; border: 0; color: var(--accent); cursor: pointer; font-size: 17px; padding: 0.55rem 0.55rem; min-height: 44px; border-radius: 8px; }
     .navbtn:hover { background: var(--surface); }
     .navbtn.back::before { content: '‹'; font-size: 1.6em; line-height: 0; vertical-align: -0.1em; margin-right: 0.15em; }
-    .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--surface-3); margin: 0 0.5rem; flex: none; }
+    .sync { white-space: nowrap; display: inline-flex; align-items: center; gap: 0.4rem; background: none; border: 0; color: var(--text-2); font-size: 14px; cursor: pointer; padding: 0.5rem; min-height: 44px; border-radius: 8px; }
+    .sync:hover { background: var(--surface); color: var(--text); }
+    .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-3); flex: none; }
     .sync-dot.ok { background: var(--correct); } .sync-dot.busy { background: var(--warn); } .sync-dot.err { background: var(--wrong); }
     body.studying .topbar { display: none; }
 
@@ -95,8 +97,11 @@
     .btn-row { display: flex; gap: 0.6rem; flex-wrap: wrap; }
     .btn-row .btn { flex: 1 1 0; }
     /* Key hints set like a macOS menu's shortcut column: small, grey, after the label. */
-    .kbd { font-family: var(--mono); font-size: 0.72rem; font-weight: 400; color: inherit; opacity: 0.6; margin-left: 0.45rem; }
-    @media (hover: none) { .kbd, .kbd-hint { display: none; } }
+    .kbd { font-family: var(--mono); font-size: 0.72rem; font-weight: 400; color: var(--text-2); margin-left: 0.45rem; }   /* solid colour: 6.3:1 */
+    .btn.primary .kbd { color: #fff; }
+    .btn:disabled .kbd { color: var(--text-3); }
+    @media (hover: none), (max-width: 480px) { .kbd, .kbd-hint { display: none; } }
+    .commit-hint { font-size: 0.85rem; color: var(--text-2); margin-top: 0.5rem; line-height: 1.4; text-align: center; }
     .linkbtn { background: none; border: 0; color: var(--accent); cursor: pointer; font-size: 0.95rem; padding: 0.35rem 0; min-height: 36px; }
     .linkbtn:hover { text-decoration: underline; }
     :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -140,7 +145,8 @@
     .pass-fields small { display: block; font-size: 13px; white-space: nowrap; }
     .pass-fields b { font-size: 22px; font-variant-numeric: tabular-nums; }
     /* The pass's barcode, reworked: one bar per day of the last 14, filled if you studied. */
-    .days { display: flex; gap: 3px; margin-left: auto; padding-bottom: 5px; }
+    .days-f { margin-left: auto; }
+    .days { display: flex; gap: 3px; padding: 4px 0 5px; }
     .days i { width: 7px; height: 20px; border-radius: 2px; background: rgba(255, 255, 255, 0.3); }
     .days i.on { background: #fff; }
     .pass-actions { position: absolute; left: 1rem; right: 1rem; bottom: 0.85rem; display: flex; gap: 0.6rem; }
@@ -148,6 +154,9 @@
     .pass-actions button.go { flex: 2; background: #fff; color: var(--pc); font-weight: 700; }
     .pass-actions button:hover { filter: brightness(1.08); }
     .pass:not(.open) .pass-actions, .pass:not(.open) .route, .pass:not(.open) .pass-fields { visibility: hidden; }
+    .pass.open .pass-due { visibility: hidden; }   /* the open pass shows it as a field */
+    .set-exam { background: rgba(0, 0, 0, 0.28); border: 0; color: #fff; font: 700 17px var(--font); padding: 0.45rem 0.8rem; border-radius: 8px; cursor: pointer; }
+    .set-exam:hover { background: rgba(0, 0, 0, 0.4); }
     .overall { margin-top: 1.25rem; }
     .overall .n { font-size: 22px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
 
@@ -501,7 +510,7 @@
         <span class="nav-title" id="navTitle"></span>
         <span class="nav-r">
           <button class="navbtn" data-nav="settings" id="navSettings" type="button">Settings</button>
-          <span class="sync-dot" id="syncDot" role="img" aria-label="Sync status"></span>
+          <button class="sync" type="button" data-nav="settings" id="syncBtn"><span class="sync-dot" id="syncDot"></span><span id="syncLabel">Not synced</span></button>
         </span>
       </nav>
 
@@ -581,7 +590,7 @@
 
       <section id="screen-study" hidden aria-label="Study">
         <div class="study-top">
-          <span class="nav-l"><button class="navbtn" id="endBtn" type="button">End</button></span>
+          <span class="nav-l"><button class="navbtn" id="endBtn" type="button">End session</button></span>
           <span class="study-title"><span class="dot" aria-hidden="true"></span><span id="studyTitle"></span></span>
           <span class="nav-r">
             <button class="linkbtn" id="reportBtn" type="button">Report</button>
@@ -627,7 +636,8 @@
         <h2 class="group-head">Sync between devices</h2>
         <div class="panel">
           <div class="field">
-            <label for="token">GitHub token</label>
+            <label for="token">Sync key (a GitHub token)</label>
+            <p class="muted" style="margin:0 0 0.5rem">Your progress is saved on this device. A sync key lets your phone and laptop share it.</p>
             <input type="password" id="token" autocomplete="off" spellcheck="false" placeholder="github_pat_…">
             <ol class="steps">
               <li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Create a fine-grained token</a></li>
@@ -646,7 +656,7 @@
         <div class="panel"><ul class="report-list" id="reportList"></ul></div>
         <h2 class="group-head">Backup</h2>
         <div class="glist">
-          <div class="grow"><span class="gl muted" id="logSize"></span><button class="btn" id="exportBtn" type="button">Download log</button></div>
+          <div class="grow"><span class="gl muted" id="logSize"></span><button class="btn" id="exportBtn" type="button">Download a backup</button></div>
         </div>
       </section>
     </div>

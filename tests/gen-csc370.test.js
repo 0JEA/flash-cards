@@ -424,3 +424,27 @@ test('gen-370-tokens: counts and categories agree with an independent lexer', ()
   }
   for (const [k, v] of Object.entries(kinds)) assert.ok(v >= 30, `${k}: ${v}`);
 });
+
+// ─── Build-the-parse-tree: checked against the grammar text on the card ─────
+test('gen-370-parsetree: every node uses a rule of the card\'s grammar, leaves spell the string, and it is the only parse tree', () => {
+  require('../js/tree.js');
+  for (let seed = 1; seed <= N; seed++) {
+    const c = gen.instance('gen-370-parsetree', seed);
+    const where = `seed ${seed}`;
+    assert.equal(c.type, 'tree', where);
+    const g = readGrammar(c.code);
+    const target = toks(c.prompt.match(/`([^`]*)`/)[1]);
+    assert.equal(c.answer.label, g.start, `${where}: root is the start symbol`);
+    const leaves = [];
+    (function walk(t) {
+      if (!t.kids.length) { assert.ok(!isNT(t.label), `${where}: leaf ${t.label} is a nonterminal`); leaves.push(t.label); return; }
+      const rhs = t.kids.map(k => k.label);
+      assert.ok((g.rules.get(t.label) || []).some(alt => alt.join(' ') === rhs.join(' ')), `${where}: ${t.label} → ${rhs.join(' ')} is not a rule`);
+      t.kids.forEach(walk);
+    })(c.answer);
+    assert.deepEqual(leaves, target, `${where}: leaves spell the string`);
+    assert.equal(countDerivations(g, target), 1, `${where}: exactly one parse tree`);
+    const ok = new Set([c.start].concat(c.palette));
+    (function walk(t) { assert.ok(ok.has(t.label), `${where}: ${t.label} not offered`); t.kids.forEach(walk); })(c.answer);
+  }
+});

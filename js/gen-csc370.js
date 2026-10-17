@@ -572,6 +572,36 @@
   G.register({ id: 'gen-370-derive', deck: 'csc370', lecture: '4', cat: 'Theory', sub: 'Grammars & BNF',
     title: 'Leftmost derivations: derive it or show it cannot be derived', make: deriveMake });
 
+  // Build the parse tree (tree-builder answer). Only strings with exactly one parse tree,
+  // so the answer is unique; the palette offers every symbol of the grammar.
+  const toTree = t => ({ label: t.sym, kids: (t.kids || []).map(toTree) });
+  const countNodes = t => 1 + (t.kids || []).reduce((n, k) => n + countNodes(k), 0);
+  function parseTreeMake(rng) {
+    let F, trees;
+    for (let attempt = 0; attempt < 40; attempt++) {
+      F = pick(rng, FAMILIES)(rng);
+      trees = parseTrees(F.g, F.good, 2);
+      if (trees.length === 1 && countNodes(trees[0]) <= 24) break;
+    }
+    if (trees.length !== 1) throw new Error('no unambiguous parse tree found');
+    const { g } = F;
+    const nonterms = g.rules.map(r => r[0]);
+    const terms = [...new Set(g.rules.flatMap(r => r[1].flat()).filter(x => !nonterms.includes(x)))];
+    const s = stringText(F.good, g.char);
+    return {
+      type: 'tree',
+      prompt: `Build the parse tree of \`${s}\` under this grammar.`,
+      code: grammarText(g),
+      start: g.start,
+      palette: nonterms.filter(x => x !== g.start).concat(terms.sort()),
+      answer: toTree(trees[0]),
+      why: `Read the leaves left to right: they spell ${s}. Each node's children are one right-hand side of its rule.`,
+      source: src('4'),
+    };
+  }
+  G.register({ id: 'gen-370-parsetree', deck: 'csc370', lecture: '4', cat: 'Theory', sub: 'Grammars & BNF',
+    title: 'Build the parse tree of a string', make: parseTreeMake });
+
   // ═══════════════════════════ 3. Ambiguity, precedence, associativity ═══════════════════════════
   // Expression grammars over one-character constants. Some are ambiguous; the parse-tree
   // counter decides every answer.

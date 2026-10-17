@@ -172,9 +172,7 @@ for (const id of A2) {
         assert.equal((String(s).match(/(?<!\\)\$/g) || []).length % 2, 0, `unbalanced $ in ${s}`);
         for (const m of mathIn(s)) assert.doesNotThrow(() => katex.renderToString(m, { throwOnError: true }), `KaTeX rejects ${m}`);
       }
-      // rtree on every card except fill cards (the filled tree is the picture; a second diagram
-      // hides it in the answered layout): 1–9 nodes on every drawn level, 3–4 rows, a total on each.
-      if (c.type === 'fill') { assert.ok(!('rtree' in c), 'no rtree on a fill card'); prompts.add(c.prompt + JSON.stringify(c.tree)); return; }
+      // rtree on every card: 1–9 nodes on every drawn level, 3–4 rows, a total on each.
       assert.ok(c.rtree && c.rtree.levels.length >= 3, 'rtree');
       for (const l of c.rtree.levels) {
         if (l.gap) continue;
@@ -206,8 +204,8 @@ test('gen-310-rt-fill: node labels and level totals from the walked tree; the gr
   for (const c of cards.get('gen-310-rt-fill')) {
     const { a, b, k } = evenRec(c.prompt);
     assert.ok(a <= 3 && [2, 4, 5].includes(b), 'small tree, b never 3');
+    checkEvenRtree(c, a, b, k);
     if (c.type === 'typed') {
-      checkEvenRtree(c, a, b, k);
       const j = +c.prompt.match(/on level (\d)/)[1];
       const { frac: [P, Q] } = levelSum(a, b, k, j);
       const f = 'cn' + (k === 1 ? '' : '^' + k);
@@ -327,10 +325,10 @@ test('gen-310-rt-uneven: answers from the enumerated tree; only the three allowe
     assert.equal(small[0] * big[1] + big[0] * small[1], small[1] * big[1], 'pieces add to the whole');
     const shallowB = flip(small), deepB = flip(big);
     // rtree: costs, small piece left, level totals cn.
-    const L = kind === 'fill' ? null : c.rtree.levels;
-    if (L) assert.deepEqual(L.map(l => l.gap ? 'gap' : strip(l.sum)), ['cn', 'cn', 'gap', '< cn']);
+    const L = c.rtree.levels;
+    assert.deepEqual(L.map(l => l.gap ? 'gap' : strip(l.sum)), ['cn', 'cn', 'gap', '< cn']);
     const cT = ([x, y]) => `\\tfrac{${x === 1 ? '' : x}cn}{${y}}`;
-    if (L) assert.deepEqual(L[1].nodes.map(strip), [cT(small), cT(big)]);
+    assert.deepEqual(L[1].nodes.map(strip), [cT(small), cT(big)]);
     const prod = (u, v) => [u[0] * v[0], u[1] * v[1]];
     if (kind === 'fill') {
       for (const nd of T.layout(c.tree).nodes) {

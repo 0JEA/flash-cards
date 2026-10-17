@@ -153,9 +153,7 @@
       const why = sizes
         ? `Each call divides its size by ${b}: level 1 is ${M(`n/${b}`)}, level 2 is ${M(`n/${b}/${b} = n/${b * b}`)}. The ${a} only sets how many nodes a level has (${a * a} on level 2), not their size.`
         : `A node of size ${M('m')} costs ${M('c' + 'm' + pw)}. Level 1 has size ${M(`n/${b}`)}: ${M(`${one(1)} = ${lab(1)}`)}. Level 2, size ${M(`n/${b * b}`)}: ${M(`${one(2)} = ${lab(2)}`)}. Level totals (${a}, ${a * a} nodes): ${M(levelTex(I, 1))}, ${M(levelTex(I, 2))}.`;
-      // No rtree on a fill card: the filled-in tree IS the picture, and a second diagram under it
-      // squeezes it out of view in the answered layout (seen at 632×595).
-      return { type: 'fill', prompt, tree, answer: `${lab(1)}, ${lab(2)}`, why, source, spec };
+      return { type: 'fill', prompt, tree, answer: `${lab(1)}, ${lab(2)}`, why, source, spec, rtree: evenRtree(I) };
     },
   });
 
@@ -279,11 +277,9 @@
         const tree = kid(1, 1, false, [kid(p, q, !pre1, [g(p * p), g(p * r)]), kid(r, q, !pre1, [g(r * p), g(r * r)])]);
         spec.pre1 = pre1;
         const l2 = [p * p, p * r, r * r].map(x => sizePlain(x, q * q));
-        const o = card({ type: 'fill', prompt: `Tree for ${rec}: each node is its subproblem size, the ${M(aT)} piece on the left. Fill in the blanks${pre1 ? ' on level 2' : ''}. Type like 7n/64 or n/64.`,
+        return card({ type: 'fill', prompt: `Tree for ${rec}: each node is its subproblem size, the ${M(aT)} piece on the left. Fill in the blanks${pre1 ? ' on level 2' : ''}. Type like 7n/64 or n/64.`,
           tree, answer: [sizePlain(p, q), sizePlain(r, q)].concat(l2).join(', ') },
         `A node of size ${M('m')} has children ${M(sizeTex(p, q, 'm'))} and ${M(sizeTex(r, q, 'm'))}. Level 1: ${M(sizeTex(p, q) + ',\\ ' + sizeTex(r, q))}. Level 2: ${M(l2.join(',\\ '))} (middle one twice). Each level adds to ${M('n')}, so costs ${M('cn')}.`);
-        delete o.rtree;                      // the filled-in tree is the picture (see rt-fill)
-        return o;
       }
       if (kind === 'shallow' || kind === 'deep') {
         const want = kind === 'shallow' ? S.shallow : S.deep;

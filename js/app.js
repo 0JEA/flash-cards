@@ -192,36 +192,100 @@
   }
 
   // ── Navigation ─────────────────────────────────────────────────────────
+  // A navigation bar like iOS 13's: a back button on the left (to Classes), Settings on the right.
   const screens = ['classes', 'class', 'mix', 'study', 'done', 'settings'];
   function show(name) {
     document.body.classList.remove('studying');
     if (name !== 'study' && session) endSession(false);
+    closeHelp(true);
     for (const s of screens) $('screen-' + s).hidden = s !== name;
-    $('screen-help').hidden = true;
-    document.querySelectorAll('.navbtn').forEach(b => b.setAttribute('aria-current', b.dataset.nav === name ? 'page' : 'false'));
+    $('navBack').hidden = name === 'classes' || name === 'done';
+    $('navSettings').hidden = name === 'settings';
     if (name === 'classes') renderClasses();
-    if (name === 'class') renderClass();
+    if (name === 'class') { paintClass(openDeck); renderClass(); }
     if (name === 'mix') renderMix();
     if (name === 'settings') renderSettings();
+    window.scrollTo(0, 0);
   }
   document.querySelectorAll('[data-nav]').forEach(b => b.addEventListener('click', () => show(b.dataset.nav)));
 
-  function bar(mastered, started, total) {
-    const pct = n => total ? (100 * n / total) + '%' : '0%';
-    return h('div', { class: 'bar', role: 'img', 'aria-label': `${mastered} mastered, ${started} started, of ${total} cards` },
-      h('i', { class: 'm', style: `width:${pct(mastered)}` }), h('i', { class: 'l', style: `width:${pct(started)}` }));
+  // Each class has its own colour (its pass on the Classes screen, its dot and card stack while
+  // studying). Every colour carries white text at 5:1 or better.
+  const CLASS_COLOR = { csc370: '#4338ca', csc310: '#c2410c', softtest: '#0f766e', ethics: '#9d174d' };
+  const colorOf = deckId => CLASS_COLOR[deckId] || '#3a3a3c';
+  const paintClass = deckId => document.body.style.setProperty('--class', colorOf(deckId));
+  const codeOf = d => (/(\d{3})/.exec(d.short || d.title) || [])[1] || (d.short || d.title);
+  const nameOf = d => String(d.title).replace(/^[A-Z]+ ?\d+ ?· ?/, '');
+  const fmtDay = day => new Date(day * 86400000 + 12 * 3600000).toLocaleDateString([], { month: 'short', day: 'numeric', timeZone: 'UTC' });
+  // Days (of the last 14) with at least one answer in this class, oldest first.
+  function daysStudied(ids) {
+    const days = new Set(events.filter(e => e.k === 'r' && ids.has(e.c)).map(e => sched.dayOf(e.t)));
+    return Array.from({ length: 14 }, (_, i) => days.has(today() - 13 + i));
   }
 
-  // ── Classes (launch screen) ────────────────────────────────────────────
+  // ── Classes (launch screen): Apple Wallet's pass stack, each class a boarding pass ──
+  // The open pass shows the route (course → exam date), what is due, the share remembered
+  // later, and one bar per recent day; the others wait below it as strips, tap one to open it.
+  let openPass = 0;
+  const PASS_H = 272, STRIP = 58;
+  // Move the passes in place (so the stack animates): the open one on top, the rest as strips.
+  function openPassAt(i) { if (i !== openPass) { openPass = i; layoutPasses(); } }
+  function layoutPasses() {
+    const els = [...$('classList').children];
+    const order = [openPass, ...els.map((_, i) => i).filter(i => i !== openPass)];
+    els.forEach((el, i) => {
+      const pos = order.indexOf(i), open = pos === 0;
+      el.classList.toggle('open', open);
+      el.style.transform = `translateY(${open ? 0 : PASS_H + 12 + (pos - 1) * STRIP}px)`;
+      el.style.zIndex = open ? 50 : pos;
+      el.style.height = (open ? PASS_H : 64) + 'px';
+      el.querySelector('.pass-head').setAttribute('aria-expanded', String(open));
+      el.querySelector('.route').setAttribute('aria-hidden', String(!open));
+      el.querySelectorAll('.pass-actions button').forEach(b => { if (open) b.removeAttribute('tabindex'); else b.tabIndex = -1; });
+    });
+  }
   function renderClasses() {
     const list = $('classList');
-    list.replaceChildren(...DECKS.map(d => {
-      const k = counts(activeCards(d.id));
-      return h('button', { class: 'class-row', onclick: () => { openDeck = d.id; show('class'); } },
-        h('div', { class: 'class-title' }, d.title),
-        h('div', { class: 'class-sub' }, `${k.review} to review · ${k.learn} to learn · ${k.total} cards`),
-        bar(k.mastered, k.started, k.total));
+    const pct = r => r.total ? Math.round(100 * r.right / r.total) + '%' : '—';
+    const passes = DECKS.map(d => {
+      const k = counts(activeCards(d.id)), ids = new Set(cardsFor(d.id).map(c => c.id));
+      const r = sched.delayedRecall(events.filter(e => ids.has(e.c)), today(), 14);
+      const ed = examDay(d.id);
+      return { d, color: colorOf(d.id), name: nameOf(d), code: codeOf(d), due: k.review, fresh: k.learn, recall: pct(r),
+        exam: ed != null && ed >= today() ? fmtDay(ed) : null, days: daysStudied(ids),
+        go: btn => { openDeck = d.id; withSync(btn, () => startSession(activeCards(d.id), { from: 'classes' })); },
+        more: () => { openDeck = d.id; show('class'); }, moreLabel: 'Cards' };
+    });
+    const all = DECKS.reduce((t, x) => t.concat(cardsFor(x.id)), []);
+    const mixDue = passes.reduce((t, p) => t + p.due, 0), mixNew = passes.reduce((t, p) => t + p.fresh, 0);
+    passes.push({ d: null, color: '#3a3a3c', name: 'All classes, mixed', code: 'Mix', due: mixDue, fresh: mixNew,
+      recall: pct(sched.delayedRecall(events, today(), 14)), exam: null, days: daysStudied(new Set(all.map(c => c.id))),
+      go: () => show('mix'), goLabel: 'Set up a mix' });
+    if (openPass >= passes.length) openPass = 0;
+    const order = [openPass, ...passes.map((_, i) => i).filter(i => i !== openPass)];
+    list.style.height = (PASS_H + 12 + (passes.length - 1) * STRIP) + 'px';
+    list.replaceChildren(...passes.map((p, i) => {
+      const pos = order.indexOf(i), open = pos === 0;
+      const goBtn = h('button', { class: 'go', type: 'button', tabindex: open ? null : '-1', onclick: e => { e.stopPropagation(); p.go(goBtn); } }, p.goLabel || 'Study');
+      const el = h('div', { class: 'pass' + (open ? ' open' : ''), style: `--pc:${p.color}; transform:translateY(${open ? 0 : PASS_H + 12 + (pos - 1) * STRIP}px); z-index:${open ? 50 : pos}; height:${open ? PASS_H : 64}px`,
+        onclick: () => openPassAt(i) },
+        h('button', { class: 'pass-head', type: 'button', 'aria-expanded': String(open),
+          onclick: e => { e.stopPropagation(); openPassAt(i); } },
+          h('span', { class: 'pass-name' }, p.name), h('span', { class: 'pass-due' }, `${p.due} to review`)),
+        h('div', { class: 'route', 'aria-hidden': String(!open) },
+          h('div', { class: 'code3' }, h('small', null, p.d ? 'Course' : 'Every class'), p.code),
+          h('div', { class: 'flight' }),
+          p.d ? h('div', { class: 'code3 r' + (p.exam ? '' : ' unset') }, h('small', null, 'Exam'), p.exam || 'No date') : h('div', { class: 'code3 r unset' }, h('small', null, 'You choose'), 'the share')),
+        h('div', { class: 'pass-fields' },
+          h('div', null, h('small', null, 'To review'), h('b', null, String(p.due))),
+          h('div', null, h('small', null, 'New'), h('b', null, String(p.fresh))),
+          h('div', null, h('small', null, 'Remembered later'), h('b', null, p.recall)),
+          h('div', { class: 'days', role: 'img', 'aria-label': `Studied on ${p.days.filter(Boolean).length} of the last 14 days` }, p.days.map(on => h('i', { class: on ? 'on' : null })))),
+        h('div', { class: 'pass-actions' },
+          p.more ? h('button', { type: 'button', tabindex: open ? null : '-1', onclick: e => { e.stopPropagation(); p.more(); } }, p.moreLabel) : null, goBtn));
+      return el;
     }));
+    layoutPasses();
     // Calibration (research/04 rule 17): of the answers marked Sure on cards seen on an
     // earlier day, how many were right? Overconfidence means stopping practice too early.
     const firstOfDay = new Map(), lastSeen = new Map(); let sureRight = 0, sureTotal = 0;
@@ -232,12 +296,12 @@
     }
     $('honesty').textContent = sureTotal >= 5
       ? `When you said Sure on a card from an earlier day, you were right ${Math.round(100 * sureRight / sureTotal)}% of the time (${sureRight}/${sureTotal}).`
-      : 'Your “Sure” accuracy shows here once you have reviewed cards on a second day.';
+      : 'How often “Sure” was right shows here once you have reviewed cards on a second day.';
     const r = sched.delayedRecall(events, today(), 14);
     $('recallPct').textContent = r.total ? Math.round(100 * r.right / r.total) + '%' : '—';
     $('recallNote').textContent = r.total
-      ? `You got ${r.right} of ${r.total} right when a card came back hours or days later`
-      : 'Starts tomorrow: it counts how many cards you still remember when they come back.';
+      ? `${r.right} of ${r.total} right when a card came back hours or days later (last 14 days)`
+      : 'Starts tomorrow: how many cards you still know when they come back.';
   }
 
   // ── Class screen: topic toggles, then Study ────────────────────────────
@@ -280,6 +344,9 @@
   }
   const keysOf = (off, dim) => [...off].filter(k => dimOf(k) === dim);
 
+  // The browser: iTunes' column browser (2005). One column per filter, side by side; each
+  // starts with "All (n)" like iTunes' "All (12 Artists)". Narrow windows show one column at a
+  // time behind a segmented control. Topics open (▸) to list their parts.
   function renderPicker(d, all, off) {
     const hasAssignments = (d.assignments || []).some(a => all.some(c => (c.assignment || []).includes(a.id)));
     let view = settings.view[d.id] || 'topic';
@@ -293,82 +360,74 @@
     // Summary: what the filters leave, and each one that is restricting (with a clear button).
     const chosen = all.filter(c => isOn(off, c, d)).length;
     const chips = dims.filter(restricted).map(dim => {
-      const gs = groupsFor(d, all, dim);
-      const partly = dim === 'topic' ? gs.filter(g => !off.has(g.key) && all.some(c => g.has(c) && off.has(c.cat + '/' + c.sub))).length : 0;
-      const whole = offGroups(dim) - partly;
-      const text = [whole ? `${whole === gs.length ? 'all' : whole} off` : '', partly ? `${partly} partly off` : ''].filter(Boolean).join(', ');
-      return h('span', { class: 'sel-chip' }, `${names[dim]}: ${text}`,
+      const gs = groupsFor(d, all, dim), n = gs.length - offGroups(dim);
+      return h('span', { class: 'sel-chip' }, `${names[dim]}: ${n} of ${gs.length}`,
         h('button', { class: 'sel-x', type: 'button', 'aria-label': `Turn all ${names[dim].toLowerCase()} back on`, title: `Turn all ${names[dim].toLowerCase()} back on`,
           onclick: () => setAll(d.id, dim, true) }, '×'));
     });
-    $('selSummary').replaceChildren(
+    $('selSummary').replaceChildren(...[
       h('div', { class: 'sel-line' }, h('span', null, 'Studying ', h('b', null, String(chosen)), ` of ${all.length} cards`),
         chips.length ? h('button', { class: 'linkbtn', type: 'button', onclick: () => resetAll(d.id) }, 'Turn everything on') : null),
-      ...(chips.length ? [h('div', { class: 'sel-chips' }, chips)] : []));
+      chips.length ? h('div', { class: 'sel-chips' }, chips) : null].filter(Boolean));
 
-    // Tabs: one per filter; a restricting filter shows how many of its groups are off.
+    // Segmented control (narrow windows): which column is shown; a restricting filter says how many are off.
     document.querySelectorAll('#viewSwitch button').forEach(b => {
       const dim = b.dataset.view;
       b.hidden = !dims.includes(dim);
       b.setAttribute('aria-pressed', String(dim === view));
       const k = dims.includes(dim) ? offGroups(dim) : 0;
-      b.replaceChildren(document.createTextNode(names[dim]), k ? h('span', { class: 'tab-badge', title: `${k} off` }, `${k}`, h('span', { class: 'w' }, ' off')) : '');
+      b.replaceChildren(document.createTextNode(names[dim]), k ? h('span', { class: 'tab-badge' }, `${k} off`) : '');
     });
 
-    // This tab's All / None and hint.
-    const groups = groupsFor(d, all, view);
-    $('viewTools').replaceChildren(
-      h('p', { class: 'muted view-hint' }, view === 'topic' ? 'Open a topic to pick its parts.'
-        : view === 'lecture' ? 'Lectures in course order.' : 'Cards teach what each assignment needs, never its answers.'),
-      h('div', { class: 'view-all' },
-        h('button', { class: 'btn small', type: 'button', disabled: !restricted(view), onclick: () => setAll(d.id, view, true) }, 'All'),
-        h('button', { class: 'btn small', type: 'button', disabled: groups.every(g => off.has(g.key)), onclick: () => setAll(d.id, view, false) }, 'None')));
-
-    // Rows. Count = cards in the row that the other two filters let through.
-    const others = c => isOn(off, c, d, view);
+    // Row counts = cards in the row that the OTHER filters let through.
     const countText = (inRow, through) => through === inRow.length ? `${inRow.length}` : `${through} of ${inRow.length}`;
-    const tree = $('topicTree');
-    if (view !== 'topic') {
-      tree.replaceChildren(...groups.map(g => {
-        const inRow = all.filter(g.has), through = inRow.filter(others).length, on = !off.has(g.key);
-        const title = view === 'lecture' && /^\d+$/.test(g.lec) ? [h('span', { class: 'lec-n' }, `Lecture ${g.lec} · `), g.title] : [g.title];
-        return h('label', { class: 'topic pick-row' + (on ? '' : ' is-off') },
-          h('input', { type: 'checkbox', checked: on, onchange: e => toggle(d.id, g.key, e.target.checked) }),
-          h('span', { class: 'pick-title' }, ...title),
-          h('span', { class: 'pick-n', title: through < inRow.length ? 'Cards here that your other filters allow' : '' }, countText(inRow, through)));
-      }));
-      return;
-    }
-    // Topics: each with its parts as chips. Few parts: show all; many: start collapsed.
-    const cats = groups.map(g => g.key);
-    const totalSubs = new Set(all.map(c => c.cat + '/' + c.sub)).size;
-    if (!expanded.has(d.id)) expanded.set(d.id, new Set(totalSubs <= 30 ? cats : []));
-    const open = expanded.get(d.id);
-    const subOrder = (FC.topics && FC.topics[d.id + 'SubOrder']) || d.subOrder || [];
-    const rankOf = sub => { const i = subOrder.indexOf(sub); return i < 0 ? 999 : i; };
-    tree.replaceChildren(...cats.map(cat => {
-      const inCat = all.filter(c => c.cat === cat);
-      const subs = [...new Set(inCat.map(c => c.sub))].sort((a, b) => rankOf(a) - rankOf(b));
-      const catOn = !off.has(cat);
-      const subsOff = subs.filter(sub => off.has(cat + '/' + sub)).length;
-      const isOpen = open.has(cat);
-      const through = inCat.filter(c => !off.has(c.cat + '/' + c.sub) && others(c)).length;
-      const box = h('input', { type: 'checkbox', checked: catOn && subsOff < subs.length,
-        onchange: e => setTopic(d.id, cat, subs, e.target.checked) });
-      box.indeterminate = catOn && subsOff > 0 && subsOff < subs.length; // some parts off
-      return h('div', { class: 'topic' + (catOn && subsOff < subs.length ? '' : ' is-off') },
-        h('div', { class: 'topic-row' },
-          h('label', { class: 'topic-head' }, box, h('span', { class: 'pick-title' }, cat),
-            h('span', { class: 'pick-n' }, countText(inCat, catOn ? through : inCat.filter(others).length))),
-          h('button', { class: 'linkbtn expand', type: 'button', 'aria-expanded': String(isOpen),
-            onclick: () => { if (isOpen) open.delete(cat); else open.add(cat); renderClass(); } },
-            `${subs.length} part${subs.length === 1 ? '' : 's'}${catOn && subsOff ? ` · ${subsOff} off` : ''} ${isOpen ? '▾' : '▸'}`)),
-        isOpen && h('div', { class: 'chips' }, subs.map(sub => {
-          const on = catOn && !off.has(cat + '/' + sub);
-          return h('button', { class: 'chip', type: 'button', 'aria-pressed': String(on),
-            onclick: () => setPart(d.id, cat, subs, sub, !on) }, sub, h('span', { class: 'n' }, ` ${inCat.filter(c => c.sub === sub).length}`));
-        })));
-    }));
+    const row = (cls, checked, indeterminate, onchange, title, n, extra) => {
+      const box = h('input', { type: 'checkbox', checked, onchange: e => onchange(e.target.checked) });
+      box.indeterminate = !!indeterminate;
+      return h('label', { class: 'crow ' + cls + (checked && !indeterminate ? '' : indeterminate ? '' : ' is-off') }, box,
+        h('span', { class: 'pick-title' }, ...[].concat(title)), h('span', { class: 'pick-n' }, n), extra || null);
+    };
+    const column = dim => {
+      const groups = groupsFor(d, all, dim), others = c => isOn(off, c, d, dim);
+      const offN = offGroups(dim), rows = [];
+      // "All (n)": on when nothing in this column is off; ticking it turns them all on, unticking all off.
+      rows.push(row('all', offN === 0, offN > 0 && offN < groups.length, on => setAll(d.id, dim, on), `All (${groups.length})`, String(all.filter(others).length)));
+      if (dim !== 'topic') {
+        for (const g of groups) {
+          const inRow = all.filter(g.has), on = !off.has(g.key);
+          const title = dim === 'lecture' && /^\d+(\.\d+)?$/.test(g.lec) ? [h('span', { class: 'lec-n' }, `L${g.lec}`), g.title] : [g.title];
+          rows.push(row('', on, false, v => toggle(d.id, g.key, v), title, countText(inRow, inRow.filter(others).length)));
+        }
+      } else {
+        const totalSubs = new Set(all.map(c => c.cat + '/' + c.sub)).size;
+        if (!expanded.has(d.id)) expanded.set(d.id, new Set(totalSubs <= 12 ? groups.map(g => g.key) : []));
+        const open = expanded.get(d.id);
+        const subOrder = (FC.topics && FC.topics[d.id + 'SubOrder']) || d.subOrder || [];
+        const rankOf = sub => { const i = subOrder.indexOf(sub); return i < 0 ? 999 : i; };
+        for (const g of groups) {
+          const cat = g.key, inCat = all.filter(c => c.cat === cat);
+          const subs = [...new Set(inCat.map(c => c.sub))].sort((a, b) => rankOf(a) - rankOf(b));
+          const catOn = !off.has(cat), subsOff = subs.filter(sub => off.has(cat + '/' + sub)).length;
+          const through = inCat.filter(c => !off.has(c.cat + '/' + c.sub) && others(c)).length;
+          const isOpen = open.has(cat);
+          const disclose = subs.length > 1 ? h('button', { class: 'disclose', type: 'button', 'aria-expanded': String(isOpen), 'aria-label': `${isOpen ? 'Hide' : 'Show'} the parts of ${cat}`,
+            onclick: e => { e.preventDefault(); if (isOpen) open.delete(cat); else open.add(cat); renderClass(); } }, '▸') : null;
+          rows.push(row('', catOn && subsOff < subs.length, catOn && subsOff > 0 && subsOff < subs.length, v => setTopic(d.id, cat, subs, v), cat,
+            countText(inCat, catOn ? through : inCat.filter(others).length), disclose));
+          if (isOpen && subs.length > 1) for (const sub of subs) {
+            const on = catOn && !off.has(cat + '/' + sub), inSub = inCat.filter(c => c.sub === sub);
+            rows.push(row('part', on, false, v => setPart(d.id, cat, subs, sub, v), sub, countText(inSub, inSub.filter(others).length)));
+          }
+        }
+      }
+      return h('div', { class: 'col' + (dim === view ? ' shown' : '') },
+        h('div', { class: 'col-head' }, h('span', null, names[dim]), offN ? h('span', { class: 'tab-badge' }, `${offN} off`) : null),
+        h('div', { class: 'col-list', role: 'group', 'aria-label': names[dim] }, rows));
+    };
+    $('topicTree').dataset.cols = dims.length;
+    $('topicTree').replaceChildren(...dims.map(column));
+    $('viewTools').replaceChildren(...(hasAssignments
+      ? [h('p', { class: 'group-foot' }, 'Assignments: these cards teach what each assignment needs, never its answers.')] : []));
   }
 
   // Writes. Every change re-renders, so counts and the summary are always current.
@@ -422,8 +481,8 @@
     const sum = DECKS.reduce((t, d) => t + (+pct[d.id] || 0), 0);
     $('mixRows').replaceChildren(...DECKS.map(d => {
       const k = counts(activeCards(d.id));
-      return h('div', { class: 'mix-row' },
-        h('label', { for: 'mix-' + d.id }, d.title, h('span', { class: 'muted' }, ` · ${k.review + k.learn} available`)),
+      return h('div', { class: 'grow' },
+        h('label', { for: 'mix-' + d.id }, d.short || d.title, h('br'), h('span', { class: 'muted' }, `${k.review + k.learn} available`)),
         h('div', { class: 'mix-input' },
           h('input', { type: 'number', id: 'mix-' + d.id, min: '0', max: '100', step: '5', inputmode: 'numeric', value: String(pct[d.id]),
             onchange: e => { settings.mix.pct = Object.assign(mixPct(), { [d.id]: Math.max(0, Math.min(100, +e.target.value || 0)) }); saveSettings(); renderMix(); } }),
@@ -471,7 +530,7 @@
   // still has to be recalled: Help teaches, it doesn't replace the retrieval.
   // Classes with math on render $...$ (KaTeX); the others show text as written ($ is code in
   // C, shell and Perl there), with `backticks` set as inline code.
-  const deckMath = () => !current || !!(deckById.get(current.card.deck) || {}).math;
+  const deckMath = () => { const c = helpCard || (current && current.card); return !c || !!(deckById.get(c.deck) || {}).math; };
   const helpMath = t => {
     if (!deckMath()) return String(t).split(/`([^`]+)`/).map((part, i) => i % 2 ? h('code', { class: 'ic' }, part) : part);
     const was = mathOn; mathOn = true; try { return math(t); } finally { mathOn = was; }
@@ -512,7 +571,8 @@
       const t = s('text', { x: sx(v), y: H - B + (compact ? 26 : 18), 'text-anchor': 'middle' }); t.textContent = fmt(v); svg.append(t);
     }
     const yticks = [];
-    if (g.logY) for (let e = Math.ceil(ly0); e <= Math.floor(ly1); e++) yticks.push(10 ** e);
+    // Log axes: at most about 6 labelled powers of ten, so labels never pile up.
+    if (g.logY) { const lo = Math.ceil(ly0), hi = Math.floor(ly1), step = Math.max(1, Math.ceil((hi - lo + 1) / 6)); for (let e = hi; e >= lo; e -= step) yticks.push(10 ** e); }
     else { const st = niceStep(y1 - y0); for (let v = Math.ceil(y0 / st) * st; v <= y1 + 1e-9; v += st) yticks.push(v); }
     const sup = e => String(e).replace(/-/g, '⁻').replace(/\d/g, d => '⁰¹²³⁴⁵⁶⁷⁸⁹'[d]);
     for (const v of yticks) {
@@ -586,11 +646,16 @@
     return li;
   }
 
-  function openHelp() {
-    if (!current) return;
-    const card = current.card, help = FC.help && FC.help[card.id];
+  // Opens over the screen it was called from: the study card (counts as not known if it was
+  // still unanswered) or the session summary (a card you missed).
+  let helpCard = null, helpHide = 0, helpFrom = null;
+  function openHelp(arg) {
+    const card = arg && arg.prompt ? arg : current && current.card;
+    const help = card && FC.help && FC.help[card.id];
     if (!help) return;
-    if (!current.pending) giveUp();
+    if (card === (current && current.card) && !current.pending) giveUp();
+    helpCard = card;
+    helpFrom = document.activeElement;
     const sec = (title, ...kids) => h('section', { class: 'help-sec' }, h('h2', null, title), ...kids);
     const body = [h('p', { class: 'help-q' }, helpMath(card.prompt))];
     if (card.code) body.push(h('pre', { class: 'code' }, card.code));
@@ -621,22 +686,37 @@
       body.push(sec('Try one', h('p', null, helpMath(help.tryIt.q)), help.tryIt.code ? h('pre', { class: 'code help-code' }, help.tryIt.code) : null, btn, a));
     }
     $('helpBody').replaceChildren(...body);
-    $('screen-study').hidden = true;
-    $('screen-help').hidden = false;
-    document.body.classList.remove('studying');
-    window.scrollTo(0, 0);
-    $('helpBack').focus();
+    clearTimeout(helpHide);
+    const sheet = $('screen-help');
+    sheet.hidden = false;
+    $('helpMargin').scrollTop = 0;
+    $('helpBack').textContent = $('screen-study').hidden ? 'Back' : 'Card';
+    requestAnimationFrame(() => requestAnimationFrame(() => sheet.classList.add('in')));
+    document.body.style.overflow = 'hidden';
+    $('helpBack').focus({ preventScroll: true });
   }
-  function closeHelp() {
-    if ($('screen-help').hidden) return;
-    $('screen-help').hidden = true;
-    if (!session) { show(returnTo || 'class'); return; }
-    $('screen-study').hidden = false;
-    document.body.classList.add('studying');
-    refit();
+  // `now`: hide at once (leaving the screen); otherwise slide the notes back out first.
+  function closeHelp(now) {
+    const sheet = $('screen-help');
+    if (sheet.hidden) return;
+    sheet.classList.remove('in');
+    document.body.style.overflow = '';
+    clearTimeout(helpHide);
+    const done = () => { sheet.hidden = true; helpCard = null; };
+    if (now === true || matchMedia('(prefers-reduced-motion: reduce)').matches) done(); else helpHide = setTimeout(done, 420);
+    if (now !== true && helpFrom && helpFrom.isConnected) helpFrom.focus({ preventScroll: true });
   }
-  $('helpBtn').addEventListener('click', openHelp);
-  $('helpBack').addEventListener('click', closeHelp);
+  $('helpBtn').addEventListener('click', () => openHelp());
+  $('helpBack').addEventListener('click', () => closeHelp());
+  $('helpBackdrop').addEventListener('click', () => closeHelp());
+  // Keep Tab inside the notes while they are open.
+  $('screen-help').addEventListener('keydown', e => {
+    if (e.key !== 'Tab') return;
+    const f = [...$('helpMargin').querySelectorAll('button, a[href], input, [tabindex]:not([tabindex="-1"])')].filter(x => !x.hidden && x.offsetParent);
+    if (!f.length) return;
+    if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus(); }
+    else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
+  });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('screen-help').hidden) { e.preventDefault(); closeHelp(); } });
 
   // Report a wrong or unclear card: logged, listed in Settings, fixed next session.
@@ -658,20 +738,26 @@
   function startSession(cards, opts = {}) {
     const sts = statesFor(cards);
     const queue = opts.queue || queueFor(cards, sts);
-    if (!queue.length) { show(opts.queue ? 'mix' : 'class'); return; }
-    returnTo = opts.queue ? 'mix' : 'class';
+    if (!queue.length) { show(opts.queue ? 'mix' : opts.from || 'class'); return; }
+    returnTo = opts.queue ? 'mix' : opts.from || 'class';
+    lastStart = { cards, opts };
     session = new sched.Session(queue);
     session.byId = new Map(cards.map(c => [c.id, c]));
     session.started = Date.now();
     session.limitMs = minutesLimit() * 60000;
     session.firstTry = new Map(); // card id -> right on first attempt this session
     current = null;
+    shownLeft = null;
+    closeHelp(true);
     for (const s of screens) $('screen-' + s).hidden = s !== 'study';
     document.body.classList.add('studying');
     document.querySelectorAll('.navbtn').forEach(b => b.setAttribute('aria-current', 'false'));
     showCard(session.next(), true);
   }
 
+  // Session done: only what helps next. When to come back (and how many), what was missed
+  // (each with its Help, the best moment to read it), and a way to keep going.
+  let lastStart = null;
   function endSession(showSummary) {
     if (!session) return;
     const s = session;
@@ -679,20 +765,45 @@
     current = null;
     pushSoon();
     if (!showSummary) return;
-    const first = [...s.firstTry.values()];
-    $('doneCards').textContent = first.length;
-    $('doneFirst').textContent = first.length ? Math.round(100 * first.filter(Boolean).length / first.length) + '%' : '—';
+    const first = [...s.firstTry.entries()];
+    const right = first.filter(([, ok]) => ok).length;
     const cards = [...s.byId.values()];
-    const sts = statesFor(cards);
-    const tomorrow = cards.filter(c => sts[c.id].phase === 'review' && sts[c.id].due === today() + 1).length;
+    const decks = [...new Set(cards.map(c => c.deck))];
+    const pool = decks.flatMap(id => activeCards(id));
+    const sts = statesFor(pool);
+    const dueBy = day => pool.filter(c => sts[c.id].phase !== 'new' && sts[c.id].due != null && sts[c.id].due <= day).length;
+    const tomorrow = dueBy(today() + 1);
+    const later = pool.map(c => sts[c.id]).filter(st => st.phase !== 'new' && st.due != null && st.due > today()).map(st => st.due).sort((x, y) => x - y)[0];
+    const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
     $('doneNext').textContent = s.remaining
-      ? (s.timeUp ? `Time’s up (${Math.round(s.limitMs / 60000)} min). ` : '') + `${s.remaining} card${s.remaining === 1 ? '' : 's'} not reached; they stay due for next time.`
-      : `${tomorrow} of these card${tomorrow === 1 ? '' : 's'} come back tomorrow.`;
-    $('doneBack').textContent = returnTo === 'mix' ? 'Back to mix' : 'Back to class';
+      ? (s.timeUp ? 'Time’s up. ' : '') + `${plural(s.remaining, 'card')} still waiting for today.`
+      : tomorrow ? `Come back tomorrow: ${plural(tomorrow, 'card')} will be due.`
+      : later != null ? `Next review: ${fmtDay(later)} (${plural(dueBy(later), 'card')}).` : 'Nothing is due yet. New cards are waiting when you want them.';
+    $('doneSub').textContent = first.length
+      ? `${plural(first.length, 'card')} studied, ${right} right the first time.` + (right < first.length * 0.7 ? ' A lot of misses means the cards are at the right difficulty: hard recall now is what makes it stick.' : '')
+      : '';
+    // Missed: right on the first try = no; most recent first.
+    const missed = first.filter(([, ok]) => !ok).map(([id]) => s.byId.get(id)).filter(Boolean);
+    const lastMath = mathOn;
+    $('missedList').replaceChildren(...missed.slice(0, 30).map(c => {
+      mathOn = !!(deckById.get(c.deck) || {}).math;
+      const row = h('div', { class: 'grow' }, h('span', { class: 'mq' }, math(c.prompt || c.title || c.id)),
+        FC.help && FC.help[c.id] ? h('button', { class: 'linkbtn', type: 'button', onclick: () => openHelp(c) }, 'Help') : null);
+      return row;
+    }));
+    mathOn = lastMath;
+    for (const id of ['missedHead', 'missedList', 'missedFoot']) $(id).hidden = !missed.length;
+    const more = lastStart && !lastStart.opts.queue ? queueFor(lastStart.cards, statesFor(lastStart.cards)).length : 0;
+    $('doneMore').hidden = !more;
+    $('doneMore').textContent = more ? `Keep going (${more})` : 'Keep going';
     document.body.classList.remove('studying');
+    closeHelp(true);
     for (const name of screens) $('screen-' + name).hidden = name !== 'done';
+    $('navBack').hidden = true;
+    window.scrollTo(0, 0);
   }
   $('doneBack').addEventListener('click', () => show(returnTo));
+  $('doneMore').addEventListener('click', () => { if (lastStart) startSession(lastStart.opts.from === 'classes' ? activeCards(openDeck) : lastStart.cards, lastStart.opts); });
 
   const TYPE_LABEL = { recall: 'Explain', typed: 'Short answer', mc: 'Choose', order: 'Put in order', cloze: 'From your notes', set: 'List them' };
 
@@ -711,9 +822,11 @@
     const lecInfo = deck.lectures.find(l => String(l.n) === String(card.lecture));
     const where = card.lecture === 'paper' ? 'Reading' : deck.lectures.length <= 1 ? ''
       : /^\d+(\.\d+)?$/.test(card.lecture) ? `Lecture ${card.lecture}` : lecInfo ? lecInfo.title : '';
-    const kind = card.generated ? 'Practice problem' : card.blank ? 'Fill the blank' : card.type === 'typed' && card.code ? 'Trace' : TYPE_LABEL[card.type];
-    const prog = current && current.progress && current.progress.learning ? `new · ${current.progress.done}/${sched.LEARN_CRITERION}` : '';
-    $('qlabel').textContent = [deck.short || deck.title, where, kind, prog].filter(Boolean).join(' · ');
+    const kind = card.generated ? 'Practice' : card.blank ? 'Fill the blank' : card.type === 'typed' && card.code ? 'Trace' : TYPE_LABEL[card.type];
+    // Fields across the top of the ticket, boarding-pass style: label above, value below.
+    const status = current && current.progress && current.progress.learning ? `New ${current.progress.done}/${sched.LEARN_CRITERION}` : current && current.progress ? 'Review' : '';
+    const field = (label, value, full) => value ? h('span', { class: 'qfield', title: full || null }, h('small', null, label), h('span', null, value)) : null;
+    $('qlabel').replaceChildren(...[field(/^Lecture /.test(where) ? 'Lecture' : 'From', where.replace(/^Lecture /, ''), where), field('Card', status), field('Kind', kind)].filter(Boolean));
     $('qlabel').title = lec ? lec.title : '';
     $('qprompt').replaceChildren(...math(card.prompt));
     $('qcode').hidden = !card.code;
@@ -834,19 +947,36 @@
     $('screen-study').classList.remove('answered');
     $('helpBtn').hidden = !(FC.help && FC.help[card.id]);
     if ($('reportBox')) $('reportBox').remove();
-    const mins = Math.floor((Date.now() - session.started) / 60000);
-    $('leftCount').textContent = `${session.remaining} left` + (isFinite(session.limitMs) ? ` · ${mins}/${Math.round(session.limitMs / 60000)} min` : '');
-    const area = $('answerArea'), actions = $('actions'), inner = $('qinner');
+    paintClass(card.deck);
+    $('studyTitle').textContent = (deckById.get(card.deck) || {}).short || '';
+    // The cards still to come peek out above this one (at most two edges).
+    $('stackEdges').replaceChildren(...Array.from({ length: Math.min(2, session.remaining - 1) }, () => h('i')));
+    const area = $('answerArea'), actions = $('actions'), ticket = $('ticket');
     // Render, then fit while the content is still invisible, so the new card appears at its final size.
-    const render = () => { fillQuestion(card); area.replaceChildren(buildAnswer(card)); $('qcard').scrollTop = 0; area.scrollTop = 0; fitAsk(); };
-    if (first || !window.gsap) { render(); focusFirst(); return; }
+    const render = () => { fillQuestion(card); paintCounter(first); area.replaceChildren(buildAnswer(card)); $('qcard').scrollTop = 0; area.scrollTop = 0; fitAsk(); };
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (first || !window.gsap || still) { render(); focusFirst(); return; }
+    // The answered card is put away (up and off, like a used pass) and the next one rises
+    // from the stack underneath.
     animating = true;
-    gsap.killTweensOf([inner, area, actions]);
+    gsap.killTweensOf([ticket, actions]);
     gsap.timeline()
-      .to([inner, area, actions], { xPercent: -8, opacity: 0, duration: 0.18, ease: 'power2.in' })
+      .to([ticket, actions], { y: -28, scale: 0.97, opacity: 0, duration: 0.2, ease: 'power2.in' })
       .add(render)
-      .set([inner, area, actions], { xPercent: 8 })
-      .to([inner, area, actions], { xPercent: 0, opacity: 1, duration: 0.22, ease: 'power2.out', onComplete: () => { animating = false; focusFirst(); } });
+      .set([ticket, actions], { y: 18, scale: 0.985 })
+      .to([ticket, actions], { y: 0, scale: 1, opacity: 1, duration: 0.34, ease: 'expo.out', clearProps: 'transform', onComplete: () => { animating = false; focusFirst(); } });
+  }
+
+  // Cards left: a disposable camera's exposure counter. The number rolls to the next one.
+  let shownLeft = null;
+  function paintCounter(first) {
+    const n = session.remaining, mins = Math.floor((Date.now() - session.started) / 60000);
+    const time = isFinite(session.limitMs) ? h('span', { class: 'timeleft' }, `· ${mins} of ${Math.round(session.limitMs / 60000)} min`) : null;
+    const rolls = !first && shownLeft != null && shownLeft !== n && !matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const roll = h('span', { class: 'roll' }, ...(rolls ? [h('span', null, String(shownLeft)), h('span', null, String(n))] : [h('span', null, String(n))]));
+    $('leftCount').replaceChildren(h('span', { class: 'film', role: 'img', 'aria-label': `${n} card${n === 1 ? '' : 's'} left` }, roll), h('span', null, 'left'), time);
+    if (rolls) requestAnimationFrame(() => requestAnimationFrame(() => roll.classList.add('rolling')));
+    shownLeft = n;
   }
 
   function focusFirst() {
@@ -880,9 +1010,14 @@
     } else if (card.type === 'mc') {
       const opts = sched.shuffled([card.answer].concat(card.options));
       let chosen = null;
-      const box = h('div', { role: 'group', 'aria-label': 'Options' });
+      const box = h('div', { class: 'opts', role: 'group', 'aria-label': 'Options' });
       opts.forEach((o, i) => {
-        const b = h('button', { class: 'opt', 'aria-pressed': 'false', 'data-opt': o, 'data-fit': '', 'data-text': o, onclick: () => pick(i) }, h('span', { class: 'kbd' }, `${i + 1}`), ' ', math(o));
+        const tick = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        tick.setAttribute('class', 'tick'); tick.setAttribute('viewBox', '0 0 22 18'); tick.setAttribute('aria-hidden', 'true');
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path'); path.setAttribute('d', 'M3 9.5 L8.5 15 L19 3');
+        tick.append(path);
+        const b = h('button', { class: 'opt', type: 'button', 'aria-pressed': 'false', 'data-opt': o, onclick: () => pick(i) },
+          h('span', { class: 'ot', 'data-fit': '', 'data-text': o }, math(o)), h('span', { class: 'kbd' }, `${i + 1}`), tick);
         box.append(b);
       });
       function pick(i) {
@@ -928,10 +1063,12 @@
       read = () => ({ given: w.value(), ready: w.ready() });
     }
 
-    const sureBtn = h('button', { class: 'btn primary', onclick: () => submit(true) }, 'Sure', h('span', { class: 'kbd' }, card.type === 'recall' || card.type === 'tree' || card.type === 'fill' ? 'Ctrl+⏎' : '⏎'));
-    const guessBtn = h('button', { class: 'btn', onclick: () => submit(false) }, 'Guess', h('span', { class: 'kbd' }, card.type === 'recall' || card.type === 'tree' || card.type === 'fill' ? 'Ctrl+⇧⏎' : '⇧⏎'));
-    const idkBtn = h('button', { class: 'btn', onclick: () => giveUp() }, 'I don’t know');
-    $('actions').replaceChildren(h('div', { class: 'btn-row' }, idkBtn, guessBtn, sureBtn));
+    // UIAlertController's joined pair (Guess | Sure); "I don't know" stands apart, like Cancel.
+    const multi = card.type === 'recall' || card.type === 'tree' || card.type === 'fill';
+    const sureBtn = h('button', { class: 'btn primary', type: 'button', onclick: () => submit(true) }, 'Sure', h('span', { class: 'kbd' }, multi ? 'Ctrl ⏎' : '⏎'));
+    const guessBtn = h('button', { class: 'btn', type: 'button', onclick: () => submit(false) }, 'Guess', h('span', { class: 'kbd' }, multi ? 'Ctrl ⇧⏎' : '⇧⏎'));
+    const idkBtn = h('button', { class: 'btn idk', type: 'button', onclick: () => giveUp() }, 'I don’t know');
+    $('actions').replaceChildren(h('div', { class: 'commit' }, idkBtn, h('div', { class: 'pair' }, guessBtn, sureBtn)));
     function updateReady() { const r = read().ready; sureBtn.disabled = !r; guessBtn.disabled = !r; }
     wrap.addEventListener('input', updateReady);
     if (wrap.draw) wrap.draw(); else updateReady();
@@ -977,12 +1114,21 @@
 
     const fb = h('div', { class: 'feedback', role: 'status', 'aria-live': 'polite' });
     const selfGrade = card.type === 'recall' && !p.gaveUp;
-    const verdict = h('div', { class: 'verdict', 'data-fit': '' });
+    const verdict = h('div', { class: 'verdict' });
     const alert = h('div', { class: 'alert', 'data-fit': '' });
+    // A teacher's pen mark, drawn stroke by stroke: a tick for right, a cross for wrong. The
+    // word beside it says the same, so the verdict never rests on colour alone.
+    const pen = kind => {
+      const svg = document.createElementNS(SVG, 'svg');
+      svg.setAttribute('class', 'pen'); svg.setAttribute('viewBox', '0 0 34 26'); svg.setAttribute('aria-hidden', 'true');
+      for (const d of kind === 'tick' ? ['M5 14 L13 21 L29 4'] : ['M8 5 L26 21', 'M26 5 L8 21']) svg.append(s('path', { d }));
+      return svg;
+    };
     function paintVerdict() {
       fb.classList.toggle('good', p.ok === true);
-      fb.classList.toggle('bad', p.ok === false);
-      verdict.textContent = p.ok === null ? 'How did you do?' : p.ok ? (p.sure ? 'Correct' : 'Correct (guessed)') : p.gaveUp ? 'Answer' : 'Not quite';
+      fb.classList.toggle('bad', p.ok === false && !p.gaveUp);
+      const word = p.ok === null ? 'How did you do?' : p.ok ? (p.sure ? 'Right' : 'Right (a guess)') : p.gaveUp ? 'Here’s the answer' : 'Not quite';
+      verdict.replaceChildren(...(p.ok === true ? [pen('tick')] : p.ok === false && !p.gaveUp ? [pen('cross')] : []), h('span', { 'data-fit': '' }, word));
       alert.hidden = true;
     }
     if (selfGrade) p.ok = null;
@@ -1101,7 +1247,7 @@
 
   // Keyboard: answer shortcuts while answering; Enter / 1 / 2 on feedback.
   document.addEventListener('keydown', e => {
-    if (e.defaultPrevented || $('screen-study').hidden || !current || animating) return;
+    if (e.defaultPrevented || $('screen-study').hidden || !$('screen-help').hidden || !current || animating) return;
     const typing = /^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName) && !document.activeElement.disabled;
     if (current.pending) {
       if (current.card.type === 'recall' && current.pending.ok === null && !current.pending.gaveUp) {

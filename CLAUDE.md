@@ -24,7 +24,8 @@ The design, and the paper behind each learning rule, are in `docs/superpowers/sp
 
 | File | Role |
 |---|---|
-| `index.html` | Markup + CSS for all screens (Classes, Class, Mix, Study, Done, Settings) and the script order |
+| `PRODUCT.md` | Design brief (impeccable): users, personality, anti-references, principles. The look is iOS 13 dark (2019) with every element borrowed from a named pre-AI source and reworked (owner, 2026-10-16: "AI look" means layout, element choice, type and motion, not just colour). The source of each element is commented at its CSS block in `index.html` |
+| `index.html` | Markup + CSS for all screens: Classes (Wallet pass stack, each class a boarding pass), Class (settings + iTunes-style column browser for the three filters), Mix, Study (the card is a ticket: question above a perforation, answers on the stub; film-counter for cards left; pen-mark verdicts), Help (margin notes sliding in beside the card), Done (when to come back + missed cards with Help), Settings; and the script order |
 | `js/log.js` | Append-only event log in `localStorage['fc.events']`; merge = union by event id |
 | `js/scheduler.js` | Pure functions: learning criterion, review ladder, exam cap, queue (shuffled), delayed-recall metric, `Session` (misses go to the END of the queue) |
 | `js/grade.js` | Answer matching: typed, cloze, order, set (any order) |
@@ -43,6 +44,7 @@ The design, and the paper behind each learning rule, are in `docs/superpowers/sp
 | `js/tree.js` | Trees: auto-oriented drawing, node diff, and the tree answer types `tree` (build), `swaps` (heap repair, checked per swap), `fill` (type blank nodes), `path` (tap in order). Formats in its header. `heap`/`tree` on any other card is drawn under the question |
 | `vendor/pretext-0.0.9.min.js`, `vendor/katex/` | Text fitting; math rendering |
 | `tools/fit-sweep.js` | Headless fit check of every card at a given viewport |
+| `tools/screens.js` | Screenshots of every screen and card type, asking and answered (`<outDir> <w> <h>`), for design review |
 | `tools/help-check.js` | Headless render of every Help page in a class (`<deck> <w> <h> [shotDir id...]`): math errors, raw `$`, stray backticks, sideways scroll, page errors; exit 0 = clean |
 
 Rebuild Pretext (only to change the version):

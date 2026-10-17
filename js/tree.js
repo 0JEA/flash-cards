@@ -2,7 +2,18 @@
 // for answering, and node-by-node comparison for grading.
 //
 // Tree data: { label: '<expr>', kids: [ ... ] }   (`sym` is accepted as an alias of `label`)
-// Labels are plain text (grammar symbols); with opts.math they may contain $...$ (KaTeX).
+// Optional node fields: id (what a 'path' answer records; heaps use the 1-based index),
+// note (small corner badge, e.g. the heap index), blank: true + answer: '…' ('fill' cards).
+// Labels may contain $...$ (rendered by KaTeX in classes with math on).
+//
+// Card types that answer ON a tree (see js/app.js):
+//   tree   build it: { start, palette: [labels], answer: tree }
+//   swaps  heap repair, one checked swap at a time: { heap: [values], swaps: [[i, j], ...], answer: [final values] }
+//   fill   type the blank nodes: { tree (with blank nodes) } or { heap: [final values], blanks: [indices] }
+//   path   tap nodes in order: { tree or heap, answer: [ids in order] }
+// Any other card type with `tree` or `heap` gets the tree drawn under its question.
+// Heaps are drawn top-down with their array underneath; other trees pick the orientation
+// that fits the screen best.
 (function (FC) {
   'use strict';
 
@@ -86,10 +97,14 @@
     const els = nodes.map(n => {
       const el = document.createElement(opts.onSelect ? 'button' : 'div');
       if (opts.onSelect) { el.type = 'button'; el.addEventListener('click', () => opts.onSelect(n.path)); }
-      el.className = 'ftree-node' + (opts.wrong && opts.wrong.has(n.path) ? ' wrong' : '') + (opts.selected === n.path ? ' selected' : '');
+      el.className = 'ftree-node' + (opts.wrong && opts.wrong.has(n.path) ? ' wrong' : '') + (opts.selected === n.path ? ' selected' : '')
+        + (opts.classOf ? ' ' + (opts.classOf(n) || '') : '');
       const content = opts.render ? opts.render(n.label) : [n.label];
       el.append(...content.map(c => c instanceof Node ? c : document.createTextNode(c || ' ')));
       if (!n.label) el.classList.add('empty');
+      // Small corner badge: a heap index (t.note) or e.g. the order a node was tapped.
+      const badge = opts.badge ? opts.badge(n) : n.t.note;
+      if (badge != null && badge !== '') { const b = document.createElement('span'); b.className = 'ftree-badge'; b.textContent = badge; el.append(b); }
       inner.append(el);
       return [n, el];
     });
@@ -117,7 +132,7 @@
       const availW = box.clientWidth || dims('v').W;
       const availH = opts.fill ? box.clientHeight || dims('v').H : opts.maxHeight || Infinity;
       const scale = o => { const { W, H } = dims(o); return Math.min(1, availW / W, availH / H); };
-      const o = scale('h') > scale('v') * 1.05 ? 'h' : 'v';
+      const o = opts.orient || (scale('h') > scale('v') * 1.05 ? 'h' : 'v');
       // An editing canvas never shrinks below minScale: past that it scrolls, like a text box.
       const sc = Math.max(scale(o), opts.minScale || 0);
       if (o !== last) { place(o); last = o; }
@@ -209,6 +224,147 @@
     return { el, value: () => clone(tree), refit: () => { const d = view.firstChild; if (d && d.fit) d.fit(); }, focus: () => input.focus() };
   }
 
+  // ── Heaps: array <-> tree ──────────────────────────────────────────────
+  // heapTree([16, 14, 10]) -> root 16 (index 1) with children 14 (2) and 10 (3). Node ids are
+  // the 1-based array indices (her convention: Left(i) = 2i, Right(i) = 2i + 1).
+  function heapTree(arr, n = arr.length, blanks) {
+    const make = i => ({ label: blanks && blanks.includes(i) ? '' : String(arr[i - 1]), note: String(i), id: i, blank: !!(blanks && blanks.includes(i)), answer: String(arr[i - 1]),
+      kids: [2 * i, 2 * i + 1].filter(c => c <= n).map(make) });
+    return make(1);
+  }
+  const nodeAt = (tree, path) => path.split('.').slice(1).reduce((t, i) => kidsOf(t)[+i], tree);
+  const allNodes = tree => layout(tree).nodes;
+
+  function stripOf(arr, cls) {
+    const strip = document.createElement('div');
+    strip.className = 'hstrip';
+    arr.forEach((v, i) => {
+      const c = document.createElement('div');
+      c.className = 'hcell ' + (cls ? cls(i + 1) || '' : '');
+      const iv = document.createElement('span'); iv.className = 'hidx'; iv.textContent = i + 1;
+      c.append(String(v), iv);
+      strip.append(c);
+    });
+    return strip;
+  }
+
+  // Swap mode: the student restores a heap one swap at a time. Each swap is checked at once
+  // against the expected sequence; a wrong one is not applied. After two misses on the same
+  // step the right pair is highlighted.
+  // opts: { heap: [values], swaps: [[i, j], ...] (1-based), render, onChange }
+  function swapper(opts) {
+    const a = opts.heap.slice();
+    const want = opts.swaps;
+    let k = 0, errors = 0, misses = 0, sel = null, flash = null, hint = null;
+    const el = document.createElement('div'); el.className = 'tbuild';
+    const view = document.createElement('div'); view.className = 'tbuild-view';
+    const status = document.createElement('div'); status.className = 'tbuild-hint';
+    el.append(view, status);
+    const same = (p, q) => (p[0] === q[0] && p[1] === q[1]) || (p[0] === q[1] && p[1] === q[0]);
+    function attempt(i, j) {
+      const exp = want[k];
+      if (exp && same([i, j], exp)) {
+        [a[i - 1], a[j - 1]] = [a[j - 1], a[i - 1]];
+        k++; misses = 0; hint = null; flash = { ok: [i, j] };
+      } else {
+        errors++; misses++; flash = { bad: [i, j] };
+        if (misses >= 2 && exp) hint = exp;
+      }
+      sel = null; paint();
+      setTimeout(() => { flash = null; paint(); }, 700);
+    }
+    function onSelect(path) {
+      const i = nodeAt(heapTree(a), path).id;
+      if (k >= want.length) return;
+      if (sel == null) sel = i; else if (sel === i) sel = null; else return attempt(sel, i);
+      paint();
+    }
+    const cls = i => [sel === i ? 'selected' : '', hint && hint.includes(i) ? 'hint' : '',
+      flash && flash.ok && flash.ok.includes(i) ? 'swapped' : '', flash && flash.bad && flash.bad.includes(i) ? 'wrong' : ''].join(' ');
+    function paint() {
+      const d = draw(heapTree(a), { render: opts.render, onSelect, classOf: n => cls(n.t.id), fill: true, share: 0.3, orient: 'v' });
+      view.replaceChildren(d, stripOf(a, cls));
+      d.fit();
+      status.textContent = k >= want.length ? `Done: ${k} swap${k === 1 ? '' : 's'}` + (errors ? `, ${errors} wrong tr${errors === 1 ? 'y' : 'ies'}` : '')
+        : `Tap two nodes to swap them.` + (k || errors ? ` ${k} swap${k === 1 ? '' : 's'} so far` + (errors ? `, ${errors} wrong` : '') + '.' : '');
+      if (opts.onChange) opts.onChange();
+    }
+    paint();
+    return { el, value: () => ({ done: k >= want.length, errors, k, heap: a.slice() }), ready: () => k > 0 || errors > 0 };
+  }
+
+  // Fill mode: the tree's shape is given; blank nodes (blank: true; their `answer` is the
+  // right label) are filled by tapping them and typing. Enter moves to the next blank.
+  // opts: { tree, render, onChange }
+  function filler(opts) {
+    const tree = opts.tree;
+    const blanks = allNodes(tree).filter(n => n.t.blank).sort((p, q) => p.depth - q.depth || p.x - q.x).map(n => n.path);
+    const vals = new Map();
+    let sel = blanks[0];
+    const el = document.createElement('div'); el.className = 'tbuild';
+    const view = document.createElement('div'); view.className = 'tbuild-view';
+    const row = document.createElement('div'); row.className = 'tbuild-row';
+    const input = document.createElement('input');
+    Object.assign(input, { type: 'text', autocomplete: 'off', spellcheck: false });
+    input.className = 'tbuild-input';
+    input.setAttribute('aria-label', 'Value for the selected node');
+    row.append(input);
+    el.append(view, row);
+    const shown = t => ({ ...t, label: t.blank ? '' : t.label, kids: kidsOf(t).map(shown) });
+    function display() {
+      const copy = shown(tree);
+      for (const [p, v] of vals) nodeAt(copy, p).label = v;
+      return copy;
+    }
+    function set(v) {
+      v = String(v).trim();
+      if (!sel) return;
+      if (v) vals.set(sel, v); else vals.delete(sel);
+      const next = blanks.find(p => !vals.has(p) && p !== sel) || null;
+      if (next) sel = next;
+      paint();
+    }
+    input.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey) { e.preventDefault(); e.stopPropagation(); set(input.value); input.value = ''; } });
+    function paint() {
+      const d = draw(display(), { render: opts.render, selected: sel, onSelect: p => { if (blanks.includes(p)) { sel = p; input.value = vals.get(p) || ''; paint(); input.focus(); } },
+        classOf: n => blanks.includes(n.path) ? 'blank' : '', fill: true, share: 0.34, minScale: 0.75, orient: opts.orient || 'v' });
+      view.replaceChildren(d);
+      d.fit();
+      const left = blanks.filter(p => !vals.has(p)).length;
+      input.placeholder = sel ? (left ? `Value for the selected node (${left} blank${left === 1 ? '' : 's'} left)` : 'All filled: change any by tapping it') : '';
+      if (opts.onChange) opts.onChange();
+    }
+    paint();
+    return { el, value: () => Object.fromEntries(vals), ready: () => blanks.every(p => vals.has(p)), focus: () => input.focus() };
+  }
+  // Grade a fill: the paths whose typed value differs from the node's answer.
+  function fillMistakes(tree, vals) {
+    return new Set(allNodes(tree).filter(n => n.t.blank && norm(vals[n.path] || '') !== norm(n.t.answer != null ? n.t.answer : n.t.label)).map(n => n.path));
+  }
+  const filledTree = t => ({ ...t, label: t.blank ? String(t.answer != null ? t.answer : t.label) : t.label, kids: kidsOf(t).map(filledTree) });
+
+  // Path mode: tap nodes in order (e.g. the elements a search compares). Tap the last one
+  // again to take it back. value() = the tapped nodes' ids (t.id, else the path).
+  function pather(opts) {
+    const tree = opts.tree;
+    const seq = [];
+    const el = document.createElement('div'); el.className = 'tbuild';
+    const view = document.createElement('div'); view.className = 'tbuild-view';
+    const status = document.createElement('div'); status.className = 'tbuild-hint';
+    el.append(view, status);
+    const idOf = p => { const t = nodeAt(tree, p); return t.id != null ? t.id : p; };
+    function paint() {
+      const d = draw(tree, { render: opts.render, onSelect: p => { if (seq[seq.length - 1] === p) seq.pop(); else if (!seq.includes(p)) seq.push(p); paint(); },
+        classOf: n => seq.includes(n.path) ? 'picked' : '', badge: n => seq.includes(n.path) ? String(seq.indexOf(n.path) + 1) : n.t.note, fill: true, share: 0.34, orient: opts.orient || 'v' });
+      view.replaceChildren(d);
+      d.fit();
+      status.textContent = seq.length ? `${seq.length} tapped. Tap the last one again to take it back.` : 'Tap the nodes in order.';
+      if (opts.onChange) opts.onChange();
+    }
+    paint();
+    return { el, value: () => seq.map(idOf), ready: () => seq.length > 0 };
+  }
+
   // Indented outline <-> tree (for data entry and old outline answers).
   function fromOutline(text) {
     const lines = String(text).split('\n').filter(l => l.trim());
@@ -223,5 +379,6 @@
     return root.kids[0] || root;
   }
 
-  FC.tree = { layout, draw, builder, diff, equal, mistakesOn, fromOutline, labelOf, kidsOf };
+  FC.tree = { layout, draw, builder, diff, equal, mistakesOn, fromOutline, labelOf, kidsOf,
+    heapTree, stripOf, swapper, filler, fillMistakes, filledTree, pather, nodeAt };
 })(globalThis.FC = globalThis.FC || {});

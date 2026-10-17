@@ -590,6 +590,11 @@
     $('qprompt').replaceChildren(...math(card.prompt));
     $('qcode').hidden = !card.code;
     $('qcode').textContent = card.code || '';
+    // A heap array or tree that the question is ABOUT (interactive types draw their own).
+    const showTree = !['swaps', 'fill', 'path', 'tree'].includes(card.type) && (card.heap || card.tree);
+    $('qtree').replaceChildren(...(showTree ? [FC.tree.draw(card.tree || FC.tree.heapTree(card.heap), { render: math, maxHeight: Math.round(innerHeight * 0.28), orient: card.heap ? 'v' : undefined }),
+      card.heap && !card.tree ? FC.tree.stripOf(card.heap) : null].filter(Boolean) : []));
+    $('qtree').hidden = !showTree;
   }
 
   // ── Pretext: fit the study screen to the window ──────────────────────
@@ -781,10 +786,19 @@
       b.el.addEventListener('keydown', e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); e.stopPropagation(); submit(!e.shiftKey); } });
       read = () => { const t = b.value(); return { given: t, ready: !!(t.kids && t.kids.length) }; };
       wrap.refitTree = b.refit;
+    } else if (card.type === 'swaps' || card.type === 'fill' || card.type === 'path') {
+      // Heaps and other trees, answered on the tree itself (js/tree.js).
+      const onChange = () => { if (read) { updateReady(); refit(); } };
+      const w = card.type === 'swaps' ? FC.tree.swapper({ heap: card.heap, swaps: card.swaps, render: math, onChange })
+        : card.type === 'fill' ? FC.tree.filler({ tree: fillTreeOf(card), render: math, onChange })
+        : FC.tree.pather({ tree: card.tree || FC.tree.heapTree(card.heap), render: math, onChange });
+      wrap.append(w.el);
+      w.el.addEventListener('keydown', e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); e.stopPropagation(); submit(!e.shiftKey); } });
+      read = () => ({ given: w.value(), ready: w.ready() });
     }
 
-    const sureBtn = h('button', { class: 'btn primary', onclick: () => submit(true) }, 'Sure', h('span', { class: 'kbd' }, card.type === 'recall' || card.type === 'tree' ? 'Ctrl+⏎' : '⏎'));
-    const guessBtn = h('button', { class: 'btn', onclick: () => submit(false) }, 'Guess', h('span', { class: 'kbd' }, card.type === 'recall' || card.type === 'tree' ? 'Ctrl+⇧⏎' : '⇧⏎'));
+    const sureBtn = h('button', { class: 'btn primary', onclick: () => submit(true) }, 'Sure', h('span', { class: 'kbd' }, card.type === 'recall' || card.type === 'tree' || card.type === 'fill' ? 'Ctrl+⏎' : '⏎'));
+    const guessBtn = h('button', { class: 'btn', onclick: () => submit(false) }, 'Guess', h('span', { class: 'kbd' }, card.type === 'recall' || card.type === 'tree' || card.type === 'fill' ? 'Ctrl+⇧⏎' : '⇧⏎'));
     const idkBtn = h('button', { class: 'btn', onclick: () => giveUp() }, 'I don’t know');
     $('actions').replaceChildren(h('div', { class: 'btn-row' }, idkBtn, guessBtn, sureBtn));
     function updateReady() { const r = read().ready; sureBtn.disabled = !r; guessBtn.disabled = !r; }
@@ -795,6 +809,8 @@
     return wrap;
   }
 
+  const fillTreeOf = card => card.tree || FC.tree.heapTree(card.heap, card.heap.length, card.blanks);
+
   function isCorrect(card, given) {
     if (card.type === 'typed') return grade.typed(given, card);
     if (card.type === 'cloze') return grade.cloze(given, card.answer);
@@ -802,6 +818,9 @@
     if (card.type === 'order') return grade.order(given, card.answer);
     if (card.type === 'set') return grade.set(given, card);
     if (card.type === 'tree') return FC.tree.equal(given, card.answer);
+    if (card.type === 'swaps') return given.done && given.errors === 0;
+    if (card.type === 'fill') return FC.tree.fillMistakes(fillTreeOf(card), given).size === 0;
+    if (card.type === 'path') return given.length === card.answer.length && given.every((x, i) => String(x) === String(card.answer[i]));
     return null; // recall: self-graded
   }
 
@@ -850,7 +869,27 @@
     }
     // A recall answer that is just its checklist (e.g. a memory diagram) is shown once, as the checklist.
     const answerIsChecklist = selfGrade && card.points && card.points.join('\n') === String(card.answer);
-    if (card.type === 'tree') {
+    if (card.type === 'swaps' || card.type === 'fill' || card.type === 'path') {
+      fb.classList.add('fb-fill');
+      let tree, opts = { render: math, fill: true, orient: 'v' }, label = 'Answer', strip = null;
+      if (card.type === 'swaps') {
+        tree = FC.tree.heapTree(card.answer);
+        label = p.gaveUp ? 'The heap after the swaps' : !p.given.done ? `You stopped after ${p.given.k} of ${card.swaps.length} swaps. The heap after all of them:`
+          : p.given.errors ? `Finished, with ${p.given.errors} wrong tr${p.given.errors === 1 ? 'y' : 'ies'} on the way. The heap:` : 'The heap after the swaps';
+        strip = FC.tree.stripOf(card.answer);
+      } else if (card.type === 'fill') {
+        tree = FC.tree.filledTree(fillTreeOf(card));
+        if (!p.gaveUp && !p.ok) { opts.wrong = FC.tree.fillMistakes(fillTreeOf(card), p.given); label = 'Answer (red = yours differs)'; }
+      } else {
+        tree = card.tree || FC.tree.heapTree(card.heap);
+        const ids = FC.tree.layout(tree).nodes.map(n => [n.path, n.t.id != null ? n.t.id : n.path]);
+        const order = new Map(card.answer.map((id, i) => [String(id), i + 1]));
+        opts.badge = n => { const id = String(ids.find(x => x[0] === n.path)[1]); return order.has(id) ? String(order.get(id)) : n.t.note; };
+        opts.classOf = n => order.has(String(ids.find(x => x[0] === n.path)[1])) ? 'picked' : '';
+        label = 'The right order (numbered)';
+      }
+      fb.append(h('div', { class: 'fb-block fb-tree' }, h('div', { class: 'label' }, label), FC.tree.draw(tree, opts), strip));
+    } else if (card.type === 'tree') {
       // One tree: the right one, with red where yours has a different node or none.
       const m = !p.ok && p.given && p.given.kids && p.given.kids.length ? FC.tree.mistakesOn(p.given, card.answer) : null;
       const label = !m ? 'Answer' : `Answer (red = where yours differs${m.extra ? `; yours also has ${m.extra} extra node${m.extra > 1 ? 's' : ''}` : ''})`;
@@ -863,7 +902,7 @@
     }
     // Generated problems can carry a graph drawn from this instance's own numbers.
     if (card.graph) fb.append(h('div', { class: 'fb-block' }, plot(card.graph, true)));
-    if (card.tree) fb.append(h('div', { class: 'fb-block' }, drawTree(card.tree)));
+    if (card.rtree) fb.append(h('div', { class: 'fb-block' }, drawTree(card.rtree)));
     if (card.blank && card.basis === 'inferred') {
       fb.append(h('div', { class: 'alert', 'data-fit': '' }, 'Best guess. Check your notes.'));
     }
@@ -944,7 +983,7 @@
     if (typing) return;
     const ui = current.ui;
     if (current.card.type === 'mc' && /^[1-9]$/.test(e.key) && +e.key <= ui.optCount) ui.pick(+e.key - 1);
-    if (e.key === 'Enter' && (current.card.type === 'mc' || current.card.type === 'order')) { e.preventDefault(); submit(!e.shiftKey); }
+    if (e.key === 'Enter' && ['mc', 'order', 'swaps', 'path'].includes(current.card.type)) { e.preventDefault(); submit(!e.shiftKey); }
   });
 
   // ── Settings + sync ────────────────────────────────────────────────────

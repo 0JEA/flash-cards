@@ -30,3 +30,20 @@ test('layout: leaves take consecutive slots, parents centre over their children'
 test('fromOutline: indentation gives the shape', () => {
   assert.ok(T.equal(T.fromOutline('<expr>\n  <term>\n    a\n  +\n  <expr>\n    <term>\n      b'), ans));
 });
+
+test('heapTree: node i has children 2i and 2i+1, ids and index notes are 1-based', () => {
+  const t = T.heapTree([16, 14, 10, 8, 7]);
+  assert.equal(t.id, 1); assert.equal(t.label, '16');
+  assert.deepEqual(t.kids.map(k => k.id), [2, 3]);
+  assert.deepEqual(t.kids[0].kids.map(k => [k.id, k.label]), [[4, '8'], [5, '7']]);
+  assert.equal(t.kids[1].kids.length, 0);
+});
+test('fill: blanks are graded against their answers; filledTree restores every label', () => {
+  const t = T.heapTree([16, 14, 10, 8, 7], 5, [2, 5]);
+  const paths = T.layout(t).nodes.filter(n => n.t.blank).map(n => n.path);
+  assert.deepEqual(paths, ['0.0', '0.0.1']);
+  assert.equal(T.fillMistakes(t, { '0.0': '14', '0.0.1': ' 7 ' }).size, 0);
+  assert.deepEqual([...T.fillMistakes(t, { '0.0': '14', '0.0.1': '8' })], ['0.0.1']);
+  assert.deepEqual([...T.fillMistakes(t, { '0.0': '14' })], ['0.0.1']);
+  assert.ok(T.equal(T.filledTree(t), T.heapTree([16, 14, 10, 8, 7])));
+});

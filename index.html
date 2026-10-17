@@ -164,7 +164,8 @@
     .prompt { font-size: calc(1.05rem * var(--fit-q, 1)); line-height: 1.55; margin-top: 0.45rem; white-space: pre-wrap; font-weight: 500; }
     pre.code { font-family: var(--mono); font-size: calc(0.8rem * var(--fit-q, 1)); line-height: 1.5;
       background: var(--bg); border-radius: var(--radius-sm); padding: 0.8rem 0.95rem; margin-top: 0.85rem; white-space: pre-wrap; overflow-wrap: anywhere; }
-    .answer-area { flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+    .answer-area { flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; }
+    .answer-area > .answer-area-inner { flex: 1 0 auto; min-height: 0; }
     .answer-area > * + *, .answer-area-inner > * + * { margin-top: 0.75rem; }
     .answer-area-inner { min-height: 100%; display: flex; flex-direction: column; }
     .answer-area-inner > textarea { flex: 1 1 auto; resize: none; }
@@ -272,6 +273,20 @@
     .ftree.fill { height: 100%; min-height: 110px; }
     .ftree.fill.scrolls { height: 0; flex: 1 1 auto; }
     .tbuild { flex: 1 1 auto; min-height: 0; }
+    .qtree { margin-top: 0.7rem; }
+    .ftree-badge { position: absolute; top: -0.55rem; right: -0.45rem; font: 600 0.62rem/1 var(--font); color: var(--text-2); background: var(--surface);
+      border: 1px solid var(--border); border-radius: 999px; padding: 0.12rem 0.28rem; }
+    .ftree-node { overflow: visible; }
+    .ftree-node.blank { border-style: dashed; border-color: var(--accent); min-width: 2.2rem; min-height: 1.6rem; }
+    .ftree-node.hint { border-color: var(--warn); box-shadow: 0 0 0 3px oklch(0.82 0.12 85 / 0.25); }
+    .ftree-node.swapped { border-color: var(--correct); background: var(--correct-soft); }
+    .ftree-node.picked { border-color: var(--accent); background: var(--accent-soft); }
+    .hstrip { display: flex; gap: 3px; justify-content: center; margin-top: 0.5rem; flex-wrap: wrap; }
+    .hcell { position: relative; min-width: 2rem; padding: 0.25rem 0.35rem 0.5rem; text-align: center; font: 500 0.82rem var(--mono);
+      background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; }
+    .hcell .hidx { position: absolute; left: 0; right: 0; bottom: 1px; font: 500 0.55rem var(--font); color: var(--text-3); }
+    .hcell.selected { border-color: var(--accent); } .hcell.hint { border-color: var(--warn); }
+    .hcell.swapped { border-color: var(--correct); background: var(--correct-soft); } .hcell.wrong { border-color: var(--wrong); background: var(--wrong-soft); }
     .tbuild-view { flex: 1 1 auto; display: flex; flex-direction: column; }
     .tbuild-view > .ftree { flex: 1 1 auto; }
     .feedback.fb-fill { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
@@ -441,6 +456,7 @@
             <span class="label" id="qlabel"></span>
             <div class="prompt" id="qprompt" data-fit="pre"></div>
             <pre class="code" id="qcode" data-fit="pre" hidden></pre>
+            <div id="qtree" class="qtree" hidden></div>
           </div>
         </div>
         <div class="answer-area" id="answerArea"></div>

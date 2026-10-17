@@ -23,6 +23,14 @@ test('card ids are unique and every card has the fields its type needs', () => {
       assert.ok(c.answer && c.answer.label && labels.length > 1, `${c.id}: tree needs an answer tree`);
       for (const l of labels) assert.ok(!c.palette || ok.has(l), `${c.id}: label ${l} can't be built from start/palette`);
     }
+    else if (c.type === 'swaps') {
+      // Replaying the swaps on the start heap must give the stated final heap.
+      assert.ok(Array.isArray(c.heap) && Array.isArray(c.swaps) && c.swaps.length && Array.isArray(c.answer), `${c.id}: swaps needs heap, swaps, answer`);
+      const a = c.heap.slice(); for (const [i, j] of c.swaps) [a[i - 1], a[j - 1]] = [a[j - 1], a[i - 1]];
+      assert.deepEqual(a, c.answer, `${c.id}: swaps do not produce the answer`);
+    }
+    else if (c.type === 'fill') assert.ok(c.tree || (c.heap && c.blanks && c.blanks.length), `${c.id}: fill needs a tree with blanks or heap + blanks`);
+    else if (c.type === 'path') assert.ok((c.tree || c.heap) && Array.isArray(c.answer) && c.answer.length, `${c.id}: path needs a tree/heap and an answer sequence`);
     else if (c.type === 'order') assert.ok(Array.isArray(c.answer) && c.answer.length >= 3 && new Set(c.answer).size === c.answer.length, `${c.id}: order needs 3+ distinct tiles`);
     else assert.fail(`${c.id}: unknown type ${c.type}`);
   }

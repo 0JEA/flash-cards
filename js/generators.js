@@ -18,6 +18,11 @@
 //       - `why` should show the worked solution for THIS problem (the steps, not just the result)
 //       - optional `graph` (format in decks/csc310-help.js) drawn from THIS problem's numbers;
 //         shown compactly under the answer once the student has answered
+//       - optional `rtree` (recursion-tree diagram, the `tree` format in decks/csc310-help.js)
+//       - tree answers: type 'tree' (build it), 'swaps' (heap: heap, swaps [[i,j]], answer array),
+//         'fill' (tree with blank:true nodes + answer labels, or heap + blanks [indices]),
+//         'path' (tree or heap + answer [node ids in order]); a `tree`/`heap` on any other
+//         type is drawn in the question. Formats: js/tree.js
 //     assignment: ['a1']   optional: which assignments this skill practises (By assignment view)
 //   }
 // rng() returns a float in [0, 1). Helpers below cover the usual needs.

@@ -380,8 +380,8 @@
   }
   const fmt = v => Math.abs(v) >= 1e6 ? v.toExponential(0).replace('+', '') : String(+v.toPrecision(6));
 
-  function plot(g) {
-    const W = 640, H = 344, L = 52, R = 14, T = 16, B = 48;
+  function plot(g, compact) {
+    const W = 640, H = compact ? 260 : 344, L = compact ? 70 : 52, R = 14, T = 16, B = compact ? 56 : 48;
     const [x0, x1] = g.x;
     const xs = Array.from({ length: 241 }, (_, i) => x0 + (x1 - x0) * i / 240);
     const curves = (g.curves || []).map(c => ({ ...c, pts: xs.map(x => [x, c.f(x)]) }));
@@ -404,7 +404,7 @@
     const xstep = niceStep(x1 - x0);
     for (let v = Math.ceil(x0 / xstep) * xstep; v <= x1 + 1e-9; v += xstep) {
       svg.append(s('line', { class: 'grid', x1: sx(v), x2: sx(v), y1: T, y2: H - B }));
-      const t = s('text', { x: sx(v), y: H - B + 18, 'text-anchor': 'middle' }); t.textContent = fmt(v); svg.append(t);
+      const t = s('text', { x: sx(v), y: H - B + (compact ? 26 : 18), 'text-anchor': 'middle' }); t.textContent = fmt(v); svg.append(t);
     }
     const yticks = [];
     if (g.logY) for (let e = Math.ceil(ly0); e <= Math.floor(ly1); e++) yticks.push(10 ** e);
@@ -413,7 +413,7 @@
     for (const v of yticks) {
       svg.append(s('line', { class: 'grid', x1: L, x2: W - R, y1: sy(v), y2: sy(v) }));
       const e = Math.round(Math.log10(v));
-      const t = s('text', { x: L - 6, y: sy(v) + 4, 'text-anchor': 'end' });
+      const t = s('text', { x: L - 6, y: sy(v) + (compact ? 7 : 4), 'text-anchor': 'end' });
       t.textContent = g.logY && Math.abs(e) >= 3 ? '10' + sup(e) : fmt(v); svg.append(t);
     }
     svg.append(s('line', { class: 'axis', x1: L, x2: W - R, y1: H - B, y2: H - B }), s('line', { class: 'axis', x1: L, x2: L, y1: T, y2: H - B }));
@@ -438,7 +438,32 @@
     const marks = h('div', { class: 'graph-marks' }, (g.marks || []).map(m => h('div', { class: 'graph-mark', style: `left:${(sx(m.x) / W * 100).toFixed(2)}%` }, helpMath(m.label || ''))));
     const legend = h('div', { class: 'legend' }, curves.map(c => h('span', null, h('span', { class: 'sw tone-' + (c.tone || 'a') }), helpMath(c.label || ''))),
       g.bars ? h('span', null, h('span', { class: 'sw tone-' + (g.bars.tone || 'b') }), helpMath(g.bars.label || '')) : null);
-    return h('figure', { class: 'graph' }, svg, marks, legend, g.caption ? h('figcaption', { class: 'graph-cap' }, helpMath(g.caption)) : null);
+    return h('figure', { class: 'graph' + (compact ? ' fb-graph' : '') }, svg, marks, legend, g.caption ? h('figcaption', { class: 'graph-cap' }, helpMath(g.caption)) : null);
+  }
+
+  // Recursion-tree diagram: each level is a row of node labels (TeX) with that level's total
+  // on the right; a level with `gap: true` is drawn as a vertical ellipsis. Each node joins
+  // the parent above it in proportion (child k of m under parent floor(k·p/m) of p).
+  function drawTree(t) {
+    const rowH = 54, levels = t.levels, H = levels.length * rowH;
+    const hasSums = levels.some(l => l.sum);
+    const left = hasSums ? 74 : 100; // % of width for the tree itself
+    const pos = levels.map((l, r) => (l.gap ? [] : l.nodes).map((_, k, a) => ({ x: (k + 0.5) / a.length * left, y: r * rowH + rowH / 2 })));
+    const svg = s('svg', { viewBox: `0 0 100 ${H}`, preserveAspectRatio: 'none', class: 'tree-edges' });
+    for (let r = 1; r < levels.length; r++) {
+      const up = pos[r - 1], down = pos[r];
+      if (!up.length || !down.length) continue;
+      down.forEach((c, k) => { const p = up[Math.min(up.length - 1, Math.floor(k * up.length / down.length))];
+        svg.append(s('line', { x1: p.x, y1: p.y + 12, x2: c.x, y2: c.y - 12, 'vector-effect': 'non-scaling-stroke' })); });
+    }
+    const box = h('div', { class: 'tree-fig', style: `height:${H}px` }, svg);
+    levels.forEach((l, r) => {
+      if (l.gap) box.append(h('div', { class: 'tree-node tree-gap', style: `left:${left / 2}%;top:${r * rowH + rowH / 2}px` }, '⋮'));
+      else l.nodes.forEach((lab, k) => box.append(h('div', { class: 'tree-node', style: `left:${pos[r][k].x}%;top:${pos[r][k].y}px` }, helpMath(lab))));
+      if (l.sum) box.append(h('div', { class: 'tree-sum', style: `top:${r * rowH + rowH / 2}px` }, l.gap ? '⋮' : helpMath(l.sum)));
+    });
+    return h('figure', { class: 'graph tree-graph' }, t.sumsLabel && hasSums ? h('div', { class: 'tree-head' }, helpMath(t.sumsLabel)) : null, box,
+      t.caption ? h('figcaption', { class: 'graph-cap' }, helpMath(t.caption)) : null);
   }
 
   function helpStep(st) {
@@ -460,7 +485,7 @@
     if (card.code) body.push(h('pre', { class: 'code' }, card.code));
     body.push(sec('What it’s asking', h('p', null, helpMath(help.asks))));
     if (help.idea) body.push(sec('The idea', h('p', null, helpMath(help.idea))));
-    if (help.graph) body.push(sec('Picture it', plot(help.graph)));
+    if (help.tree || help.graph) body.push(sec('Picture it', help.tree ? drawTree(help.tree) : null, help.tree && help.graph ? h('div', { style: 'height:0.75rem' }) : null, help.graph ? plot(help.graph) : null));
     if (help.steps) body.push(sec('Step by step', h('ol', { class: 'help-steps' }, help.steps.map(helpStep))));
     if (help.answer) body.push(sec('Answer', h('div', { class: 'help-answer' }, helpMath(help.answer))));
     if (help.mistake) body.push(sec('Watch out', h('div', { class: 'help-mistake' }, helpMath(help.mistake))));
@@ -749,10 +774,17 @@
       wrap.append(ans, src);
       read = () => ({ given: placed.slice(), ready: pool.length === 0 });
       wrap.draw = draw;
+    } else if (card.type === 'tree') {
+      // Build the tree: tap a node to select it, tap a symbol (or type one + Enter) to add a child.
+      const b = FC.tree.builder({ start: card.start, palette: card.palette, render: math, onChange: () => { if (read) { updateReady(); refit(); } } });
+      wrap.append(b.el);
+      b.el.addEventListener('keydown', e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); e.stopPropagation(); submit(!e.shiftKey); } });
+      read = () => { const t = b.value(); return { given: t, ready: !!(t.kids && t.kids.length) }; };
+      wrap.refitTree = b.refit;
     }
 
-    const sureBtn = h('button', { class: 'btn primary', onclick: () => submit(true) }, 'Sure', h('span', { class: 'kbd' }, card.type === 'recall' ? 'Ctrl+⏎' : '⏎'));
-    const guessBtn = h('button', { class: 'btn', onclick: () => submit(false) }, 'Guess', h('span', { class: 'kbd' }, card.type === 'recall' ? 'Ctrl+⇧⏎' : '⇧⏎'));
+    const sureBtn = h('button', { class: 'btn primary', onclick: () => submit(true) }, 'Sure', h('span', { class: 'kbd' }, card.type === 'recall' || card.type === 'tree' ? 'Ctrl+⏎' : '⏎'));
+    const guessBtn = h('button', { class: 'btn', onclick: () => submit(false) }, 'Guess', h('span', { class: 'kbd' }, card.type === 'recall' || card.type === 'tree' ? 'Ctrl+⇧⏎' : '⇧⏎'));
     const idkBtn = h('button', { class: 'btn', onclick: () => giveUp() }, 'I don’t know');
     $('actions').replaceChildren(h('div', { class: 'btn-row' }, idkBtn, guessBtn, sureBtn));
     function updateReady() { const r = read().ready; sureBtn.disabled = !r; guessBtn.disabled = !r; }
@@ -769,6 +801,7 @@
     if (card.type === 'mc') return given === card.answer;
     if (card.type === 'order') return grade.order(given, card.answer);
     if (card.type === 'set') return grade.set(given, card);
+    if (card.type === 'tree') return FC.tree.equal(given, card.answer);
     return null; // recall: self-graded
   }
 
@@ -817,10 +850,20 @@
     }
     // A recall answer that is just its checklist (e.g. a memory diagram) is shown once, as the checklist.
     const answerIsChecklist = selfGrade && card.points && card.points.join('\n') === String(card.answer);
-    if (!(card.type === 'mc' && p.ok) && !answerIsChecklist) {
+    if (card.type === 'tree') {
+      // One tree: the right one, with red where yours has a different node or none.
+      const m = !p.ok && p.given && p.given.kids && p.given.kids.length ? FC.tree.mistakesOn(p.given, card.answer) : null;
+      const label = !m ? 'Answer' : `Answer (red = where yours differs${m.extra ? `; yours also has ${m.extra} extra node${m.extra > 1 ? 's' : ''}` : ''})`;
+      fb.classList.add('fb-fill');
+      fb.append(h('div', { class: 'fb-block fb-tree' }, p.gaveUp ? null : h('div', { class: 'label' }, label),
+        FC.tree.draw(card.answer, { render: math, wrong: m ? m.marks : null, fill: true })));
+    } else if (!(card.type === 'mc' && p.ok) && !answerIsChecklist) {
       fb.append(h('div', { class: 'fb-block' }, p.gaveUp ? null : h('div', { class: 'label' }, card.type === 'recall' && !card.blank ? 'Model answer' : 'Answer'),
         h('div', { class: 'val' + mono, 'data-fit': 'pre' }, card.type === 'order' ? numbered(card.answer) : mono ? card.answer : math(Array.isArray(card.answer) ? card.answer.join(', ') : card.answer))));
     }
+    // Generated problems can carry a graph drawn from this instance's own numbers.
+    if (card.graph) fb.append(h('div', { class: 'fb-block' }, plot(card.graph, true)));
+    if (card.tree) fb.append(h('div', { class: 'fb-block' }, drawTree(card.tree)));
     if (card.blank && card.basis === 'inferred') {
       fb.append(h('div', { class: 'alert', 'data-fit': '' }, 'Best guess. Check your notes.'));
     }

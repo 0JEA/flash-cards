@@ -935,8 +935,8 @@ int main(void) { int *p = malloc(sizeof(int)); *p = 4; int *q = p; *q += 1; prin
       points: ['No', 'the 4 must come from <var> or <num>', '<num> only produces 1, 2, 3 (and <var> only letters)'],
       why: 'To show something cannot be derived, show that no rule can produce the missing piece.',
       source: 'Practice item on the Slides 4, slide 12 grammar (like Post Test Translation, Q4c)' },
-    { id: 'l4-parse-tree', lecture: '4', type: 'recall',
-      prompt: 'Draw the parse tree of  c = c + 2 * a  as an indented outline.',
+    { id: 'l4-parse-tree', lecture: '4', type: 'tree',
+      prompt: 'Build the parse tree of  c = c + 2 * a  under this grammar.',
       code: `<program> → <stmts>
 <stmts> → <stmt> | <stmt> ; <stmts>
 <stmt> → <var> = <expr>
@@ -944,22 +944,23 @@ int main(void) { int *p = malloc(sizeof(int)); *p = 4; int *q = p; *q += 1; prin
 <num> → 1 | 2 | 3
 <expr> → <term> + <expr> | <term> * <expr> | <term>
 <term> → <var> | <num>`,
-      answer: `<program>
-  <stmts>
-    <stmt>
-      <var> → c
-      =
-      <expr>
-        <term> → <var> → c
-        +
-        <expr>
-          <term> → <num> → 2
-          *
-          <expr>
-            <term> → <var> → a`,
-      points: ['root <program> → <stmts> → <stmt>', '<stmt> has three children: <var>, =, <expr>', 'the top <expr> has children <term> + <expr>', 'the inner <expr> has children <term> * <expr>', 'the leaves, read left to right, spell c = c + 2 * a'],
+      start: '<program>',
+      palette: ['<stmts>', '<stmt>', '<var>', '<expr>', '<term>', '<num>', '=', '+', '*', ';', 'a', 'b', 'c', 'd', '1', '2', '3'],
+      answer: { label: '<program>', kids: [{ label: '<stmts>', kids: [{ label: '<stmt>', kids: [
+        { label: '<var>', kids: [{ label: 'c', kids: [] }] },
+        { label: '=', kids: [] },
+        { label: '<expr>', kids: [
+          { label: '<term>', kids: [{ label: '<var>', kids: [{ label: 'c', kids: [] }] }] },
+          { label: '+', kids: [] },
+          { label: '<expr>', kids: [
+            { label: '<term>', kids: [{ label: '<num>', kids: [{ label: '2', kids: [] }] }] },
+            { label: '*', kids: [] },
+            { label: '<expr>', kids: [{ label: '<term>', kids: [{ label: '<var>', kids: [{ label: 'a', kids: [] }] }] }] },
+          ] },
+        ] },
+      ] }] }] },
       why: '* sits deeper than +, so it is evaluated first, but only because it comes later in the sentence (compare a * b + c).',
-      source: 'Slides 4, slide 13 (the slide draws the tree; outline form is ours)' },
+      source: 'Slides 4, slide 13 (the slide draws the tree)' },
     { id: 'l4-sample-prec', lecture: '4', type: 'typed',
       prompt: 'Using that same grammar, how is  a * b + c  grouped? Answer with brackets.',
       code: `<expr> → <term> + <expr> | <term> * <expr> | <term>

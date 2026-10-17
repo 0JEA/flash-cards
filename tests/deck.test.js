@@ -16,6 +16,13 @@ test('card ids are unique and every card has the fields its type needs', () => {
     if (c.type === 'recall') assert.ok(c.answer && c.points && c.points.length, `${c.id}: recall needs answer + points`);
     else if (c.type === 'typed') assert.ok(typeof c.answer === 'string' && c.answer, `${c.id}: typed needs answer`);
     else if (c.type === 'mc') assert.ok(c.options && c.options.length >= 1 && c.options.length <= 3, `${c.id}: mc needs 1-3 wrong options (2-4 total)`);
+    else if (c.type === 'tree') {
+      // Buildable: every label in the answer is the start label or on the palette.
+      const labels = []; (function walk(t) { labels.push(t.label); (t.kids || []).forEach(walk); })(c.answer);
+      const ok = new Set([c.start].concat(c.palette || []));
+      assert.ok(c.answer && c.answer.label && labels.length > 1, `${c.id}: tree needs an answer tree`);
+      for (const l of labels) assert.ok(!c.palette || ok.has(l), `${c.id}: label ${l} can't be built from start/palette`);
+    }
     else if (c.type === 'order') assert.ok(Array.isArray(c.answer) && c.answer.length >= 3 && new Set(c.answer).size === c.answer.length, `${c.id}: order needs 3+ distinct tiles`);
     else assert.fail(`${c.id}: unknown type ${c.type}`);
   }

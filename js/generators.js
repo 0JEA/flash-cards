@@ -16,6 +16,9 @@
 //       - make must be pure given rng: same seed → same problem (tests rely on this)
 //       - 'set' answers are arrays graded in any order (comma- or line-separated input)
 //       - `why` should show the worked solution for THIS problem (the steps, not just the result)
+//       - optional `graph` (format in decks/csc310-help.js) drawn from THIS problem's numbers;
+//         shown compactly under the answer once the student has answered
+//     assignment: ['a1']   optional: which assignments this skill practises (By assignment view)
 //   }
 // rng() returns a float in [0, 1). Helpers below cover the usual needs.
 (function (FC) {
@@ -56,12 +59,12 @@
 
   // A schedulable card that stands for the skill. The app calls instance(card) at show time.
   function asCard(g) {
-    return { id: g.id, deck: g.deck, lecture: g.lecture, cat: g.cat, sub: g.sub, type: 'gen', generator: g.id,
+    return { id: g.id, deck: g.deck, lecture: g.lecture, cat: g.cat, sub: g.sub, assignment: g.assignment, type: 'gen', generator: g.id,
       prompt: g.title, why: '', source: 'Generated practice (new problem each time)' };
   }
   function instance(id, seed = (Math.random() * 2 ** 32) >>> 0) {
     const g = registry.get(id);
-    const card = Object.assign({ id: g.id, deck: g.deck, lecture: g.lecture, cat: g.cat, sub: g.sub, generated: true, seed }, g.make(rngFrom(seed)));
+    const card = Object.assign({ id: g.id, deck: g.deck, lecture: g.lecture, cat: g.cat, sub: g.sub, assignment: g.assignment, generated: true, seed }, g.make(rngFrom(seed)));
     if (!card.source) card.source = 'Generated practice (new problem each time)';
     return card;
   }

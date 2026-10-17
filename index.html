@@ -251,6 +251,51 @@
     .legend span.sw { display: inline-block; width: 1.1rem; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 0.45rem; }
     .sw.tone-a { background: var(--accent); } .sw.tone-b { background: var(--wrong); } .sw.tone-c { background: var(--correct); } .sw.tone-d { background: var(--warn); }
     .graph-cap { color: var(--text-2); font-size: 0.9rem; margin-top: 0.5rem; line-height: 1.55; }
+    .tree-fig { position: relative; width: 100%; }
+    .graph svg.tree-edges { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+    .tree-edges line { stroke: var(--text-3); stroke-width: 1.2; }
+    .tree-node { position: absolute; transform: translate(-50%, -50%); background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
+      padding: 0.15rem 0.4rem; font-size: 0.82rem; white-space: nowrap; line-height: 1.3; }
+    .tree-gap { background: none; border: 0; color: var(--text-3); font-size: 1.1rem; }
+    .tree-sum { position: absolute; right: 0; transform: translateY(-50%); width: 25%; text-align: right; color: var(--accent-hover); font-size: 0.85rem; }
+    .tree-head { text-align: right; color: var(--text-2); font-size: 0.8rem; margin-bottom: 0.1rem; }
+    .fb-graph { width: fit-content; max-width: 100%; margin: 0.2rem 0 0; padding: 0.5rem 0.6rem 0.4rem; box-shadow: none; background: var(--bg); }
+    .fb-graph svg { height: 24vh; width: auto; max-width: 100%; }
+    .fb-graph text { font-size: 20px; }
+    .fb-graph .curve { stroke-width: 3.5; }
+    .fb-graph .graph-marks { inset: 0.5rem 0.6rem auto; }
+    .fb-graph .legend { font-size: 0.8rem; margin-top: 0.3rem; }
+    .fb-graph .graph-cap { font-size: 0.8rem; margin-top: 0.3rem; }
+
+    /* ── Trees: drawn (parse/recursion) and built by the student ── */
+    .ftree { position: relative; width: 100%; overflow: hidden; }
+    .ftree.fill { height: 100%; min-height: 110px; }
+    .ftree.fill.scrolls { height: 0; flex: 1 1 auto; }
+    .tbuild { flex: 1 1 auto; min-height: 0; }
+    .tbuild-view { flex: 1 1 auto; display: flex; flex-direction: column; }
+    .tbuild-view > .ftree { flex: 1 1 auto; }
+    .feedback.fb-fill { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
+    .fb-tree { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
+    .fb-tree > .ftree { flex: 1 1 auto; min-height: 110px; }
+    .ftree-sizer { position: relative; margin: 0 auto; }
+    .ftree-inner { position: absolute; left: 0; top: 0; transform-origin: top left; }
+    .ftree.scrolls { overflow: auto; overscroll-behavior: contain; }
+    .ftree-edges { position: absolute; inset: 0; overflow: visible; }
+    .ftree-edges line { stroke: var(--text-3); stroke-width: 1.4; }
+    .ftree-node { position: absolute; transform: translate(-50%, -50%); background: var(--surface-2); color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.2rem 0.5rem; font: 500 0.85rem var(--mono); white-space: nowrap; line-height: 1.3; min-width: 1.6rem; text-align: center; }
+    button.ftree-node { cursor: pointer; }
+    .ftree-node.empty { min-width: 2.4rem; min-height: 1.6rem; border-style: dashed; }
+    .ftree-node.selected { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .ftree-node.wrong { border-color: var(--wrong); background: var(--wrong-soft); }
+    .tbuild { display: flex; flex-direction: column; gap: 0.5rem; }
+    .tbuild-view { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.6rem; }
+    .tbuild-hint { font-size: 0.82rem; color: var(--text-2); }
+    .tbuild-palette { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .tbuild-palette .chip { font-family: var(--mono); color: var(--text); min-height: 30px; padding: 0.2rem 0.6rem; font-size: 0.8rem; }
+    .tbuild-row { display: flex; gap: 0.4rem; align-items: center; }
+    .tbuild-row .tbuild-input { flex: 1 1 auto; min-width: 0; padding: 0.45rem 0.7rem; }
+    .tbuild-row .btn { min-height: 38px; padding: 0.35rem 0.7rem; font-size: 0.82rem; flex: none; }
 
     /* ── Settings / done ── */
     .field + .field { margin-top: 1rem; }
@@ -458,6 +503,7 @@
   <script src="js/scheduler.js"></script>
   <script src="js/grade.js"></script>
   <script src="js/sync.js"></script>
+  <script src="js/tree.js"></script>
   <script src="js/generators.js"></script>
   <script src="decks/csc370.js"></script>
   <script src="decks/csc370-blank-answers.js"></script>
@@ -475,6 +521,8 @@
   <script src="decks/csc310-help-a.js"></script>
   <script src="decks/csc310-help-b.js"></script>
   <script src="decks/csc310-help-c.js"></script>
+  <script src="decks/csc310-help-d.js"></script>
+  <script src="decks/csc310-help-e.js"></script>
   <script src="decks/csc370-cpointer-bank.js"></script>
   <script src="js/gen-softtest.js"></script>
   <script src="js/gen-csc370.js"></script>

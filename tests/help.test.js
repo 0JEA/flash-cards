@@ -14,6 +14,7 @@ const html = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
 
 const texts = h => [h.asks, h.idea, h.answer, h.mistake, h.tryIt && h.tryIt.q, h.tryIt && h.tryIt.a,
   ...(h.steps || []).flatMap(st => typeof st === 'string' ? [st] : [st.text, ...(st.table ? st.table.head.concat(st.table.rows.flat()) : [])]),
+  ...(h.tree ? [h.tree.caption, h.tree.sumsLabel, ...h.tree.levels.flatMap(l => l.gap ? [] : [...l.nodes, l.sum])] : []),
   ...(h.graph ? [h.graph.caption, h.graph.bars && h.graph.bars.label, ...(h.graph.curves || []).map(c => c.label), ...(h.graph.marks || []).map(m => m.label)] : [])].filter(Boolean);
 
 test('every help file is loaded by index.html', () => {
@@ -28,6 +29,7 @@ for (const [id, h] of Object.entries(help || {})) {
       assert.equal((String(t).match(/(?<!\\)\$/g) || []).length % 2, 0, `unbalanced $ in: ${t}`);
       for (const m of String(t).matchAll(/(?<!\\)\$(.+?)(?<!\\)\$/g)) assert.doesNotThrow(() => katex.renderToString(m[1], { throwOnError: true }), `KaTeX: ${m[1]}`);
     }
+    if (h.tree) for (const l of h.tree.levels) if (!l.gap) assert.ok(l.nodes.length >= 1 && l.nodes.length <= 9, 'tree levels need 1–9 nodes');
     const g = h.graph;
     if (g) {
       const [x0, x1] = g.x;

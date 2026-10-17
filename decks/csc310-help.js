@@ -21,6 +21,14 @@
 //       marks:  [{ x: 5, label: '$n_0 = 5$' }],   // dashed vertical lines
 //       from:   5,                   // optional: shade x >= from ("from here on it holds")
 //     },
+//     tree: {                        // optional: a recursion-tree diagram (shown above the graph)
+//       sumsLabel: 'level total',    // header over the right-hand column (optional)
+//       levels: [ { nodes: ['$cn$'], sum: '$cn$' },
+//                 { nodes: ['$cn/4$', '$cn/4$', '$cn/4$'], sum: '$3cn/4$' },
+//                 { gap: true },      // drawn as ⋮
+//                 { nodes: ['$T(1)$', '$T(1)$', '$\\cdots$', '$T(1)$'], sum: '$\\Theta(n^{\\log_4 3})$' } ],
+//       caption: 'What to notice.',  // ≤ 9 nodes per level; use '$\\cdots$' nodes for more
+//     },
 //     answer:  'The answer, with the reason in one line.',
 //     mistake: 'The mistake students usually make here, and how to avoid it.',
 //     tryIt:   { q: 'A similar small problem (different numbers).', a: 'Its answer with the key step.' },

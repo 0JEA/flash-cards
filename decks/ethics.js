@@ -1,7 +1,7 @@
 // Software-engineering ethics: the original quiz bank (archive/ethics-questions.js), brought back
-// as a class on 2026-10-16. Multiple choice only. Known issues kept as-is: the correct option is often
-// the longest, and four answer keys looked wrong in the 2026-10-15 review (WPA vs FCA, Sega v. Accolade,
-// data-retention "concern").
+// as a class on 2026-10-16. Multiple choice only. Every card got a `why` on 2026-10-17, options were cut
+// to 2-3 distractors, and the keys were checked: each correction is recorded in that card's `source`
+// ("key corrected" / "reworded"). Known issue kept: the correct option is often the longest.
 (function (FC) {
   (FC.decks = FC.decks || {}).ethics = {
     id: "ethics", title: "Software Engineering Ethics", short: "Ethics",
@@ -22,7 +22,7 @@
    "Balancing project deadlines and software quality",
    "Seeking guidance from the project manager"
   ],
-  "why": "",
+  "why": "Principle 3 asks for the highest professional standards possible. Trade-offs with schedule are allowed only when made clear to and accepted by the client, never by quietly cutting corners.",
   "source": "Ethics quiz bank (archived question 1)"
  },
  {
@@ -37,10 +37,9 @@
   "options": [
    "No moral accountability, as the worm was a technological experiment",
    "Partial moral accountability, as his actions inadvertently exposed security flaws",
-   "Moral responsibility lies with the institutions affected, not the individual attacker",
-   "Morris acted ethically by exposing vulnerabilities in the Internet infrastructure"
+   "Moral responsibility lies with the institutions affected, not the individual attacker"
   ],
-  "why": "",
+  "why": "Kant judges the act and the will, not side benefits. Morris used other people's computers without consent, treating their owners merely as means, so exposing flaws does not lessen his responsibility.",
   "source": "Ethics quiz bank (archived question 2)"
  },
  {
@@ -56,7 +55,7 @@
    "Report the issue to the client or employer's competitors",
    "Ignore the issue to avoid conflicts within the workplace"
   ],
-  "why": "",
+  "why": "The code says to raise concerns with the people involved first, then report significant violations to appropriate authorities. Going to the media or to competitors skips those steps.",
   "source": "Ethics quiz bank (archived question 3)"
  },
  {
@@ -70,10 +69,9 @@
   "options": [
    "Public",
    "Judgment",
-   "Client and employer",
-   "None of them"
+   "Client and employer"
   ],
-  "why": "",
+  "why": "Clause 3.07, under Product, says engineers strive to fully understand the specifications for software they work on. Product covers the quality of what you build: specs, testing, documentation.",
   "source": "Ethics quiz bank (archived question 4)"
  },
  {
@@ -86,11 +84,10 @@
   "answer": "There are no universal moral principles; moral judgments are culturally and individually subjective, varying across different societies and individuals.",
   "options": [
    "Morality is solely a construct of human society and does not have an existence outside of human thought and interaction.",
-   "Morality and law are distinct; morality pertains to principles of right and wrong, while law represents societal regulations.",
    "Free will is constrained by societal norms and cultural influences, rendering individual choices and actions relative to the context.",
    "The existence of a divine being does not determine or dictate moral standards; morality is contingent on human perspectives and experiences."
   ],
-  "why": "",
+  "why": "Relativism says there are no universal moral norms: right depends on the person or the culture. Calling morality a human construct does not by itself say it varies.",
   "source": "Ethics quiz bank (archived question 5)"
  },
  {
@@ -105,10 +102,9 @@
   "options": [
    "It enhances user engagement and satisfaction.",
    "It promotes diversity and inclusivity in online discourse.",
-   "It improves the accuracy and reliability of online information.",
-   "It fosters transparency and accountability in content moderation practices."
+   "It improves the accuracy and reliability of online information."
   ],
-  "why": "",
+  "why": "Algorithms trained on past behaviour repeat its biases and keep showing people more of what they already engage with. The other options are hoped-for benefits, not unintended harms.",
   "source": "Ethics quiz bank (archived question 6)"
  },
  {
@@ -123,10 +119,9 @@
   "options": [
    "It safeguards citizens from online threats and cyber attacks.",
    "It restricts access to extremist content and incitement to violence.",
-   "It fosters public trust and confidence in government institutions.",
-   "It promotes social cohesion and national unity through online discourse."
+   "It fosters public trust and confidence in government institutions."
   ],
-  "why": "",
+  "why": "Censorship meant for security also silences legitimate speech and weakens democratic debate. Blocking threats or extremist content is the stated benefit, not the problem.",
   "source": "Ethics quiz bank (archived question 7)"
  },
  {
@@ -141,10 +136,9 @@
   "options": [
    "They introduce complex legal and regulatory challenges, requiring re-evaluation of liability frameworks and accident culpability.",
    "They confront societal norms regarding human drivers' autonomy and control, prompting philosophical debates on the ethics of automation.",
-   "They exacerbate socio-economic disparities in access to transportation, exacerbating inequalities in mobility and resource allocation.",
    "They present existential dilemmas regarding the value of human life versus machine preservation, challenging ethical frameworks in life-or-death scenarios."
   ],
-  "why": "",
+  "why": "Someone must program in advance how the car chooses who is harmed in a crash, so it is unclear who bears moral responsibility. Liability law is the legal side, not the core ethical one.",
   "source": "Ethics quiz bank (archived question 8)"
  },
  {
@@ -158,10 +152,9 @@
   "options": [
    "Morality is entirely contingent upon subjective human perceptions and cultural norms, lacking any universal applicability.",
    "Morality is inherently intertwined with legal systems, suggesting that legal standards determine moral rightness or wrongness.",
-   "Free will is an illusion, and human actions are predetermined by external factors, including societal norms and biological influences.",
    "The existence of a divine being is essential for establishing moral standards, indicating that morality is contingent upon religious doctrine."
   ],
-  "why": "",
+  "why": "Objectivism holds that some moral truths exist whatever any person or culture believes, the opposite of relativism. Divine command theory is one source of objective morality, not its definition.",
   "source": "Ethics quiz bank (archived question 9)"
  },
  {
@@ -171,16 +164,15 @@
   "sub": "Privacy",
   "type": "mc",
   "noRecall": true,
-  "prompt": "Evaluate the ethical considerations surrounding the collection and storage of user data by online service providers. Which option best reflects the main ethical concern associated with data retention policies?",
-  "answer": "It protects user privacy and prevents unauthorized access to sensitive information.",
+  "prompt": "Evaluate the ethical considerations surrounding the collection and storage of user data by online service providers. Which consideration should come first in data retention policies?",
+  "answer": "Protecting user privacy and preventing unauthorized access to sensitive data.",
   "options": [
-   "It ensures personalized user experiences and targeted advertising.",
-   "It facilitates data sharing for research purposes and technological advancements.",
-   "It optimizes system performance and enhances user satisfaction.",
-   "It enables compliance with legal regulations and industry standards."
+   "Enabling personalized experiences and targeted advertising.",
+   "Sharing data for research and technological advances.",
+   "Complying with legal regulations and industry standards."
   ],
-  "why": "",
-  "source": "Ethics quiz bank (archived question 10)"
+  "why": "Stored personal data can be breached, misused or repurposed, so retention policies should first limit what is kept and protect it. Legal compliance is a minimum, not the ethical goal.",
+  "source": "Ethics quiz bank (archived question 10); prompt reworded 2026-10-17: it asked for the main 'concern' but the keyed answer was the protection goal (SE Code 3.12, 1.03)"
  },
  {
   "id": "eth-11",
@@ -194,10 +186,9 @@
   "options": [
    "It offers personalized product recommendations, catering to individual preferences and enhancing shopping experiences.",
    "It upholds user privacy rights by obtaining explicit consent for data collection and usage, fostering trust between consumers and advertisers.",
-   "It strives for transparency by disclosing data collection methods and purposes, aiming to build transparency and accountability in advertising processes.",
-   "It contributes to market competitiveness and operational efficiency in online advertising, encouraging innovation and economic growth in the digital ecosystem."
+   "It strives for transparency by disclosing data collection methods and purposes, aiming to build transparency and accountability in advertising processes."
   ],
-  "why": "",
+  "why": "Targeted ads rely on tracking people's behaviour and are designed to steer their choices, so they help and intrude at once. Consent and transparency are possible fixes, not the dilemma.",
   "source": "Ethics quiz bank (archived question 11)"
  },
  {
@@ -212,10 +203,9 @@
   "options": [
    "They foster creativity and artistic expression, expanding storytelling possibilities in media production.",
    "They prompt critical media literacy and awareness about the dangers of misinformation and digital manipulation.",
-   "They enable entertainment industries to create immersive and engaging virtual experiences for audiences.",
-   "They promote technological innovation and scientific research in image and video processing."
+   "They enable entertainment industries to create immersive and engaging virtual experiences for audiences."
   ],
-  "why": "",
+  "why": "Convincing fakes make false video easy to believe and real video easy to dismiss, so recorded evidence loses its value. Better media literacy is a response to that harm.",
   "source": "Ethics quiz bank (archived question 12)"
  },
  {
@@ -229,10 +219,9 @@
   "options": [
    "By prioritizing user privacy over profit, regardless of financial implications",
    "By implementing strict data protection measures to prevent unauthorized access",
-   "By refraining from collecting any user data to avoid privacy concerns",
-   "By outsourcing data management to third-party entities to mitigate privacy risks."
+   "By refraining from collecting any user data to avoid privacy concerns"
   ],
-  "why": "",
+  "why": "Free platforms earn money from user data, mostly through advertising, while their policies and settings reveal little about how the data is used.",
   "source": "Ethics quiz bank (archived question 13)"
  },
  {
@@ -247,10 +236,9 @@
   "options": [
    "It promotes the greatest happiness for the greatest number of people",
    "It prioritizes maxims that focus on the consequences of actions",
-   "It emphasizes the intrinsic value of human beings",
-   "It advocates for moral rules that can be reasoned by social contracts"
+   "It emphasizes the intrinsic value of human beings"
   ],
-  "why": "",
+  "why": "Rule utilitarianism judges a rule by its consequences; Kant asks whether you could will your maxim as a universal law, whatever happens. Intrinsic human value is Kant's second formulation.",
   "source": "Ethics quiz bank (archived question 14)"
  },
  {
@@ -259,16 +247,15 @@
   "cat": "Professional ethics",
   "sub": "SE Code of Ethics",
   "type": "mc",
-  "prompt": "How does the internet service provider's practice relate to principles of the software engineering code of ethics?",
+  "prompt": "An internet service provider sells its users' data without their explicit consent. How does this practice relate to the software engineering code of ethics?",
   "answer": "By prioritizing profit over the privacy and interests of users",
   "options": [
    "By providing users with clear and transparent information about data collection practices",
    "By ensuring that user agreements contain explicit consent clauses for data sharing",
-   "By seeking user input and feedback on data usage policies",
-   "By refusing to disclose information about data collection practices to users"
+   "By seeking user input and feedback on data usage policies"
   ],
-  "why": "",
-  "source": "Ethics quiz bank (archived question 15)"
+  "why": "Selling data without consent puts profit ahead of users' privacy, against the code's duties not to diminish privacy (1.03) and to respect the privacy of those affected (3.12).",
+  "source": "Ethics quiz bank (archived question 15); prompt given the ISP scenario 2026-10-17 (it referred to a case not on the card)"
  },
  {
   "id": "eth-16",
@@ -279,12 +266,11 @@
   "prompt": "How might the advent of creative computers challenge traditional notions of intellectual property rights by blurring the lines between human and machine creativity?",
   "answer": "By erasing the distinction between human-authored and AI-generated works, complicating ownership and attribution",
   "options": [
-   "By necessitating stricter regulations on human creativity to maintain control over AI-generated content",
    "By reinforcing existing copyright laws to accommodate AI-generated content within established frameworks",
    "By fostering a collaborative approach to content creation, diminishing the emphasis on individual ownership",
    "By empowering creators to assert control over AI-generated works through innovative licensing models and agreements"
   ],
-  "why": "",
+  "why": "Copyright assumes a human author. When a machine generates much of a work, it is unclear who owns it or deserves credit: the user, the programmer, or no one.",
   "source": "Ethics quiz bank (archived question 16)"
  },
  {
@@ -298,10 +284,9 @@
   "options": [
    "Algorithmic bias ensures fair and unbiased content distribution",
    "Algorithmic bias has no correlation with privacy concerns",
-   "Algorithmic bias enhances user privacy by tailoring content to individual preferences",
-   "None of the above."
+   "Algorithmic bias enhances user privacy by tailoring content to individual preferences"
   ],
-  "why": "",
+  "why": "Biased algorithms can infer sensitive traits and target or exclude groups by them, so people already disadvantaged lose both fair treatment and control over their information.",
   "source": "Ethics quiz bank (archived question 17)"
  },
  {
@@ -317,7 +302,7 @@
    "Seek guidance from colleagues with similar beliefs",
    "Prioritize personal beliefs over professional responsibilities"
   ],
-  "why": "",
+  "why": "The code expects engineers to apply ethical judgment in the public interest, so personal convictions are weighed together with professional duties rather than simply overriding them or being hidden.",
   "source": "Ethics quiz bank (archived question 18)"
  },
  {
@@ -327,15 +312,14 @@
   "sub": "Open source",
   "type": "mc",
   "prompt": "In the context of open-source software, what is the primary purpose of copyleft provisions in licenses such as the GNU General Public License (GPL)?",
-  "answer": "To prevent commercial entities from profiting off open-source contributions without sharing their modifications",
+  "answer": "To require that anyone distributing a modified version shares it under the same terms",
   "options": [
    "To restrict users from modifying the software in any way",
    "To ensure that the software remains proprietary and closed-source",
-   "To encourage users to freely distribute the software without any restrictions",
-   "To grant exclusive rights to the original software developer."
+   "To encourage users to freely distribute the software without any restrictions"
   ],
-  "why": "",
-  "source": "Ethics quiz bank (archived question 19)"
+  "why": "Copyleft lets anyone use, change and even sell the code, but redistributed modified versions must carry the same license and source, so improvements stay free. Distribution is not unrestricted.",
+  "source": "Ethics quiz bank (archived question 19); answer reworded 2026-10-17: the GPL allows commercial sale; copyleft's condition is that distributed modifications stay under the GPL (gnu.org/licenses/copyleft, GPL FAQ)"
  },
  {
   "id": "eth-20",
@@ -345,14 +329,14 @@
   "type": "mc",
   "noRecall": true,
   "prompt": "In what way does the Whistleblower Protection Act differ from the False Claims Act?",
-  "answer": "Unlike the Whistleblower Protection Act, the False Claims Act safeguards federal employees from retaliation.",
+  "answer": "Unlike the Whistleblower Protection Act, the False Claims Act safeguards corporate employees from retaliation.",
   "options": [
    "Unlike the False Claims Act, the Whistleblower Protection Act extends its protection to corporate employees.",
-   "Unlike the Whistleblower Protection Act, the False Claims Act safeguards corporate employees from retaliation.",
+   "Unlike the Whistleblower Protection Act, the False Claims Act safeguards federal employees from retaliation.",
    "Unlike the Whistleblower Protection Act, the False Claims Act guarantees the anonymity of the whistle-blower."
   ],
-  "why": "",
-  "source": "Ethics quiz bank (archived question 20)"
+  "why": "The WPA protects federal employees. The False Claims Act's anti-retaliation clause covers any employee, contractor or agent who reports fraud on the government, so it reaches private-company workers.",
+  "source": "Ethics quiz bank (archived question 20); key corrected 2026-10-17: the WPA covers federal employees; the FCA's anti-retaliation clause (31 U.S.C. 3730(h)) covers any employee, contractor or agent"
  },
  {
   "id": "eth-21",
@@ -363,7 +347,6 @@
   "prompt": "The problem of moral luck is raised as a criticism of:",
   "answer": "Act utilitarianism.",
   "options": [
-   "The divine command theory.",
    "Kantianism.",
    "Rule utilitarianism.",
    "Cultural relativism."
@@ -382,10 +365,9 @@
   "options": [
    "When the software is licensed under an open-source agreement",
    "When the purpose is to create a competing product for commercial gain",
-   "When the software being decompiled is protected by strong encryption",
-   "When the decompilation process does not involve any reverse engineering."
+   "When the software being decompiled is protected by strong encryption"
   ],
-  "why": "",
+  "why": "In Sega v. Accolade, decompiling to learn the interface needed for compatibility was fair use, even though Accolade sold competing games. Encryption or an open-source license is not the test.",
   "source": "Ethics quiz bank (archived question 22)"
  },
  {
@@ -396,14 +378,14 @@
   "type": "mc",
   "noRecall": true,
   "prompt": "What do the Whistleblower Protection Act and the False Claims Act have in common?",
-  "answer": "Neither of them safeguards corporate employees from retaliation.",
+  "answer": "Both of them protect certain whistle-blowers from employer retaliation.",
   "options": [
-   "Both of them guarantee the anonymity of whistle-blowers unless revealing the name protects public safety.",
-   "Neither of them safeguards federal employees from retaliation.",
-   "Both of them impose specific performance deadlines in processing whistle-blower complaints."
+   "Neither of them safeguards corporate employees from retaliation.",
+   "Both of them guarantee the anonymity of whistle-blowers.",
+   "Neither of them safeguards federal employees from retaliation."
   ],
-  "why": "",
-  "source": "Ethics quiz bank (archived question 23)"
+  "why": "Each bans retaliation against a group of whistle-blowers: the WPA covers federal employees, the FCA covers employees, contractors and agents reporting fraud on the government. Neither guarantees anonymity.",
+  "source": "Ethics quiz bank (archived question 23); key corrected 2026-10-17: the FCA does protect corporate employees (31 U.S.C. 3730(h)), so 'neither safeguards corporate employees' was false; both laws bar retaliation"
  },
  {
   "id": "eth-24",
@@ -416,10 +398,9 @@
   "options": [
    "Manipulation of public opinion and political discourse",
    "Disruption of legitimate business operations and services",
-   "Exploitation of vulnerable populations for financial gain",
-   "Violation of freedom of speech and expression"
+   "Exploitation of vulnerable populations for financial gain"
   ],
-  "why": "",
+  "why": "Spear phishing sends a convincing message tailored to one person to trick them into revealing passwords or private data, so the core wrong is deceiving someone out of confidential information.",
   "source": "Ethics quiz bank (archived question 24)"
  },
  {
@@ -433,10 +414,9 @@
   "options": [
    "Virtue Ethics",
    "Act Utilitarianism",
-   "Deontological Ethics",
-   "Kantianism"
+   "Deontological Ethics"
   ],
-  "why": "",
+  "why": "Social contract theory grounds morality in rules rational people accept for mutual benefit, so trustworthy machines are ones that reliably keep those agreed rules in humans' favour.",
   "source": "Ethics quiz bank (archived question 25)"
  },
  {
@@ -448,12 +428,11 @@
   "prompt": "What ethical theory would prioritize fairness, impartiality, and due process in the implementation of AI systems within criminal justice systems?",
   "answer": "Deontological Ethics",
   "options": [
-   "Virtue Ethics",
    "Act Utilitarianism",
    "Rule Utilitarianism",
    "Social Contract Theory"
   ],
-  "why": "",
+  "why": "Fairness, impartiality and due process are duties owed to each person regardless of outcome, the core of deontology. An act utilitarian would trade them away for a better overall result.",
   "source": "Ethics quiz bank (archived question 26)"
  },
  {
@@ -468,10 +447,9 @@
   "options": [
    "Software copyrights protect the functionality of software, while software patents protect its expression",
    "Software copyrights have a shorter duration than software patents",
-   "Software copyrights protect the source code, while software patents protect the underlying algorithms",
-   "None of the above"
+   "Software copyrights protect the source code, while software patents protect the underlying algorithms"
   ],
-  "why": "",
+  "why": "Copyright exists the moment the code is written; a patent must be applied for and granted. Copyright protects expression, not function, and lasts far longer than a 20-year patent.",
   "source": "Ethics quiz bank (archived question 27)"
  },
  {
@@ -485,10 +463,9 @@
   "options": [
    "Act Utilitarianism",
    "Virtue Ethics",
-   "Deontological Ethics",
-   "Kantianism"
+   "Deontological Ethics"
   ],
-  "why": "",
+  "why": "Rawls's social contract theory says inequalities are fair only if they benefit the least advantaged, so the wealth machines create should also reach the workers they displace.",
   "source": "Ethics quiz bank (archived question 28)"
  },
  {
@@ -503,10 +480,9 @@
   "options": [
    "Confronting the friend directly about their behavior",
    "Seeking advice from colleagues on how to handle the situation",
-   "Ignoring the friend's actions and focusing on one's own work",
-   "Joining the friend in their unethical behavior to avoid conflict"
+   "Ignoring the friend's actions and focusing on one's own work"
   ],
-  "why": "",
+  "why": "Integrity in judgment means not letting friendship bend an honest assessment: documented misconduct should reach someone who can act on it. Ignoring it protects the friend at others' expense.",
   "source": "Ethics quiz bank (archived question 29)"
  },
  {
@@ -521,10 +497,9 @@
   "options": [
    "Rejecting the bill to avoid imposing financial burdens on organizations",
    "Passing the bill without considering its potential economic impact on organizations",
-   "Seeking advice from industry lobbyists on how to proceed with the bill",
-   "Ignoring the concerns of organizations affected by the proposed law"
+   "Seeking advice from industry lobbyists on how to proceed with the bill"
   ],
-  "why": "",
+  "why": "Judgment asks for objective, independent evaluation. Weighing the bill's health benefits against its real costs before deciding is objective; rejecting or passing it without that analysis is not.",
   "source": "Ethics quiz bank (archived question 30)"
  },
  {
@@ -539,10 +514,9 @@
   "options": [
    "Complying with the client's request to build a less secure system",
    "Negotiating a compromise solution that balances security and cost concerns",
-   "Seeking advice from colleagues on how to proceed",
-   "Terminating the contract with the client"
+   "Seeking advice from colleagues on how to proceed"
   ],
-  "why": "",
+  "why": "Judgment means tempering technical decisions by human values, and a knowingly insecure system endangers users. Explaining the risks and declining keeps integrity; a compromise that leaves users exposed does not.",
   "source": "Ethics quiz bank (archived question 31)"
  },
  {
@@ -551,16 +525,15 @@
   "cat": "Intellectual property",
   "sub": "Copyright & patents",
   "type": "mc",
-  "prompt": "Which court case established that making backup copies of software for archival purposes is generally considered fair use?",
-  "answer": "Sega v. Accolade",
+  "prompt": "Which court case established that recording a television broadcast to watch later (time-shifting) is fair use?",
+  "answer": "Sony Corporation of America v. Universal City Studios, Inc.",
   "options": [
-   "Sony Corporation of America v. Universal City Studios, Inc.",
-   "Oracle v. Google",
+   "Sega v. Accolade",
    "Sony Computer Entertainment, Inc. v. Connectix Corporation",
    "Authors Guild v. Google"
   ],
-  "why": "",
-  "source": "Ethics quiz bank (archived question 32)"
+  "why": "The 1984 Betamax case held home time-shifting to be fair use. Sega v. Accolade and Connectix concerned decompiling for compatibility; software backup copies are allowed by statute, not a court case.",
+  "source": "Ethics quiz bank (archived question 32); key corrected 2026-10-17: no listed case is about archival backups (those are allowed by statute, 17 U.S.C. 117) and Sega v. Accolade was about decompiling, so the prompt now asks for Sony v. Universal's real holding (copyright.gov fair-use summary)"
  },
  {
   "id": "eth-33",
@@ -570,15 +543,14 @@
   "type": "mc",
   "noRecall": true,
   "prompt": "Which of the following actions is NOT typically permitted under most open-source software licenses?",
-  "answer": "Charging exorbitant fees for distributing the software",
+  "answer": "Reproducing the software without including the original license terms",
   "options": [
+   "Charging exorbitant fees for distributing the software",
    "Modifying the source code to suit individual needs",
-   "Using the software for commercial purposes without contributing back to the open-source community",
-   "Reproducing the software without including the original license terms",
-   "Redistributing the software with or without modifications."
+   "Using the software for commercial purposes without contributing back to the open-source community"
   ],
-  "why": "",
-  "source": "Ethics quiz bank (archived question 33)"
+  "why": "Nearly every open-source license, from MIT to the GPL, requires copies to keep the license and copyright notice. Charging for distribution, even a high price, is allowed.",
+  "source": "Ethics quiz bank (archived question 33); key corrected 2026-10-17: licenses require keeping the license and copyright notice, while charging any fee for distribution is allowed (GPL FAQ, gnu.org)"
  },
  {
   "id": "eth-34",
@@ -592,10 +564,9 @@
   "options": [
    "Preloading a program onto a computer being sold violates software copyrights",
    "Software copyrights protect the expression of an idea, not the idea itself",
-   "Source code of a software program is typically treated as a trade secret",
-   "Violations of software copyrights include distributing a program over the internet"
+   "Source code of a software program is typically treated as a trade secret"
   ],
-  "why": "",
+  "why": "Copyright protects expression, the code itself, not the idea or functionality, which is patent territory. Unlicensed preloading is infringement, and source code is commonly kept as a trade secret.",
   "source": "Ethics quiz bank (archived question 34)"
  },
  {
@@ -610,10 +581,9 @@
   "options": [
    "Kantianism derives rules by examining their conformity to universal moral laws, while social contract theory derives rules by considering their consequences for societal harmony.",
    "Kantianism derives rules based on their ability to promote individual happiness, while social contract theory derives rules based on divine commandments.",
-   "Kantianism derives rules through empirical observation and experimentation, while social contract theory derives rules through deductive reasoning.",
-   "Kantianism derives rules from subjective personal preferences, while social contract theory derives rules from objective principles of justice."
+   "Kantianism derives rules through empirical observation and experimentation, while social contract theory derives rules through deductive reasoning."
   ],
-  "why": "",
+  "why": "Kant tests a rule by whether it could be willed as a universal law; social contract theory asks whether rational people would agree to it because everyone benefits when all follow it.",
   "source": "Ethics quiz bank (archived question 35)"
  },
  {
@@ -628,10 +598,9 @@
   "options": [
    "Divine command theory holds that moral rules are determined by human reason, while Kantianism asserts that moral rules are dictated by divine will.",
    "Both divine command theory and Kantianism assert that moral rules are subjective and vary based on individual beliefs.",
-   "Divine command theory maintains that moral rules are based on human rationality, whereas Kantianism emphasizes divine revelation as the source of moral rules.",
-   "Divine command theory and Kantianism both reject moral objectivity, advocating instead for moral relativism based on cultural norms and traditions."
+   "Divine command theory maintains that moral rules are based on human rationality, whereas Kantianism emphasizes divine revelation as the source of moral rules."
   ],
-  "why": "",
+  "why": "Both hold that right and wrong are objective, but divine command theory finds them in God's will as revealed in holy books, while Kant derives them from reason alone.",
   "source": "Ethics quiz bank (archived question 36)"
  },
  {
@@ -645,10 +614,9 @@
   "options": [
    "Client and Employer",
    "Public",
-   "Product",
-   "Management"
+   "Product"
   ],
-  "why": "",
+  "why": "Judgment covers integrity and independence: loyalty to a coworker must not override an honest assessment of misconduct. The other principles concern the client, the public, or product quality.",
   "source": "Ethics quiz bank (archived question 37)"
  },
  {
@@ -662,10 +630,9 @@
   "options": [
    "Client and Employer",
    "Product",
-   "Judgment",
-   "Management"
+   "Judgment"
   ],
-  "why": "",
+  "why": "Selling data without consent harms the users, not the employer, and Principle 1 says engineers approve software only if it does not diminish privacy. That makes Public the controlling principle.",
   "source": "Ethics quiz bank (archived question 38)"
  },
  {
@@ -679,10 +646,9 @@
   "options": [
    "Client and Employer",
    "Product",
-   "Judgment",
-   "Management"
+   "Judgment"
   ],
-  "why": "",
+  "why": "Workstation safety rules affect the health of everyone who works at a computer, the public at large. Principle 1 asks engineers to moderate business interests with the public good.",
   "source": "Ethics quiz bank (archived question 39)"
  },
  {
@@ -696,10 +662,9 @@
   "options": [
    "Public",
    "Product",
-   "Judgment",
-   "Management"
+   "Judgment"
   ],
-  "why": "",
+  "why": "A consultant's dilemma centres on duties to the client: competence, confidentiality, honest reports, and no outside work against them. Principle 2 covers acting in the client's best interests.",
   "source": "Ethics quiz bank (archived question 40)"
  },
  {
@@ -715,7 +680,7 @@
    "Divine Command Theory",
    "Virtue Ethics"
   ],
-  "why": "",
+  "why": "Pushing the man trades one life for five, judged only by the outcome of this single act: act utilitarianism. Kant forbids using the man merely as a means to save others.",
   "source": "Ethics quiz bank (archived question 41)"
  },
  {
@@ -731,7 +696,7 @@
    "Ethical Egoism",
    "Subjective Relativism"
   ],
-  "why": "",
+  "why": "Holding an act wrong in itself, whatever the outcome, is deontology: duties come before consequences. An act utilitarian would kill one to save five.",
   "source": "Ethics quiz bank (archived question 42)"
  },
  {
@@ -747,7 +712,7 @@
    "There are no books written on ethics for engineers.",
    "Morality is purely mathematical and AI cannot understand emotions."
   ],
-  "why": "",
+  "why": "People and cultures disagree about what is right, so there is no single agreed rule set to encode. Computing power is not the obstacle.",
   "source": "Ethics quiz bank (archived question 43)"
  },
  {
@@ -763,7 +728,7 @@
    "The cost difference between hiring an ethicist and a junior dev.",
    "The speed of a processor vs. its heat output."
   ],
-  "why": "",
+  "why": "Moving fast brings benefits sooner but leaves less time to foresee harms. The trade-off is how much speed to give up to weigh effects on society first.",
   "source": "Ethics quiz bank (archived question 44)"
  },
  {
@@ -779,7 +744,7 @@
    "Kantianism",
    "Social Contract Theory"
   ],
-  "why": "",
+  "why": "Subjective relativism says each person decides what is right for themselves, whatever society thinks. Cultural relativism would treat society's disapproval as decisive.",
   "source": "Ethics quiz bank (archived question 45)"
  },
  {
@@ -795,7 +760,7 @@
    "Rule Utilitarianism",
    "Virtue Ethics"
   ],
-  "why": "",
+  "why": "Cultural relativism says right and wrong depend on each society's norms, so 'allowed here' becomes 'acceptable here'. Rule utilitarianism would look at the harm the practice causes.",
   "source": "Ethics quiz bank (archived question 46)"
  },
  {
@@ -811,7 +776,7 @@
    "Act Utilitarianism",
    "Social Contract Theory"
   ],
-  "why": "",
+  "why": "Ethical egoism says the right act is whatever best serves your own long-term interest, here the pay, ignoring the harm to others.",
   "source": "Ethics quiz bank (archived question 47)"
  },
  {
@@ -827,7 +792,7 @@
    "Because the engineer might feel guilty.",
    "Because it violates company policy."
   ],
-  "why": "",
+  "why": "Kant's universalizability test: if everyone made lying promises, no one would trust a promise, so the maxim defeats itself. Possible money loss is a consequence, which Kant does not use.",
   "source": "Ethics quiz bank (archived question 48)"
  },
  {
@@ -843,7 +808,7 @@
    "Ensuring the UI is easy to use.",
    "Paying employees a fair wage."
   ],
-  "why": "",
+  "why": "Using people merely as means is using them for your ends, such as harvesting their data, without their informed consent. Consent lets them share the end as rational agents.",
   "source": "Ethics quiz bank (archived question 49)"
  },
  {
@@ -859,7 +824,7 @@
    "Kantianism",
    "Virtue Ethics"
   ],
-  "why": "",
+  "why": "Weighing the consequences of this one decision to maximize total happiness is act utilitarianism. A rule utilitarian would ask what happens if hiding bugs became the general rule.",
   "source": "Ethics quiz bank (archived question 50)"
  },
  {
@@ -875,7 +840,7 @@
    "Lying is a logical contradiction of the self.",
    "The engineer might get caught and fired."
   ],
-  "why": "",
+  "why": "Rule utilitarianism judges rules by the results of everyone following them, and universal honesty builds the trust security depends on. 'Lying contradicts itself' is Kantian reasoning.",
   "source": "Ethics quiz bank (archived question 51)"
  },
  {
@@ -891,7 +856,7 @@
    "Piracy is a logical impossibility.",
    "Piracy reduces the total happiness in the world."
   ],
-  "why": "",
+  "why": "Rational people accept rules like respecting others' property because everyone is better off when all follow them. 'Piracy reduces total happiness' is a utilitarian reason.",
   "source": "Ethics quiz bank (archived question 52)"
  },
  {
@@ -907,7 +872,7 @@
    "Following a checklist of rules provided by the manager.",
    "Maximizing personal profit while staying within the law."
   ],
-  "why": "",
+  "why": "Virtue ethics asks what a good person would do, so it focuses on building traits such as honesty and diligence rather than calculating outcomes or following checklists.",
   "source": "Ethics quiz bank (archived question 53)"
  },
  {
@@ -923,7 +888,7 @@
    "A privilege granted by the government to wealthy citizens.",
    "Only applicable to digital data, not physical files."
   ],
-  "why": "",
+  "why": "A right to have your data erased, even against a company's wishes, treats privacy as a right of the person rather than a commodity the company owns.",
   "source": "Ethics quiz bank (archived question 54)"
  },
  {
@@ -939,7 +904,7 @@
    "The clerk might use the number to call you for a date.",
    "Phone numbers are top-secret government information."
   ],
-  "why": "",
+  "why": "Data should not be collected without need or reused without consent. A phone number at checkout links your purchases to you for marketing.",
   "source": "Ethics quiz bank (archived question 55)"
  },
  {
@@ -955,7 +920,7 @@
    "Software Performance",
    "Copyright Infringement"
   ],
-  "why": "",
+  "why": "Profiling people's political views without their knowledge denies them any chance to agree or refuse: a failure of informed consent, even if the predictions are accurate.",
   "source": "Ethics quiz bank (archived question 56)"
  },
  {
@@ -971,7 +936,7 @@
    "That the software is written in a specific language",
    "That the data is stored on expensive servers"
   ],
-  "why": "",
+  "why": "Registering with the data protection authority lets someone check who holds personal data and what they do with it, making processors accountable and their practices visible.",
   "source": "Ethics quiz bank (archived question 57)"
  },
  {
@@ -987,7 +952,7 @@
    "It requires too much bandwidth.",
    "It is only a problem if the attacker is caught."
   ],
-  "why": "",
+  "why": "XSS works because a site runs attacker input as if it were its own trusted script. Developers owe the users who trust their site protection from that.",
   "source": "Ethics quiz bank (archived question 58)"
  },
  {
@@ -1003,7 +968,7 @@
    "Corrupts the user's hard drive.",
    "Is a violation of the server's terms of service but not 'unethical.'"
   ],
-  "why": "",
+  "why": "With the session cookie the attacker becomes the user, reading private data and acting in their name, betraying the trust the user placed in the site.",
   "source": "Ethics quiz bank (archived question 59)"
  },
  {
@@ -1019,7 +984,7 @@
    "Reducing the amount of code they have to write.",
    "Winning a coding competition."
   ],
-  "why": "",
+  "why": "Parameterized queries stop attackers reading or altering the database. Protecting users' data and the product's integrity is a core professional duty.",
   "source": "Ethics quiz bank (archived question 60)"
  },
  {
@@ -1035,7 +1000,7 @@
    "It requires the user to type in their password five times.",
    "It is created by government agencies only."
   ],
-  "why": "",
+  "why": "A Trojan looks like useful software, so users install it themselves; once in, its backdoor gives the attacker secret remote access.",
   "source": "Ethics quiz bank (archived question 61)"
  },
  {
@@ -1051,7 +1016,7 @@
    "No, hacking is always a sin under Divine Command Theory.",
    "Yes, but only if you don't steal any money."
   ],
-  "why": "",
+  "why": "Good intentions aside, entering a system without the owner's consent is unauthorized and can cause harm, so it is not clearly ethical.",
   "source": "Ethics quiz bank (archived question 62)"
  },
  {
@@ -1067,7 +1032,7 @@
    "To prevent companies from ever making a profit.",
    "To ensure that all books are eventually turned into movies."
   ],
-  "why": "",
+  "why": "Fair use lets the public quote, criticize, teach and research without permission, while creators still profit from their work.",
   "source": "Ethics quiz bank (archived question 63)"
  },
  {
@@ -1083,7 +1048,7 @@
    "Patents are only for hardware, not software.",
    "Trade secrets are legally required for all code."
   ],
-  "why": "",
+  "why": "A patent gives 20 years of exclusive control, even against independent inventors. A trade secret only stops copying, so others may still build the same thing.",
   "source": "Ethics quiz bank (archived question 64)"
  },
  {
@@ -1099,7 +1064,7 @@
    "Only legal if you pay the competitor a fee.",
    "Forbidden by the SECEPP."
   ],
-  "why": "",
+  "why": "Courts (Sega v. Accolade) held reverse engineering for compatibility to be fair use when it is the only way to learn the interface. No fee is needed.",
   "source": "Ethics quiz bank (archived question 65)"
  },
  {
@@ -1115,7 +1080,7 @@
    "Colleague Support",
    "Software Maintenance"
   ],
-  "why": "",
+  "why": "Hiding a flaw is deception. Judgment requires integrity and independence rather than just following the manager, and the code requires disclosing dangers.",
   "source": "Ethics quiz bank (archived question 66)"
  },
  {
@@ -1131,7 +1096,7 @@
    "Taking credit for their work in return.",
    "Quitting the job immediately."
   ],
-  "why": "",
+  "why": "The code asks engineers to credit fully the work of others and refuse undue credit, which includes correcting the record when someone takes credit for yours.",
   "source": "Ethics quiz bank (archived question 67)"
  },
  {
@@ -1147,7 +1112,7 @@
    "Their own Career",
    "Management's Instructions"
   ],
-  "why": "",
+  "why": "Principle 1 puts the public interest first: serve clients only consistently with the public good, and avoid businesses that conflict with the code.",
   "source": "Ethics quiz bank (archived question 68)"
  },
  {
@@ -1163,7 +1128,7 @@
    "That the company saves money on legal fees.",
    "That the code is fixed automatically."
   ],
-  "why": "",
+  "why": "Due process means the accused learns the charges and can answer them before a decision is made. The code asks managers to provide it.",
   "source": "Ethics quiz bank (archived question 69)"
  },
  {
@@ -1179,7 +1144,7 @@
    "Nobody; it's a personal choice with no ethical dimensions.",
    "The ISPs who provide the connection."
   ],
-  "why": "",
+  "why": "Developers who design engagement-maximizing features share responsibility for compulsive use; users remain responsible for their own habits.",
   "source": "Ethics quiz bank (archived question 70)"
  },
  {
@@ -1195,7 +1160,7 @@
    "A necessary sacrifice for national security.",
    "Kantian logic at work."
   ],
-  "why": "",
+  "why": "Removing speech because it criticizes those in power is censorship, whatever tool does it, and it undermines the open debate democracy needs.",
   "source": "Ethics quiz bank (archived question 71)"
  },
  {
@@ -1211,7 +1176,7 @@
    "Delete the project and pretend it never happened.",
    "Blame the women for not having the right resumes."
   ],
-  "why": "",
+  "why": "Deploying a tool known to be biased would harm applicants unfairly. Disclose the problem and fix the data before release rather than hiding it.",
   "source": "Ethics quiz bank (archived question 72)"
  },
  {
@@ -1227,7 +1192,7 @@
    "Delegate all the hard work to an intern.",
    "Charge double because the work is high-risk."
   ],
-  "why": "",
+  "why": "Engineers must work within their competence and be honest about limits. On safety-critical work, faked competence risks lives, so get training or expert help.",
   "source": "Ethics quiz bank (archived question 73)"
  },
  {
@@ -1243,7 +1208,7 @@
    "Managers are always right under the Social Contract.",
    "It violates the Principle of Lifelong Learning."
   ],
-  "why": "",
+  "why": "It can damage the organization and the whistleblower's career, so the code asks engineers to raise concerns with the people involved first and go outside only when that fails.",
   "source": "Ethics quiz bank (archived question 74)"
  },
  {
@@ -1259,7 +1224,7 @@
    "It makes the internet load slower for everyone else.",
    "It is a violation of Copyright law."
   ],
-  "why": "",
+  "why": "The code asks engineers to consider economic disadvantage and other factors that limit access to software's benefits, so those benefits do not go only to the well-off.",
   "source": "Ethics quiz bank (archived question 75)"
  },
  {
@@ -1275,7 +1240,7 @@
    "The 'Egoist' desire for fame.",
    "The 'Divine Command' to work on weekends."
   ],
-  "why": "",
+  "why": "Principle 1 encourages engineers to volunteer their skills to good causes and to contribute to public education about the discipline.",
   "source": "Ethics quiz bank (archived question 76)"
  },
  {
@@ -1291,7 +1256,7 @@
    "It uses too much colorful text.",
    "God did not intend for email to be used for ads."
   ],
-  "why": "",
+  "why": "Spam costs the sender almost nothing, but millions of recipients each lose time and the network carries the load; the total harm outweighs the sender's gain.",
   "source": "Ethics quiz bank (archived question 77)"
  },
  {
@@ -1307,7 +1272,7 @@
    "How much the company will pay in bonuses for the code.",
    "If the bathroom has good Wi-Fi."
   ],
-  "why": "",
+  "why": "Monitoring bathroom breaks intrudes on a private moment and treats employees as objects to watch. Weigh their privacy and dignity before writing it.",
   "source": "Ethics quiz bank (archived question 78)"
  },
  {
@@ -1323,7 +1288,7 @@
    "It only works on mobile phones.",
    "It costs too much for small businesses."
   ],
-  "why": "",
+  "why": "The same tracking that makes ads relevant lets advertisers profile and steer people, so the benefit and the harm come from one practice.",
   "source": "Ethics quiz bank (archived question 79)"
  },
  {
@@ -1339,7 +1304,7 @@
    "Maintenance is more important than new features.",
    "You should never delete old code."
   ],
-  "why": "",
+  "why": "The code says to treat maintenance with the same professionalism as new development: changes need the same testing, review and documentation.",
   "source": "Ethics quiz bank (archived question 80)"
  },
  {
@@ -1355,7 +1320,7 @@
    "Report them to the FBI immediately.",
    "Start pirating tools as well to be fair."
   ],
-  "why": "",
+  "why": "Engineers must not knowingly use illegally obtained software and should encourage colleagues to follow the code, starting with a direct conversation.",
   "source": "Ethics quiz bank (archived question 81)"
  },
  {
@@ -1371,7 +1336,7 @@
    "It is a violation of the law.",
    "It uses too much electricity."
   ],
-  "why": "",
+  "why": "Kant says treat people as ends, never merely as means. Selling users' attention and data treats them as raw material, not as persons who consented.",
   "source": "Ethics quiz bank (archived question 82)"
  },
  {
@@ -1387,7 +1352,7 @@
    "Colleague Support.",
    "Cost Estimation."
   ],
-  "why": "",
+  "why": "Selling browsing history without notice betrays users; the code's first principle is acting in the public interest, including not diminishing privacy.",
   "source": "Ethics quiz bank (archived question 83)"
  },
  {
@@ -1403,7 +1368,7 @@
    "They are bored with the project.",
    "The NDA is too long to read."
   ],
-  "why": "",
+  "why": "The code says obey the law unless, in exceptional cases, that conflicts with the public interest. Grave danger to the public can justify it; personal convenience cannot.",
   "source": "Ethics quiz bank (archived question 84)"
  },
  {
@@ -1419,7 +1384,7 @@
    "Because the law requires all numbers to have a +/- 5% error.",
    "To hide the fact that they don't know what they are doing."
   ],
-  "why": "",
+  "why": "Estimates are uncertain. Stating the uncertainty lets clients decide on accurate information instead of trusting a single number that may be speculative.",
   "source": "Ethics quiz bank (archived question 85)"
  },
  {
@@ -1435,7 +1400,7 @@
    "The Principle of Lifelong Learning.",
    "Nothing, as long as they didn't change any grades."
   ],
-  "why": "",
+  "why": "Breaking in without permission violates the school's property and exposes other students' records, even if nothing was changed.",
   "source": "Ethics quiz bank (archived question 86)"
  },
  {
@@ -1451,7 +1416,7 @@
    "Is only used for making funny memes.",
    "Violates the patent on video files."
   ],
-  "why": "",
+  "why": "Deepfakes show people saying or doing things they never did, so video stops being reliable evidence and real footage can be dismissed as fake.",
   "source": "Ethics quiz bank (archived question 87)"
  },
  {
@@ -1467,7 +1432,7 @@
    "Rule Utilitarianism",
    "Virtue Ethics"
   ],
-  "why": "",
+  "why": "Subjective relativism makes each person the judge of what is right for them, so 'it makes me happy' would be enough.",
   "source": "Ethics quiz bank (archived question 88)"
  },
  {
@@ -1483,7 +1448,7 @@
    "English is the only language for code.",
    "Norms are only for people, not computers."
   ],
-  "why": "",
+  "why": "Privacy expectations and what counts as offensive differ between cultures, so one rule set cannot fit every user.",
   "source": "Ethics quiz bank (archived question 89)"
  },
  {
@@ -1499,7 +1464,7 @@
    "Calculating the monthly electricity bill.",
    "Identifying which hacker is the best."
   ],
-  "why": "",
+  "why": "It means listing every stakeholder and how they are affected, plus the laws and professional duties involved, before reaching a judgment.",
   "source": "Ethics quiz bank (archived question 90)"
  },
  {
@@ -1515,7 +1480,7 @@
    "A code repository getting deleted.",
    "When too many people use a free app at once."
   ],
-  "why": "",
+  "why": "Each actor gains by overusing a shared resource while the cost is spread over everyone, until the resource is ruined for all.",
   "source": "Ethics quiz bank (archived question 91)"
  },
  {
@@ -1531,7 +1496,7 @@
    "Quit and start your own company.",
    "Ask for a bribe to keep quiet."
   ],
-  "why": "",
+  "why": "The code requires adequate testing and approving software only if it is safe. Raise the issue: a manager's pressure does not remove your responsibility.",
   "source": "Ethics quiz bank (archived question 92)"
  },
  {
@@ -1547,7 +1512,7 @@
    "Deleting any input that contains the word 'SELECT'.",
    "Requiring a password for every query."
   ],
-  "why": "",
+  "why": "The query and the input are sent separately, so input is always treated as a value and never parsed as SQL.",
   "source": "Ethics quiz bank (archived question 93)"
  },
  {
@@ -1563,7 +1528,7 @@
    "Putting the other developers' names in the app's title.",
    "Never using code written by others."
   ],
-  "why": "",
+  "why": "Crediting others means attributing borrowed code and libraries properly, in the documentation and as their licenses require.",
   "source": "Ethics quiz bank (archived question 94)"
  },
  {
@@ -1579,7 +1544,7 @@
    "Charging more for the Pro version.",
    "Naming the app after a cat."
   ],
-  "why": "",
+  "why": "The code forbids unfair treatment from irrelevant prejudices and asks engineers to consider physical disabilities that limit access. Excluding disabled users without reason breaks both.",
   "source": "Ethics quiz bank (archived question 95)"
  },
  {
@@ -1595,7 +1560,7 @@
    "It requires a high-speed internet connection.",
    "It only works at night."
   ],
-  "why": "",
+  "why": "A backdoor bypasses normal authentication, and anyone who discovers it, not only its creator, can use it.",
   "source": "Ethics quiz bank (archived question 96)"
  },
  {
@@ -1611,7 +1576,7 @@
    "Complain about the quality of the office coffee.",
    "Report their boss for being 'mean.'"
   ],
-  "why": "",
+  "why": "Whistleblower laws protect people who report illegal or dangerous wrongdoing to proper authorities, not personal grievances or leaks for gain.",
   "source": "Ethics quiz bank (archived question 97)"
  },
  {
@@ -1621,14 +1586,14 @@
   "sub": "Privacy",
   "type": "mc",
   "prompt": "Under strong privacy rules, can a company share your data across borders?",
-  "answer": "Only with express permission from the data subject.",
+  "answer": "Only with safeguards, such as the person's express consent.",
   "options": [
    "Yes, as long as the other country has faster servers.",
    "No, data can never leave the city where it was born.",
    "Only if the data is encrypted in 128-bit keys."
   ],
-  "why": "",
-  "source": "Ethics quiz bank (archived question 98)"
+  "why": "Strict regimes like the EU's allow transfers abroad only when the data stays protected, for example to a country with adequate protection or with the person's explicit consent.",
+  "source": "Ethics quiz bank (archived question 98); answer reworded 2026-10-17: EU rules allow transfers on adequacy or other safeguards, with explicit consent as one basis, not the only one (GDPR Arts 45, 49)"
  },
  {
   "id": "eth-99",
@@ -1643,7 +1608,7 @@
    "Hiding the failure from the client.",
    "Changing their name and moving to a new city."
   ],
-  "why": "",
+  "why": "Virtue ethics asks what a person of good character would do: own the failure, be honest about it, and learn from it.",
   "source": "Ethics quiz bank (archived question 99)"
  },
  {
@@ -1659,7 +1624,7 @@
    "Divine Command Theory",
    "Subjective Relativism"
   ],
-  "why": "",
+  "why": "Utilitarianism adds up the benefits and harms for everyone affected and picks the action with the best total: a calculation.",
   "source": "Ethics quiz bank (archived question 100)"
  },
  {
@@ -1675,7 +1640,7 @@
    "Kantianism",
    "Rule Utilitarianism"
   ],
-  "why": "",
+  "why": "Obeying only to avoid punishment makes self-interest the reason: ethical egoism. Social contract theory obeys because shared rules benefit everyone.",
   "source": "Ethics quiz bank (archived question 101)"
  },
  {
@@ -1691,7 +1656,7 @@
    "Letting them win every argument.",
    "Taking them to court."
   ],
-  "why": "",
+  "why": "The code asks engineers to give a fair hearing to colleagues' opinions, concerns and complaints, judging them on their merits.",
   "source": "Ethics quiz bank (archived question 102)"
  },
  {
@@ -1707,7 +1672,7 @@
    "It is the only way to get a PhD.",
    "The Code of Ethics says you must read 10 books a year."
   ],
-  "why": "",
+  "why": "Practices, tools and threats change quickly, and outdated methods can produce unsafe software, so the code asks engineers to keep learning throughout their careers.",
   "source": "Ethics quiz bank (archived question 103)"
  },
  {
@@ -1723,7 +1688,7 @@
    "Cost Efficiency",
    "Public Education"
   ],
-  "why": "",
+  "why": "Dumping the database exposes data to unauthorized people, a confidentiality breach, and shows the system cannot guarantee its data's integrity. Nothing was made unavailable.",
   "source": "Ethics quiz bank (archived question 104)"
  },
  {
@@ -1739,7 +1704,7 @@
    "It uses too much database storage.",
    "It is only a problem if the data is false."
   ],
-  "why": "",
+  "why": "People give data for a purpose. Using even accurate data in ways they did not authorize breaks the trust and consent under which it was given.",
   "source": "Ethics quiz bank (archived question 105)"
  },
  {
@@ -1755,7 +1720,7 @@
    "Practicing Act Utilitarianism.",
    "Following the Social Contract."
   ],
-  "why": "",
+  "why": "The code says managers must not punish anyone for expressing ethical concerns about a project.",
   "source": "Ethics quiz bank (archived question 106)"
  },
  {
@@ -1771,7 +1736,7 @@
    "Never working for a company that makes less than $1 million.",
    "Using the same password for everything."
   ],
-  "why": "",
+  "why": "Integrity under the Judgment principle means keeping professional judgment independent and objective, even when clients or managers push for a different answer.",
   "source": "Ethics quiz bank (archived question 107)"
  },
  {
@@ -1787,7 +1752,7 @@
    "Kantian Deontology.",
    "Virtue Ethics."
   ],
-  "why": "",
+  "why": "Censoring speech for the sake of unity puts the state's goals ahead of each person's freedom of expression; the stated aim does not change that trade-off.",
   "source": "Ethics quiz bank (archived question 108)"
  },
  {
@@ -1803,7 +1768,7 @@
    "Your code is a secret that no one can see.",
    "You own the rights to the word 'Java.'"
   ],
-  "why": "",
+  "why": "Copyright covers the specific code you wrote, not the idea or algorithm behind it, so others may write their own implementation of the same idea.",
   "source": "Ethics quiz bank (archived question 109)"
  },
  {
@@ -1819,7 +1784,7 @@
    "You want to steal their art assets.",
    "The software was free to begin with."
   ],
-  "why": "",
+  "why": "Courts allow decompiling when it is the only way to learn the interface needed for interoperability. Copying secret algorithms or assets is not fair use.",
   "source": "Ethics quiz bank (archived question 110)"
  },
  {
@@ -1835,7 +1800,7 @@
    "It is only wrong if you get caught.",
    "It's actually smart business according to Virtue Ethics."
   ],
-  "why": "",
+  "why": "Double billing deceives clients about the work they pay for. The code names it, with bribery, as a deceptive financial practice.",
   "source": "Ethics quiz bank (archived question 111)"
  },
  {
@@ -1851,7 +1816,7 @@
    "You should have killed the one person.",
    "You failed to maximize happiness."
   ],
-  "why": "",
+  "why": "Kant distinguishes doing from allowing: diverting the trolley would use one person as a means, while not acting does not make you a killer. Maximizing happiness is the utilitarian concern.",
   "source": "Ethics quiz bank (archived question 112)"
  },
  {
@@ -1867,7 +1832,7 @@
    "Require too many notifications.",
    "Are only a problem in North America."
   ],
-  "why": "",
+  "why": "Feeds show people more of what they already believe, so groups see less of each other's views and society becomes more polarized.",
   "source": "Ethics quiz bank (archived question 113)"
  },
  {
@@ -1883,7 +1848,7 @@
    "Work alone and never show anyone their code.",
    "Never sleep until the project is done."
   ],
-  "why": "",
+  "why": "Accepting full responsibility means owning your mistakes instead of shifting the blame onto teammates or users.",
   "source": "Ethics quiz bank (archived question 114)"
  },
  {
@@ -1899,7 +1864,7 @@
    "Make sure no one ever uses the technology.",
    "Comply with the 10 Commandments."
   ],
-  "why": "",
+  "why": "A patent gives the inventor temporary exclusive rights in return for publishing how the invention works; after 20 years anyone may use it.",
   "source": "Ethics quiz bank (archived question 115)"
  },
  {
@@ -1915,7 +1880,7 @@
    "It is a violation of the laws of physics.",
    "It is fine as long as the software eventually works."
   ],
-  "why": "",
+  "why": "The code asks engineers to avoid false, speculative or misleading claims about software, since clients and the public rely on them.",
   "source": "Ethics quiz bank (archived question 116)"
  },
  {
@@ -1931,7 +1896,7 @@
    "The terms of the GPL license.",
    "The Social Contract."
   ],
-  "why": "",
+  "why": "Hidden constant tracking collects sensitive data without telling users or asking consent, so they cannot decide whether to accept it.",
   "source": "Ethics quiz bank (archived question 117)"
  },
  {
@@ -1947,7 +1912,7 @@
    "The law says so.",
    "God wants us to talk a lot."
   ],
-  "why": "",
+  "why": "A rule utilitarian adopts the rule whose general practice produces the most happiness; free expression spreads ideas and exposes errors, benefiting society.",
   "source": "Ethics quiz bank (archived question 118)"
  },
  {
@@ -1963,7 +1928,7 @@
    "Kantianism",
    "Social Contract Theory"
   ],
-  "why": "",
+  "why": "Divine command theory says an act is right because God commands it and wrong because God forbids it.",
   "source": "Ethics quiz bank (archived question 119)"
  },
  {
@@ -1979,7 +1944,7 @@
    "A rule-breaker.",
    "Fearful of getting sued."
   ],
-  "why": "",
+  "why": "Crediting others is honest about who did the work and fair to colleagues, which the Colleagues principle asks for.",
   "source": "Ethics quiz bank (archived question 120)"
  },
  {
@@ -1995,7 +1960,7 @@
    "The victim for getting in the way.",
    "Nobody; it's an 'act of God.'"
   ],
-  "why": "",
+  "why": "A robot is not a moral agent, so responsibility falls on the people who designed, programmed and deployed it.",
   "source": "Ethics quiz bank (archived question 121)"
  },
  {
@@ -2011,7 +1976,7 @@
    "It is required by the building code.",
    "It allows you to ignore the user's needs."
   ],
-  "why": "",
+  "why": "Professional objectivity means judging software on its merits, not on friendships, payments or rivalries, so the evaluation can be trusted.",
   "source": "Ethics quiz bank (archived question 122)"
  }
 ],

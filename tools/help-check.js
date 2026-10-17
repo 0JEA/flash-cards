@@ -38,6 +38,9 @@ const { chromium } = require('playwright-core');
   for (const id of shots) {
     await p.evaluate(id => { const cards = FC.app.cardsFor(FC.app.cardsFor('csc370').some(c => c.id === id) ? 'csc370' : FC.app.decks.find(d => FC.app.cardsFor(d.id).some(c => c.id === id)).id);
       FC.app.startSession(cards, { queue: [id] }); FC.app.renderNow(id); document.getElementById('helpBtn').click(); }, id);
+    await p.waitForTimeout(700); // let the Help panel finish sliding in
+    // The panel scrolls inside itself; unroll it so a full-page shot shows every section.
+    await p.evaluate(() => { const s = document.getElementById('screen-help'), m = document.getElementById('helpMargin'); s.style.position = 'absolute'; s.style.height = 'auto'; m.style.height = 'auto'; m.style.overflow = 'visible'; });
     await p.screenshot({ path: `${shotDir}/help-${id.replace(/[^\w-]/g, '_')}-${w}.png`, fullPage: true });
   }
   console.log(`${deck} at ${w}x${h}: ${JSON.stringify(r)}; page errors: ${errs.length}`, errs.slice(0, 3));

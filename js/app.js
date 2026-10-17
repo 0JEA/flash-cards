@@ -311,6 +311,22 @@
   }
 
   // ── Class screen: topic toggles, then Study ────────────────────────────
+  // Rough practice time still needed to master a set of cards: recalls left (3 on the first
+  // day + one per relearning day) × a typical time per answer for the card's kind. An
+  // estimate for planning, not a measurement.
+  const SECONDS = { quick: 10, mc: 10, typed: 25, write: 75, other: 30 };
+  function practiceHours(cards, sts) {
+    let sec = 0;
+    for (const c of cards) {
+      const st = sts[c.id]; if (!st || st.mastered) continue;
+      const left = st.phase === 'review' ? sched.MASTERED_STEP - st.step
+        : sched.LEARN_CRITERION - (st.phase === 'learning' ? Math.min(sched.LEARN_CRITERION, st.successesToday(today())) : 0) + sched.MASTERED_STEP;
+      const kind = c.type === 'mc' ? 'mc' : c.type === 'typed' ? 'typed' : c.type === 'recall' ? (isQuick(c) ? 'quick' : 'write') : 'other';
+      sec += Math.max(0, left) * SECONDS[kind];
+    }
+    return sec / 3600;
+  }
+
   // ── Class screen: one list of what to study, then the session options ─────────
   // Owner, 2026-10-17: simple and direct. The main choice (which lectures) is at the top as
   // one list in the page (no inner scroller, no tabs); an assignment is one dropdown; the
@@ -325,7 +341,8 @@
     const n = k.review + k.learn;
     $('studyBtn').disabled = n === 0;
     $('studyBtn').textContent = n ? `Study ${n} card${n === 1 ? '' : 's'}` : 'Nothing to study';
-    $('studyCounts').textContent = n ? `${k.review} to review · ${k.learn} new` : '';
+    const hrs = practiceHours(activeCards(d.id), k.sts);
+    $('studyCounts').textContent = (n ? `${k.review} to review · ${k.learn} new` : '') + (hrs >= 0.1 ? `${n ? ' · ' : ''}about ${hrs < 1 ? Math.max(1, Math.round(hrs * 60)) + ' min' : hrs.toFixed(hrs < 10 ? 1 : 0) + ' h'} of practice left to master these` : '');
     $('studyNote').textContent = n ? ''
       : k.total === 0 ? 'Nothing is ticked below. Tick a lecture (or Everything) to study it.' : 'Nothing left for today in this choice. Come back tomorrow, or tick more lectures.';
     $('examDate').value = settings.exams[d.id] || '';
@@ -574,17 +591,26 @@
   // Opens over the screen it was called from: the study card (counts as not known if it was
   // still unanswered) or the session summary (a card you missed).
   let helpCard = null, helpHide = 0, helpFrom = null;
+  // A card split off another (`<id>-qN`) shares its original's walkthrough: the idea, the
+  // picture and the steps explain the whole topic; the answer shown is the card's own.
+  const helpOf = card => {
+    if (!card || !FC.help) return null;
+    if (FC.help[card.id]) return { help: FC.help[card.id], shared: false };
+    const parent = String(card.id).replace(/-q\d+$/, '');
+    return parent !== card.id && FC.help[parent] ? { help: FC.help[parent], shared: true } : null;
+  };
   function openHelp(arg) {
     const card = arg && arg.prompt ? arg : current && current.card;
-    const help = card && FC.help && FC.help[card.id];
-    if (!help) return;
+    const found = helpOf(card);
+    if (!found) return;
+    const { help, shared } = found;
     if (card === (current && current.card) && !current.pending) giveUp();
     helpCard = card;
     helpFrom = document.activeElement;
     const sec = (title, ...kids) => h('section', { class: 'help-sec' }, h('h2', null, title), ...kids);
     const body = [h('p', { class: 'help-q' }, helpMath(card.prompt))];
     if (card.code) body.push(h('pre', { class: 'code' }, card.code));
-    body.push(sec('What it’s asking', h('p', null, helpMath(help.asks))));
+    if (!shared) body.push(sec('What it’s asking', h('p', null, helpMath(help.asks))));
     if (help.idea) body.push(sec('The idea', h('p', null, helpMath(help.idea))));
     // Heaps: one drawn heap, or a short sequence of states (each with its caption).
     // In a sequence, nodes that changed since the previous state are highlighted (the swap).
@@ -603,9 +629,10 @@
       help.graph ? plot(help.graph) : null].filter(Boolean);
     if (pics.length) body.push(sec('Picture it', ...pics.flatMap((p, i) => i ? [h('div', { style: 'height:0.75rem' }), p] : [p])));
     if (help.steps) body.push(sec('Step by step', h('ol', { class: 'help-steps' }, help.steps.map(helpStep))));
-    if (help.answer) body.push(sec('Answer', h('div', { class: 'help-answer' }, helpMath(help.answer))));
+    if (shared) body.push(sec('Answer', h('div', { class: 'help-answer' }, helpMath(Array.isArray(card.answer) ? card.answer.join(', ') : card.answer))));
+    else if (help.answer) body.push(sec('Answer', h('div', { class: 'help-answer' }, helpMath(help.answer))));
     if (help.mistake) body.push(sec('Watch out', h('div', { class: 'help-mistake' }, helpMath(help.mistake))));
-    if (help.tryIt) {
+    if (help.tryIt && !shared) {
       const a = h('p', { class: 'muted-p', hidden: true }, helpMath(help.tryIt.a));
       const btn = h('button', { class: 'btn', type: 'button', onclick: () => { a.hidden = false; btn.remove(); } }, 'Show answer');
       body.push(sec('Try one', h('p', null, helpMath(help.tryIt.q)), help.tryIt.code ? h('pre', { class: 'code help-code' }, help.tryIt.code) : null, btn, a));
@@ -632,6 +659,11 @@
     if (now !== true && helpFrom && helpFrom.isConnected) helpFrom.focus({ preventScroll: true });
   }
   $('helpBtn').addEventListener('click', () => openHelp());
+  // H opens Help on the study card (when not typing an answer).
+  document.addEventListener('keydown', e => {
+    if ((e.key === 'h' || e.key === 'H') && !e.ctrlKey && !e.metaKey && !e.altKey && !$('screen-study').hidden && $('screen-help').hidden
+      && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName) && !$('helpBtn').hidden) { e.preventDefault(); openHelp(); }
+  });
   $('helpBack').addEventListener('click', () => closeHelp());
   $('helpBackdrop').addEventListener('click', () => closeHelp());
   // Keep Tab inside the notes while they are open.
@@ -713,7 +745,7 @@
     $('missedList').replaceChildren(...missed.slice(0, 30).map(c => {
       mathOn = !!(deckById.get(c.deck) || {}).math;
       const row = h('div', { class: 'grow' }, h('span', { class: 'mq' }, math(c.prompt || c.title || c.id)),
-        FC.help && FC.help[c.id] ? h('button', { class: 'linkbtn', type: 'button', onclick: () => openHelp(c) }, 'Help') : null);
+        helpOf(c) ? h('button', { class: 'linkbtn', type: 'button', onclick: () => openHelp(c) }, 'Help') : null);
       return row;
     }));
     mathOn = lastMath;
@@ -887,7 +919,7 @@
     }
     current = { card, pending: null, progress: learnProgress(base) };
     $('screen-study').classList.remove('answered');
-    $('helpBtn').hidden = !(FC.help && FC.help[card.id]);
+    $('helpBtn').hidden = !helpOf(card);
     if ($('reportBox')) $('reportBox').remove();
     paintClass(card.deck);
     $('studyTitle').textContent = (deckById.get(card.deck) || {}).short || '';

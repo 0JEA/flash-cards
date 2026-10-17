@@ -17,7 +17,7 @@ const { chromium } = require('playwright-core');
   await p.goto(process.env.FIT_URL || 'http://localhost:8765/index.html');
   await p.evaluate(() => document.fonts.ready);
   const r = await p.evaluate(deck => {
-    const cards = FC.app.cardsFor(deck).filter(c => FC.help[c.id]);
+    const cards = FC.app.cardsFor(deck).filter(c => FC.help[c.id] || FC.help[String(c.id).replace(/-q\d+$/, '')]);
     const bad = []; let pics = 0;
     for (const c of cards) {
       FC.app.startSession(cards, { queue: [c.id] }); FC.app.renderNow(c.id);

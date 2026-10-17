@@ -5,16 +5,23 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const katex = require('../vendor/katex/katex.min.js');
-for (const f of ['csc370', 'softtest-a', 'softtest-b', 'softtest-c', 'softtest', 'ethics', 'csc310-a', 'csc310-b', 'csc310']) require('../decks/' + f + '.js');
+for (const f of ['csc370', 'csc370-blank-answers', 'csc370-blank-questions', 'softtest-a', 'softtest-b', 'softtest-c', 'softtest', 'ethics', 'csc310-a', 'csc310-b', 'csc310']) require('../decks/' + f + '.js');
+require('../js/tree.js');
 const helpFiles = fs.readdirSync(path.join(__dirname, '../decks')).filter(f => /-help(-\w+)?\.js$/.test(f));
 for (const f of helpFiles) require('../decks/' + f);
 const { decks, help } = globalThis.FC;
-const byId = new Map(Object.values(decks).flatMap(d => d.cards.map(c => [c.id, c])));
+const byId = new Map(Object.values(decks).flatMap(d => d.cards.map(c => [c.id, Object.assign({ deck: d.id }, c)])));
+// Lecture blanks studied as cards (same rule as blankCards in js/app.js): 'blank:<id>'.
+{
+  const F = globalThis.FC, grouped = new Set((F.blankGroups || []).flatMap(g => g.ids)), retired = new Set(F.blankRetired || []);
+  for (const g of F.blankGroups || []) if (!g.ids.every(id => retired.has(id))) byId.set('blank:' + g.ids[0], { deck: 'csc370', prompt: g.ask });
+  for (const b of decks.csc370.blanks) if (!grouped.has(b.id) && !retired.has(b.id) && F.blankAnswers[b.id]) byId.set('blank:' + b.id, { deck: 'csc370', prompt: b.prompt });
+}
 const html = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
 
 const texts = h => [h.asks, h.idea, h.answer, h.mistake, h.tryIt && h.tryIt.q, h.tryIt && h.tryIt.a,
   ...(h.steps || []).flatMap(st => typeof st === 'string' ? [st] : [st.text, ...(st.table ? st.table.head.concat(st.table.rows.flat()) : [])]),
-  ...(h.heapSteps || []).map(st => st.text),
+  ...(h.heapSteps || []).map(st => st.text), ...[].concat(h.ptree || []).map(p => p.caption),
   ...(h.tree ? [h.tree.caption, h.tree.sumsLabel, ...h.tree.levels.flatMap(l => l.gap ? [] : [...l.nodes, l.sum])] : []),
   ...(h.graph ? [h.graph.caption, h.graph.bars && h.graph.bars.label, ...(h.graph.curves || []).map(c => c.label), ...(h.graph.marks || []).map(m => m.label)] : [])].filter(Boolean);
 
@@ -26,7 +33,16 @@ for (const [id, h] of Object.entries(help || {})) {
   test(`help ${id}`, () => {
     assert.ok(byId.has(id), `no card ${id}`);
     for (const k of ['asks', 'steps', 'answer']) assert.ok(h[k] && h[k].length, `missing ${k}`);
+    const mathOn = !!decks[byId.get(id).deck].math;
+    if (h.tryIt) assert.ok(h.tryIt.q && h.tryIt.a && (h.tryIt.code == null || typeof h.tryIt.code === 'string'), 'tryIt needs q and a; code is a string');
+    for (const st of h.steps) if (typeof st !== 'string') assert.ok(st.text && (st.code == null || typeof st.code === 'string'), 'step needs text; code is a string');
+    assert.ok([].concat(h.ptree || []).length <= 3, 'at most 3 ptrees');
+    for (const p of [].concat(h.ptree || [])) {
+      const { nodes } = globalThis.FC.tree.layout(p.tree);
+      assert.ok(nodes.length >= 2 && nodes.length <= 40 && nodes.every(n => n.label.trim()), 'ptree: 2–40 labelled nodes');
+    }
     for (const t of texts(h)) {
+      if (!mathOn) { assert.equal((String(t).match(/`/g) || []).length % 2, 0, `unbalanced backtick in: ${t}`); continue; }
       assert.equal((String(t).match(/(?<!\\)\$/g) || []).length % 2, 0, `unbalanced $ in: ${t}`);
       for (const m of String(t).matchAll(/(?<!\\)\$(.+?)(?<!\\)\$/g)) assert.doesNotThrow(() => katex.renderToString(m[1], { throwOnError: true }), `KaTeX: ${m[1]}`);
     }

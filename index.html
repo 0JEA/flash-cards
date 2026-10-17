@@ -260,7 +260,8 @@
     .help-steps li::before { content: counter(st); position: absolute; left: 0; top: 0.05rem; width: 1.55rem; height: 1.55rem; border-radius: 50%;
       background: var(--accent-soft); color: var(--accent-hover); font: 650 0.82rem/1.55rem var(--font); text-align: center; }
     .help-table { border-collapse: collapse; margin-top: 0.5rem; font-size: 0.92rem; font-variant-numeric: tabular-nums; }
-    .help-table th, .help-table td { padding: 0.35rem 0.75rem; text-align: right; border-bottom: 1px solid var(--border); }
+    .help-table th, .help-table td { padding: 0.35rem 0.75rem; text-align: left; vertical-align: top; border-bottom: 1px solid var(--border); }
+    .help-table .num { text-align: right; }
     .help-table th { color: var(--text-2); font-weight: 600; }
     .help-table-wrap { overflow-x: auto; }
     .help-answer { background: var(--correct-soft); border-radius: var(--radius-sm); padding: 0.8rem 1rem; line-height: 1.65; }
@@ -285,6 +286,10 @@
     .graph-cap { color: var(--text-2); font-size: 0.9rem; margin-top: 0.5rem; line-height: 1.55; }
     .heap-step p { margin-bottom: 0.4rem; line-height: 1.6; }
     .heap-fig .ftree { margin: 0 auto; }
+    /* No programming ligatures: != must not show as a math sign that looks like syntax. */
+    pre, code, .ftree, .ftree .ftree-node, .ftree input, .mono, [class*="code"] { font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0; }
+    pre.help-code { margin-top: 0.5rem; font-size: 0.8rem; }
+    code.ic { font-family: var(--mono); font-size: 0.88em; background: var(--surface-2); border-radius: 4px; padding: 0.05em 0.3em; }
     .tree-fig { position: relative; width: 100%; }
     .graph svg.tree-edges { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
     .tree-edges line { stroke: var(--text-3); stroke-width: 1.2; }
@@ -591,6 +596,16 @@
   <script src="decks/csc310-help-o.js"></script>
   <script src="decks/csc310-help-p.js"></script>
   <script src="decks/csc370-cpointer-bank.js"></script>
+  <script src="decks/csc370-help.js"></script>
+  <script src="decks/csc370-help-a.js"></script>
+  <script src="decks/csc370-help-b.js"></script>
+  <script src="decks/csc370-help-c.js"></script>
+  <script src="decks/csc370-help-d.js"></script>
+  <script src="decks/csc370-help-e.js"></script>
+  <script src="decks/csc370-help-f.js"></script>
+  <script src="decks/csc370-help-g.js"></script>
+  <script src="decks/csc370-help-h.js"></script>
+  <script src="decks/csc370-help-i.js"></script>
   <script src="js/gen-softtest.js"></script>
   <script src="js/gen-csc370.js"></script>
   <script src="js/gen-csc310.js"></script>

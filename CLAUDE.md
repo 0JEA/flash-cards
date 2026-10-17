@@ -39,10 +39,11 @@ The design, and the paper behind each learning rule, are in `docs/superpowers/sp
 | `decks/softtest-{a,b,c}.js` + `decks/softtest.js` | CSC 325 cards + assembler |
 | `decks/csc310-{a,b}.js` + `decks/csc310.js` | CSC 310 cards + assembler (lectures, assignments, topic order) |
 | `decks/ethics.js` | Ethics quiz (MC) |
-| `decks/csc310-help*.js` | Help walkthroughs (`FC.help[cardId]`: asks, idea, steps, graph, tree, heap/heapSteps, answer, mistake, tryIt). Format in `decks/csc310-help.js`. Every CSC 310 card has an entry (484/484, verified 2026-10-16 by loading all help files against FC.decks.csc310.cards); other classes have none yet. Cards without an entry show no Help button. Opening Help before answering counts the card as not known |
+| `decks/csc310-help*.js`, `decks/csc370-help*.js` | Help walkthroughs (`FC.help[cardId]`: asks, idea, steps (text, table or code), graph, tree, heap/heapSteps, ptree (parse trees), answer, mistake, tryIt with optional code). Formats: `decks/csc310-help.js` (math on) and `decks/csc370-help.js` (math off: text as written, `backticks` = inline code; lecture blanks keyed `blank:<id>`). Every CSC 310 card (484/484) and every CSC 370 card (294/294, generators excluded) has an entry, verified 2026-10-16 with `tools/help-check.js`; CSC 325 and Ethics have none. Cards without an entry show no Help button. Opening Help before answering counts the card as not known |
 | `js/tree.js` | Trees: auto-oriented drawing, node diff, and the tree answer types `tree` (build), `swaps` (heap repair, checked per swap), `fill` (type blank nodes), `path` (tap in order). Formats in its header. `heap`/`tree` on any other card is drawn under the question |
 | `vendor/pretext-0.0.9.min.js`, `vendor/katex/` | Text fitting; math rendering |
 | `tools/fit-sweep.js` | Headless fit check of every card at a given viewport |
+| `tools/help-check.js` | Headless render of every Help page in a class (`<deck> <w> <h> [shotDir id...]`): math errors, raw `$`, stray backticks, sideways scroll, page errors; exit 0 = clean |
 
 Rebuild Pretext (only to change the version):
 ```sh
@@ -53,7 +54,7 @@ Then update the `<script>` tag in `index.html`.
 
 ## Commands
 
-- Tests (815 as of 2026-10-16, about 60 s; needs python3, gcc, node, bash, guile, ecl, javac/java; python3 with mpmath for the CSC 310 growth checks): `node --test tests/`
+- Tests (1109 as of 2026-10-16, about 60 s; needs python3, gcc, node, bash, guile, ecl, javac/java; python3 with mpmath for the CSC 310 growth checks): `node --test tests/`
 - Run locally: `python3 -m http.server 8765 --bind 127.0.0.1`, then open http://127.0.0.1:8765/. Opening `index.html` directly from disk also works.
 
 ## Deployed vs repo-only

@@ -469,7 +469,13 @@
   // ── Help: a worked walkthrough for the current card (decks/*-help.js) ──
   // Opening it before answering counts the card as not known, so it comes back later and
   // still has to be recalled: Help teaches, it doesn't replace the retrieval.
-  const helpMath = t => { const was = mathOn; mathOn = true; try { return math(t); } finally { mathOn = was; } };
+  // Classes with math on render $...$ (KaTeX); the others show text as written ($ is code in
+  // C, shell and Perl there), with `backticks` set as inline code.
+  const deckMath = () => !current || !!(deckById.get(current.card.deck) || {}).math;
+  const helpMath = t => {
+    if (!deckMath()) return String(t).split(/`([^`]+)`/).map((part, i) => i % 2 ? h('code', { class: 'ic' }, part) : part);
+    const was = mathOn; mathOn = true; try { return math(t); } finally { mathOn = was; }
+  };
   const SVG = 'http://www.w3.org/2000/svg';
   const s = (tag, attrs) => { const el = document.createElementNS(SVG, tag); for (const [k, v] of Object.entries(attrs || {})) el.setAttribute(k, v); return el; };
 
@@ -569,9 +575,14 @@
   function helpStep(st) {
     if (typeof st === 'string') return h('li', null, helpMath(st));
     const li = h('li', null, helpMath(st.text || ''));
+    // Columns of numbers (or math) line up on the right; columns of words read from the left.
+    const numeric = cell => /^[\s\d.,+\-–−×*\/()=%<>≤≥]*$/.test(String(cell).replace(/(?<!\\)\$.+?(?<!\\)\$/g, '0'));
+    const right = st.table && st.table.head.map((_, k) => st.table.rows.every(r => numeric(r[k] == null ? '' : r[k])));
+    const al = k => right[k] ? 'num' : null;
     if (st.table) li.append(h('div', { class: 'help-table-wrap' }, h('table', { class: 'help-table' },
-      h('thead', null, h('tr', null, st.table.head.map(c => h('th', null, helpMath(c))))),
-      h('tbody', null, st.table.rows.map(r => h('tr', null, r.map(c => h('td', null, helpMath(c)))))))));
+      h('thead', null, h('tr', null, st.table.head.map((c, k) => h('th', { class: al(k) }, helpMath(c))))),
+      h('tbody', null, st.table.rows.map(r => h('tr', null, r.map((c, k) => h('td', { class: al(k) }, helpMath(c)))))))));
+    if (st.code) li.append(h('pre', { class: 'code help-code' }, st.code));
     return li;
   }
 
@@ -592,7 +603,11 @@
       return h('figure', { class: 'graph heap-fig' }, FC.tree.draw(FC.tree.heapTree(arr), { render: helpMath, maxHeight: 220, orient: 'v', classOf: n => changed(n.t.id) }), FC.tree.stripOf(arr, changed));
     };
     const steps = help.heapSteps || [];
+    // A parse tree (or any FC.tree-format tree), drawn like the tree answers.
+    const ptree = p => h('figure', { class: 'graph heap-fig' }, FC.tree.draw(p.tree, { render: helpMath, maxHeight: 300 }),
+      p.caption ? h('figcaption', { class: 'graph-cap' }, helpMath(p.caption)) : null);
     const pics = [help.tree ? drawTree(help.tree) : null,
+      ...[].concat(help.ptree || []).map(ptree),
       help.heap ? heapFig(help.heap) : null,
       ...steps.map((st, i) => h('div', { class: 'heap-step' }, h('p', null, helpMath(st.text || '')), heapFig(st.heap, i ? steps[i - 1].heap : null))),
       help.graph ? plot(help.graph) : null].filter(Boolean);
@@ -603,7 +618,7 @@
     if (help.tryIt) {
       const a = h('p', { class: 'muted-p', hidden: true }, helpMath(help.tryIt.a));
       const btn = h('button', { class: 'btn', type: 'button', onclick: () => { a.hidden = false; btn.remove(); } }, 'Show answer');
-      body.push(sec('Try one', h('p', null, helpMath(help.tryIt.q)), btn, a));
+      body.push(sec('Try one', h('p', null, helpMath(help.tryIt.q)), help.tryIt.code ? h('pre', { class: 'code help-code' }, help.tryIt.code) : null, btn, a));
     }
     $('helpBody').replaceChildren(...body);
     $('screen-study').hidden = true;

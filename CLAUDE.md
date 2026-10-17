@@ -31,6 +31,8 @@ The design, and the paper behind each learning rule, are in `docs/superpowers/sp
 | `js/sync.js` | Sync to branch `progress` through the GitHub contents API (per-month files, SHA retry) |
 | `js/generators.js` | Generator contract: a card that builds a new problem (values, names, code) each time it is shown |
 | `js/gen-csc370.js`, `js/gen-softtest.js`, `js/gen-csc310.js` | The generators; each has a test file that re-solves every answer independently |
+| `js/gen-csc310-heap.js` | CSC 310 heap practice answered ON a drawn heap (`swaps`: heapify, build-heap, insert/increase-key, extract; `fill`; read-the-heap checks). Tests re-run her pseudocode and replay each swap sequence |
+| `js/gen-csc310-trees.js` | CSC 310 tree practice answered ON a tree: decision trees of insertion/merge/quick sort on 3 elements (`tree` build, `path` follow an input, facts with the tree drawn), binary search as a `path` in the tree of midpoints, QUICKSORT and MergeSort call trees (`fill`). Tests re-run each algorithm with a comparison logger / call recorder and pin Figure 8.1 and her lecture examples |
 | `js/app.js` | UI controller. Card text goes through `textContent` or KaTeX (`math()`), never `innerHTML` (the page holds a token) |
 | `decks/csc370*.js` | CSC 370 cards, slide blanks + supplied answers (`basis`), rewritten blank questions, topic map, gcc-verified C pointer bank (`tools/gen-c-pointer-bank.js` rebuilds it) |
 | `decks/softtest-{a,b,c}.js` + `decks/softtest.js` | CSC 325 cards + assembler |
@@ -50,7 +52,7 @@ Then update the `<script>` tag in `index.html`.
 
 ## Commands
 
-- Tests (362 as of 2026-10-16, about 25 s; needs python3, gcc, node, bash, guile, ecl, javac/java; python3 with mpmath for the CSC 310 growth checks): `node --test tests/`
+- Tests (392 as of 2026-10-16, about 25 s; needs python3, gcc, node, bash, guile, ecl, javac/java; python3 with mpmath for the CSC 310 growth checks): `node --test tests/`
 - Run locally: `python3 -m http.server 8765 --bind 127.0.0.1`, then open http://127.0.0.1:8765/. Opening `index.html` directly from disk also works.
 
 ## Deployed vs repo-only

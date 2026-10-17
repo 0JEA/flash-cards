@@ -23,7 +23,8 @@
 //   - Binary search: the worksheet's iterative version, low = 1, high = n, mid = floor((low+high)/2).
 //
 //   gen-310-master          which case / Θ solution / n^(log_b a)
-//   gen-310-recursion-tree  levels, nodes, per-level cost, leaves, exact total, Θ
+//   gen-310-recursion-tree  levels, nodes, per-level cost, leaves, exact total, Θ (tagged a2; b never 3;
+//                           draws its numeric tree as `rtree`. More a2 practice: js/gen-csc310-rt.js)
 //   gen-310-growth-order    order by growth; o / Θ / ω; true-or-false on O, Ω, Θ, o, ω
 //   gen-310-loop-count      exact iteration count of a loop nest, and its Θ bound
 //   gen-310-partition       Lomuto PARTITION: pivot index, array after, mid-trace, swaps
@@ -240,7 +241,8 @@
   // T(n) = a T(n/b) + c n^k, T(1) = 1, n = b^h. Depth i has a^i nodes of size n/b^i.
   function treeInstance(rng) {
     for (;;) {
-      const a = pick(rng, [1, 2, 2, 3, 4, 4, 8, 9]), b = pick(rng, [2, 2, 3, 4]), k = pick(rng, [1, 1, 2]), c = int(rng, 1, 5);
+      // b is never 3: this generator practises Assignment 2, which is graded on a split into thirds.
+      const a = pick(rng, [1, 2, 2, 3, 4, 4, 8, 9]), b = pick(rng, [2, 2, 4]), k = pick(rng, [1, 1, 2]), c = int(rng, 1, 5);
       const h = int(rng, 3, b === 2 ? 6 : b === 3 ? 5 : 4), n = b ** h;
       let total = a ** h;
       for (let i = 0; i < h; i++) total += a ** i * c * (n / b ** i) ** k;
@@ -248,7 +250,7 @@
     }
   }
   G.register({
-    id: 'gen-310-recursion-tree', deck: DECK, lecture: '5', cat: 'Recurrences', sub: 'Recursion trees',
+    id: 'gen-310-recursion-tree', deck: DECK, lecture: '5', cat: 'Recurrences', sub: 'Recursion trees', assignment: ['a2'],
     title: 'Read a recursion tree: levels, per-level cost, total',
     make(rng) {
       const { a, b, k, c, h, n, total } = treeInstance(rng);
@@ -283,6 +285,23 @@
         ...thetaAnswer(t), why: domWhy, source, spec };
     },
   });
+  // Draw this instance's tree (its own n, numbers) under the answer: levels 0–1, then the leaves
+  // (four rows at most: the diagram's rows are a fixed 54px and must fit at 632×595).
+  {
+    const g = G.all().find(x => x.id === 'gen-310-recursion-tree'), make = g.make;
+    g.make = rng => {
+      const card = make(rng), { a, b, k, c, n } = card.spec, h = Math.round(Math.log(n) / Math.log(b));
+      const row = (cnt, lab) => ({ nodes: (cnt <= 4 ? Array(cnt).fill(lab) : [lab, lab, '\\cdots', lab, lab]).map(M), sum: M(String(cnt * lab)) });
+      const levels = [];
+      for (let i = 0; i < 2; i++) levels.push(row(a ** i, c * (n / b ** i) ** k));
+      if (h > 2) levels.push({ gap: true });
+      levels.push(row(a ** h, 1));
+      let total = a ** h;
+      for (let i = 0; i < h; i++) total += a ** i * c * (n / b ** i) ** k;
+      card.rtree = { sumsLabel: 'level total', levels, caption: `For ${M(`n = ${n}`)}: the level totals add up to ${M(`T(${n}) = ${total}`)}.` };
+      return card;
+    };
+  }
 
   // ═══════════════════════════ 3. Growth of functions ═══════════════════════════
   // s: plain (order tiles, spec), t: LaTeX, f: the function itself (for the graph).
@@ -555,7 +574,7 @@
       const spec = { gen: 'heap', kind, A };
       if (kind === 'build') {
         const r = buildHeap(A);
-        return { type: 'typed', prompt: `Run BUILD-MAX-HEAP on A = ${fmt(A)}. What is A afterwards? ${ARR}`,
+        return { type: 'typed', heap: A, prompt: `Run BUILD-MAX-HEAP on A = ${fmt(A)}. What is A afterwards? ${ARR}`,
           ...listAnswer(r.H.slice(1)), why: `Leaves are A[${Math.floor(n / 2) + 1}..${n}]. ${r.why}`, source, spec };
       }
       const H = buildHeap(A).H, heap = H.slice(1); // a valid max-heap to start from
@@ -571,14 +590,14 @@
         const start = B.slice(1);
         const sw = heapify(B, i, n);
         spec.A = start; spec.i = i;
-        return { type: 'typed', prompt: `A = ${fmt(start)}. The subtrees of node ${i} are max-heaps. Run MAX-HEAPIFY(A, ${i}). What is A afterwards? ${ARR}`,
+        return { type: 'typed', heap: start, prompt: `A = ${fmt(start)}. The subtrees of node ${i} are max-heaps. Run MAX-HEAPIFY(A, ${i}). What is A afterwards? ${ARR}`,
           ...listAnswer(B.slice(1)), why: `${M(`A[${i}] = ${start[i - 1]}`)} is smaller than a child, so it sinks, each time swapping with the LARGER child: ${pairs(sw)}. It stops when both children are smaller (or it is a leaf).`, source, spec };
       }
       if (kind === 'extract') {
         const B = H.slice(), max = B[1], last = B[n];
         B[1] = B[n]; B.length = n;
         const sw = heapify(B, 1, n - 1);
-        return { type: 'typed', prompt: `The max-heap A = ${fmt(heap)}. Run HEAP-EXTRACT-MAX(A). What is the heap A[1..${n - 1}] afterwards? ${ARR}`,
+        return { type: 'typed', heap, prompt: `The max-heap A = ${fmt(heap)}. Run HEAP-EXTRACT-MAX(A). What is the heap A[1..${n - 1}] afterwards? ${ARR}`,
           ...listAnswer(B.slice(1)), why: `It returns ${max}. ${M(`A[1] = A[${n}] = ${last}`)}, heap size ${n - 1}, then MAX-HEAPIFY(A, 1): swaps ${pairs(sw) || 'none'}.`, source, spec };
       }
       const used = new Set(heap);
@@ -595,7 +614,7 @@
         while (i > 1 && B[parent(i)] < B[i]) { const pi = parent(i); [B[i], B[pi]] = [B[pi], B[i]]; sw.push([i, pi]); i = pi; }
         const q = kind === 'insert' ? `Run MAX-HEAP-INSERT(A, ${key}).` : `Run HEAP-INCREASE-KEY(A, ${spec.i}, ${key}).`;
         const start = kind === 'insert' ? `Heap size ${n + 1}, ${M(`A[${n + 1}] = -\\infty`)}, then increase it to ${key}.` : `${M(`A[${spec.i}]`)}: ${old} becomes ${key}.`;
-        return { type: 'typed', prompt: `The max-heap A = ${fmt(heap)}. ${q} What is A afterwards? ${ARR}`,
+        return { type: 'typed', heap, prompt: `The max-heap A = ${fmt(heap)}. ${q} What is A afterwards? ${ARR}`,
           ...listAnswer(B.slice(1)), why: `${start} While the parent is smaller, swap upward: ${pairs(sw) || 'none'}; stop at ${i === 1 ? 'the root' : `a parent ${M(`${B[parent(i)]} \\ge ${key}`)}`}.`, source, spec };
       }
       // heapsort: BUILD-MAX-HEAP already done (A is a heap); one or two iterations of the loop.
@@ -609,7 +628,7 @@
         parts.push(`${M('i = ' + (hs + 1))}: ${top} to A[${hs + 1}], heapify swaps ${pairs(sw) || 'none'} → ${fmt(B.slice(1))}`);
       }
       spec.iters = iters;
-      return { type: 'typed', prompt: `Heapsort: A = ${fmt(heap)} is already a max-heap. Run the first ${iters === 1 ? 'iteration' : 'two iterations'} of the for loop (Swap(A[1], A[i]), shrink heap_size, Heapify(A, 1)). What is the WHOLE array A[1..${n}] then? ${ARR}`,
+      return { type: 'typed', heap, prompt: `Heapsort: A = ${fmt(heap)} is already a max-heap. Run the first ${iters === 1 ? 'iteration' : 'two iterations'} of the for loop (Swap(A[1], A[i]), shrink heap_size, Heapify(A, 1)). What is the WHOLE array A[1..${n}] then? ${ARR}`,
         ...listAnswer(B.slice(1)), why: parts.join('. ') + '.', source, spec };
     },
   });
@@ -650,14 +669,14 @@
       const spec = { gen: 'buildheap', kind, A };
       if (kind === 'swaps') {
         const r = buildHeap(A);
-        return { type: 'typed', prompt: `Run BUILD-MAX-HEAP on A = ${fmt(A)}. How many swaps do the Max-Heapify calls make in total?`, answer: String(r.total),
+        return { type: 'typed', heap: A, prompt: `Run BUILD-MAX-HEAP on A = ${fmt(A)}. How many swaps do the Max-Heapify calls make in total?`, answer: String(r.total),
           why: `${r.why} Total ${r.total}.`, source, spec };
       }
       // partial: the array after the loop has processed i = floor(n/2) down to some i0.
       const i0 = int(rng, 2, Math.floor(n / 2));
       spec.i0 = i0;
       const r = buildHeap(A, i0);
-      return { type: 'typed', prompt: `BUILD-MAX-HEAP on A = ${fmt(A)}. What is A right after the loop's call Max-Heapify(A, ${i0}) finishes? Give comma-separated values, A[1] first.`,
+      return { type: 'typed', heap: A, prompt: `BUILD-MAX-HEAP on A = ${fmt(A)}. What is A right after the loop's call Max-Heapify(A, ${i0}) finishes? Give comma-separated values, A[1] first.`,
         ...listAnswer(r.H.slice(1)), why: r.why, source, spec };
     },
   });

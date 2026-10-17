@@ -22,8 +22,11 @@ const { chromium } = require('playwright-core');
     await document.fonts.ready;
     const $ = id => document.getElementById(id);
     const btn = t => [...$('actions').querySelectorAll('button')].find(b => b.textContent.startsWith(t));
+    // Overflow in px; the app's own "could not fit" flag counts too. (Tree-building canvases
+    // scroll by design, like a text box, so their inner scroll is not counted.)
     const over = () => { const a = $('answerArea'), q = $('qcard');
-      return Math.max(0, a.scrollHeight - a.clientHeight) + Math.max(0, q.scrollHeight - q.clientHeight) + Math.max(0, document.scrollingElement.scrollHeight - innerHeight); };
+      const px = Math.max(0, a.scrollHeight - a.clientHeight) + Math.max(0, q.scrollHeight - q.clientHeight) + Math.max(0, document.scrollingElement.scrollHeight - innerHeight);
+      return px || ($('screen-study').classList.contains('fit-overflow') ? 1 + px : 0); };
     const res = {};
     for (const d of FC.app.decks) {
       if (only.length && !only.includes(d.id)) continue;

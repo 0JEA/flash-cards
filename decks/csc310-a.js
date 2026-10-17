@@ -92,6 +92,11 @@
   const L6 = 'Lecure 6 (Solving Recurrences)';
   const MT = 'Master_Theorem.pdf (The Master Theorem Explained)';
   const WS = 'worksheet1-binarySearchAnalysis.pdf';
+  // The worksheet loop's tree of midpoints for n = 10 (node = mid index; left child = next
+  // mid after high = mid - 1, right = after low = mid + 1), drawn under the best/worst-case
+  // card (the dry runs carry the 14-line code, so a tree there no longer fits the screen).
+  const MID10 = (function mt(lo, hi) { if (lo > hi) return null; const m = Math.floor((lo + hi) / 2);
+    return { label: String(m), kids: [mt(lo, m - 1), mt(m + 1, hi)].filter(Boolean) }; })(1, 10);
 
   (FC.csc310Cards = FC.csc310Cards || []).push(
 
@@ -1449,7 +1454,7 @@
       answer: '5, 2, 1', accept: ['5 2 1', '5,2,1', '[5, 2, 1]'],
       why: M`(1,10) $\to$ 5: $27 > 3$, high = 4. (1,4) $\to$ 2: $8 > 3$, high = 1. (1,1) $\to$ 1: found at index 1.`,
       source: `${WS}, p. 2 (practice key; verified by python3)` },
-    { id: 'c310-ws-cases', lecture: 'ws-binsearch', cat: 'Divide & conquer', sub: 'Binary search', type: 'recall',
+    { id: 'c310-ws-cases', lecture: 'ws-binsearch', cat: 'Divide & conquer', sub: 'Binary search', type: 'recall', tree: MID10,
       prompt: 'Give binary search’s best, worst and average case (when each happens, and the comparison count).',
       answer: M`Best: key is the first middle element — 1 comparison, $T(n) = 1$. Worst: key absent (or found only when one element remains) — about $\log_2 n$ comparisons. Average: also about $\log_2 n$.`,
       points: ['best: first mid, 1 comparison', M`worst: key absent / last halving, $\approx \log_2 n$`, M`average: $\approx \log_2 n$ too`],

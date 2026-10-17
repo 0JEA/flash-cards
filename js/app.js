@@ -692,7 +692,9 @@
     const deck = deckById.get(card.deck) || DECKS[0];
     mathOn = !!deck.math;
     const lec = deck.lectures.find(l => l.n === card.lecture);
-    const where = card.lecture === 'paper' ? 'Reading' : deck.lectures.length > 1 ? `Lecture ${card.lecture}` : '';
+    const lecInfo = deck.lectures.find(l => String(l.n) === String(card.lecture));
+    const where = card.lecture === 'paper' ? 'Reading' : deck.lectures.length <= 1 ? ''
+      : /^\d+(\.\d+)?$/.test(card.lecture) ? `Lecture ${card.lecture}` : lecInfo ? lecInfo.title : '';
     const kind = card.generated ? 'Practice problem' : card.blank ? 'Fill the blank' : card.type === 'typed' && card.code ? 'Trace' : TYPE_LABEL[card.type];
     const prog = current && current.progress && current.progress.learning ? `new · ${current.progress.done}/${sched.LEARN_CRITERION}` : '';
     $('qlabel').textContent = [deck.short || deck.title, where, kind, prog].filter(Boolean).join(' · ');
@@ -761,6 +763,9 @@
   function fitAsk() {
     if (!window.Pretext || !current) return;
     const sec = $('screen-study'), area = $('answerArea');
+    // Drawn trees size themselves on the next frame; size them now so the text is fitted
+    // around their real height (otherwise the screen overflows a frame later).
+    sec.querySelectorAll('.ftree').forEach(b => b.fit && b.fit());
     sec.classList.remove('fit-overflow');
     area.style.removeProperty('--fit-a');
     sec.style.setProperty('--fit-q', 1);

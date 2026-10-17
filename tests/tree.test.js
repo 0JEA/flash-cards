@@ -47,3 +47,9 @@ test('fill: blanks are graded against their answers; filledTree restores every l
   assert.deepEqual([...T.fillMistakes(t, { '0.0': '14' })], ['0.0.1']);
   assert.ok(T.equal(T.filledTree(t), T.heapTree([16, 14, 10, 8, 7])));
 });
+test('layout: a lone child marked side L/R sits to that side, not straight below', () => {
+  const r = T.layout({ label: '5', kids: [{ label: '7', side: 'R', kids: [] }] }).nodes;
+  assert.ok(r[1].x > r[0].x, 'right child is to the right');
+  const l = T.layout({ label: '5', kids: [{ label: '3', side: 'L', kids: [] }] }).nodes;
+  assert.ok(l[1].x < l[0].x, 'left child is to the left');
+});

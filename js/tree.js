@@ -2,7 +2,8 @@
 // for answering, and node-by-node comparison for grading.
 //
 // Tree data: { label: '<expr>', kids: [ ... ] }   (`sym` is accepted as an alias of `label`)
-// Optional node fields: id (what a 'path' answer records; heaps use the 1-based index),
+// Optional node fields: side: 'L' | 'R' on a LONE child of a binary-tree node (drawn to that
+// side, not straight below), id (what a 'path' answer records; heaps use the 1-based index),
 // note (small corner badge, e.g. the heap index), blank: true + answer: '…' ('fill' cards).
 // Labels may contain $...$ (rendered by KaTeX in classes with math on).
 //
@@ -31,7 +32,14 @@
       nodes.push(node);
       const kids = kidsOf(t);
       if (!kids.length) node.x = slot++;
-      else {
+      else if (kids.length === 1 && (kids[0].side === 'L' || kids[0].side === 'R')) {
+        // Binary trees: a lone child keeps its side, with an empty slot where its sibling would be.
+        const left = kids[0].side === 'L';
+        if (!left) slot++;
+        const x = walk(kids[0], depth + 1, path + '.0', path).x;
+        if (left) slot++;
+        node.x = left ? x + 0.5 : x - 0.5;
+      } else {
         const xs = kids.map((k, i) => walk(k, depth + 1, path + '.' + i, path).x);
         node.x = (xs[0] + xs[xs.length - 1]) / 2;
       }

@@ -543,8 +543,8 @@
   // Recursion-tree diagram: each level is a row of node labels (TeX) with that level's total
   // on the right; a level with `gap: true` is drawn as a vertical ellipsis. Each node joins
   // the parent above it in proportion (child k of m under parent floor(k·p/m) of p).
-  function drawTree(t) {
-    const rowH = 54, levels = t.levels, H = levels.length * rowH;
+  function drawTree(t, o = {}) {
+    const rowH = o.compact ? 38 : 54, levels = t.levels, H = levels.length * rowH;
     const hasSums = levels.some(l => l.sum);
     const left = hasSums ? 74 : 100; // % of width for the tree itself
     const pos = levels.map((l, r) => (l.gap ? [] : l.nodes).map((_, k, a) => ({ x: (k + 0.5) / a.length * left, y: r * rowH + rowH / 2 })));
@@ -1003,7 +1003,7 @@
         opts.classOf = n => order.has(String(ids.find(x => x[0] === n.path)[1])) ? 'picked' : '';
         label = 'The right order (numbered)';
       }
-      fb.append(h('div', { class: 'fb-block fb-tree' }, h('div', { class: 'label' }, label), FC.tree.draw(tree, opts), strip));
+      fb.append(h('div', { class: 'fb-block fb-tree' }, p.gaveUp && label === 'Answer' ? null : h('div', { class: 'label' }, label), FC.tree.draw(tree, opts), strip));
     } else if (card.type === 'tree') {
       // One tree: the right one, with red where yours has a different node or none.
       const m = !p.ok && p.given && p.given.kids && p.given.kids.length ? FC.tree.mistakesOn(p.given, card.answer) : null;
@@ -1017,7 +1017,7 @@
     }
     // Generated problems can carry a graph drawn from this instance's own numbers.
     if (card.graph) fb.append(h('div', { class: 'fb-block' }, plot(card.graph, true)));
-    if (card.rtree) fb.append(h('div', { class: 'fb-block' }, drawTree(card.rtree)));
+    if (card.rtree) fb.append(h('div', { class: 'fb-block' }, drawTree(card.rtree, { compact: true })));
     if (card.blank && card.basis === 'inferred') {
       fb.append(h('div', { class: 'alert', 'data-fit': '' }, 'Best guess. Check your notes.'));
     }

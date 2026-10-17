@@ -292,6 +292,9 @@
     .tree-gap { background: none; border: 0; color: var(--text-3); font-size: 1.1rem; }
     .tree-sum { position: absolute; right: 0; transform: translateY(-50%); width: 25%; text-align: right; color: var(--accent-hover); font-size: 0.85rem; }
     .tree-head { text-align: right; color: var(--text-2); font-size: 0.8rem; margin-bottom: 0.1rem; }
+    .feedback .tree-graph { padding: 0.4rem 0.6rem; box-shadow: none; background: var(--bg); }
+    .feedback .tree-node { font-size: 0.75rem; padding: 0.05rem 0.35rem; }
+    .feedback .tree-sum { font-size: 0.78rem; }
     .fb-graph { width: fit-content; max-width: 100%; margin: 0.2rem 0 0; padding: 0.5rem 0.6rem 0.4rem; box-shadow: none; background: var(--bg); }
     .fb-graph svg { height: 24vh; width: auto; max-width: 100%; }
     .fb-graph text { font-size: 20px; }
@@ -322,8 +325,9 @@
     .tbuild-view { flex: 1 1 auto; display: flex; flex-direction: column; }
     .tbuild-view > .ftree { flex: 1 1 auto; }
     .feedback.fb-fill { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
-    .fb-tree { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
+    .fb-tree { flex: 1 1 auto; display: flex; flex-direction: column; } /* never shrinks below its tree: overflow must be visible to the fit, not an overlap */
     .fb-tree > .ftree { flex: 1 1 auto; min-height: 110px; }
+    .fb-tree > .ftree.fill, .tbuild-view > .ftree.fill { height: auto; } /* flex sizes them; 100% overlapped what came after */
     .ftree-sizer { position: relative; margin: 0 auto; }
     .ftree-inner { position: absolute; left: 0; top: 0; transform-origin: top left; }
     .ftree.scrolls { overflow: auto; overscroll-behavior: contain; }

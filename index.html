@@ -214,6 +214,44 @@
     .report-box { display: flex; gap: 0.4rem; margin-top: 0.4rem; }
     .report-box input { font-size: 14px; padding: 0.4rem 0.6rem; }
 
+    /* ── Help (a normal scrolling page, opened from a study card) ── */
+    .help-btn { margin-left: auto; margin-right: 0.5rem; }
+    .help-btn:not([hidden]) + .linkbtn { margin-left: 0; }
+    .help-top { margin-bottom: 1rem; }
+    .help-top .btn { min-height: 38px; padding: 0.4rem 0.9rem; font-size: 0.88rem; }
+    .help-q { font: 600 1.12rem/1.5 var(--font); margin-bottom: 0.4rem; }
+    .help-sec { margin-top: 1.4rem; }
+    .help-sec h2 { font: 650 1rem var(--font); color: var(--text); margin-bottom: 0.4rem; }
+    .help-sec p, .help-steps li { line-height: 1.65; color: var(--text); }
+    .help-sec .muted-p { color: var(--text-2); }
+    .help-steps { list-style: none; counter-reset: st; display: flex; flex-direction: column; gap: 0.7rem; }
+    .help-steps li { counter-increment: st; position: relative; padding-left: 2.2rem; }
+    .help-steps li::before { content: counter(st); position: absolute; left: 0; top: 0.05rem; width: 1.55rem; height: 1.55rem; border-radius: 50%;
+      background: var(--accent-soft); color: var(--accent-hover); font: 650 0.82rem/1.55rem var(--font); text-align: center; }
+    .help-table { border-collapse: collapse; margin-top: 0.5rem; font-size: 0.92rem; font-variant-numeric: tabular-nums; }
+    .help-table th, .help-table td { padding: 0.35rem 0.75rem; text-align: right; border-bottom: 1px solid var(--border); }
+    .help-table th { color: var(--text-2); font-weight: 600; }
+    .help-table-wrap { overflow-x: auto; }
+    .help-answer { background: var(--correct-soft); border-radius: var(--radius-sm); padding: 0.8rem 1rem; line-height: 1.65; }
+    .help-mistake { background: var(--wrong-soft); border-radius: var(--radius-sm); padding: 0.8rem 1rem; line-height: 1.65; }
+    .graph { position: relative; background: var(--surface); border-radius: var(--radius); padding: 0.75rem 0.75rem 0.6rem; box-shadow: var(--shadow); }
+    .graph svg { display: block; width: 100%; height: auto; overflow: visible; }
+    .graph .grid { stroke: var(--border); stroke-width: 1; }
+    .graph .axis { stroke: var(--text-3); stroke-width: 1.2; }
+    .graph text { fill: var(--text-3); font: 12px var(--font); }
+    .graph .curve { fill: none; stroke-width: 2.5; stroke-linejoin: round; }
+    .graph .mark { stroke: var(--text-2); stroke-width: 1.2; stroke-dasharray: 4 4; }
+    .graph .shade { fill: var(--accent); opacity: 0.07; }
+    .graph .tone-a { stroke: var(--accent); } .graph .tone-b { stroke: var(--wrong); } .graph .tone-c { stroke: var(--correct); } .graph .tone-d { stroke: var(--warn); }
+    .graph rect.tone-a { fill: var(--accent); stroke: none; opacity: 0.55; } .graph rect.tone-b { fill: var(--wrong); stroke: none; opacity: 0.55; }
+    .graph rect.tone-c { fill: var(--correct); stroke: none; opacity: 0.55; } .graph rect.tone-d { fill: var(--warn); stroke: none; opacity: 0.55; }
+    .graph-marks { position: absolute; inset: 0.75rem 0.75rem auto; pointer-events: none; }
+    .graph-mark { position: absolute; top: -0.2rem; transform: translateX(4px); font-size: 0.78rem; color: var(--text-2); white-space: nowrap; }
+    .legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1.1rem; margin-top: 0.5rem; font-size: 0.9rem; }
+    .legend span.sw { display: inline-block; width: 1.1rem; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 0.45rem; }
+    .sw.tone-a { background: var(--accent); } .sw.tone-b { background: var(--wrong); } .sw.tone-c { background: var(--correct); } .sw.tone-d { background: var(--warn); }
+    .graph-cap { color: var(--text-2); font-size: 0.9rem; margin-top: 0.5rem; line-height: 1.55; }
+
     /* ── Settings / done ── */
     .field + .field { margin-top: 1rem; }
     .field > label { display: block; font-weight: 600; font-size: 0.95rem; margin-bottom: 0.35rem; }
@@ -341,9 +379,15 @@
       </section>
 
       <!-- Study -->
+      <section id="screen-help" hidden aria-label="Help">
+        <div class="help-top"><button class="btn" id="helpBack" type="button">← Back to the card</button></div>
+        <div id="helpBody"></div>
+      </section>
+
       <section id="screen-study" hidden aria-label="Study">
         <div class="study-top">
           <span class="label" id="leftCount"></span>
+          <button class="btn help-btn" id="helpBtn" type="button" hidden>Help</button>
           <button class="linkbtn" id="reportBtn" type="button">Report card</button>
           <button class="btn" id="endBtn">End session</button>
         </div>
@@ -427,6 +471,10 @@
   <script src="decks/csc310-a.js"></script>
   <script src="decks/csc310-b.js"></script>
   <script src="decks/csc310.js"></script>
+  <script src="decks/csc310-help.js"></script>
+  <script src="decks/csc310-help-a.js"></script>
+  <script src="decks/csc310-help-b.js"></script>
+  <script src="decks/csc310-help-c.js"></script>
   <script src="decks/csc370-cpointer-bank.js"></script>
   <script src="js/gen-softtest.js"></script>
   <script src="js/gen-csc370.js"></script>

@@ -174,6 +174,7 @@
     document.body.classList.remove('studying');
     if (name !== 'study' && session) endSession(false);
     for (const s of screens) $('screen-' + s).hidden = s !== name;
+    $('screen-help').hidden = true;
     document.querySelectorAll('.navbtn').forEach(b => b.setAttribute('aria-current', b.dataset.nav === name ? 'page' : 'false'));
     if (name === 'classes') renderClasses();
     if (name === 'class') renderClass();
@@ -366,6 +367,127 @@
 
   // ── Study ──────────────────────────────────────────────────────────────
   $('endBtn').addEventListener('click', () => endSession(true));
+  // ── Help: a worked walkthrough for the current card (decks/*-help.js) ──
+  // Opening it before answering counts the card as not known, so it comes back later and
+  // still has to be recalled: Help teaches, it doesn't replace the retrieval.
+  const helpMath = t => { const was = mathOn; mathOn = true; try { return math(t); } finally { mathOn = was; } };
+  const SVG = 'http://www.w3.org/2000/svg';
+  const s = (tag, attrs) => { const el = document.createElementNS(SVG, tag); for (const [k, v] of Object.entries(attrs || {})) el.setAttribute(k, v); return el; };
+
+  function niceStep(span) {
+    const raw = span / 5, p = 10 ** Math.floor(Math.log10(raw)), m = raw / p;
+    return (m < 1.5 ? 1 : m < 3.5 ? 2 : m < 7.5 ? 5 : 10) * p;
+  }
+  const fmt = v => Math.abs(v) >= 1e6 ? v.toExponential(0).replace('+', '') : String(+v.toPrecision(6));
+
+  function plot(g) {
+    const W = 640, H = 344, L = 52, R = 14, T = 16, B = 48;
+    const [x0, x1] = g.x;
+    const xs = Array.from({ length: 241 }, (_, i) => x0 + (x1 - x0) * i / 240);
+    const curves = (g.curves || []).map(c => ({ ...c, pts: xs.map(x => [x, c.f(x)]) }));
+    const bars = g.bars ? g.bars.values : [];
+    let [y0, y1] = g.y || [0, 0];
+    if (!g.y) {
+      const ys = curves.flatMap(c => c.pts.map(p => p[1])).concat(bars.map(b => b[1])).filter(Number.isFinite);
+      y0 = g.logY ? Math.min(...ys.filter(v => v > 0)) : Math.min(0, ...ys);
+      y1 = Math.max(...ys) * 1.05;
+    }
+    const ty = v => g.logY ? Math.log10(Math.max(v, 1e-300)) : v;
+    const ly0 = ty(y0), ly1 = ty(y1);
+    const sx = x => L + (x - x0) / (x1 - x0) * (W - L - R);
+    const sy = y => T + (1 - (ty(y) - ly0) / (ly1 - ly0)) * (H - T - B);
+    const svg = s('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': g.caption || 'graph' });
+    const clip = 'c' + Math.random().toString(36).slice(2);
+    const defs = s('defs'); const cp = s('clipPath', { id: clip }); cp.append(s('rect', { x: L, y: T, width: W - L - R, height: H - T - B })); defs.append(cp); svg.append(defs);
+    if (g.from != null) svg.append(s('rect', { class: 'shade', x: sx(g.from), y: T, width: Math.max(0, sx(x1) - sx(g.from)), height: H - T - B }));
+    // grid + ticks
+    const xstep = niceStep(x1 - x0);
+    for (let v = Math.ceil(x0 / xstep) * xstep; v <= x1 + 1e-9; v += xstep) {
+      svg.append(s('line', { class: 'grid', x1: sx(v), x2: sx(v), y1: T, y2: H - B }));
+      const t = s('text', { x: sx(v), y: H - B + 18, 'text-anchor': 'middle' }); t.textContent = fmt(v); svg.append(t);
+    }
+    const yticks = [];
+    if (g.logY) for (let e = Math.ceil(ly0); e <= Math.floor(ly1); e++) yticks.push(10 ** e);
+    else { const st = niceStep(y1 - y0); for (let v = Math.ceil(y0 / st) * st; v <= y1 + 1e-9; v += st) yticks.push(v); }
+    const sup = e => String(e).replace(/-/g, '⁻').replace(/\d/g, d => '⁰¹²³⁴⁵⁶⁷⁸⁹'[d]);
+    for (const v of yticks) {
+      svg.append(s('line', { class: 'grid', x1: L, x2: W - R, y1: sy(v), y2: sy(v) }));
+      const e = Math.round(Math.log10(v));
+      const t = s('text', { x: L - 6, y: sy(v) + 4, 'text-anchor': 'end' });
+      t.textContent = g.logY && Math.abs(e) >= 3 ? '10' + sup(e) : fmt(v); svg.append(t);
+    }
+    svg.append(s('line', { class: 'axis', x1: L, x2: W - R, y1: H - B, y2: H - B }), s('line', { class: 'axis', x1: L, x2: L, y1: T, y2: H - B }));
+    if (g.xLabel) { const t = s('text', { x: W - R, y: H - 4, 'text-anchor': 'end' }); t.textContent = g.xLabel; svg.append(t); }
+    if (g.yLabel) { const t = s('text', { x: L + 6, y: T + 2 }); t.textContent = g.yLabel; svg.append(t); }
+    const plotArea = s('g', { 'clip-path': `url(#${clip})` });
+    if (bars.length) {
+      const gaps = bars.map(b => b[0]).sort((a, b) => a - b).map((v, i, a) => i ? v - a[i - 1] : Infinity);
+      const bw = Math.max(2, (sx(x0 + Math.min(...gaps, x1 - x0)) - sx(x0)) * 0.7);
+      for (const [bx, bh] of bars) plotArea.append(s('rect', { class: 'tone-' + (g.bars.tone || 'b'), x: sx(bx) - bw / 2, y: sy(bh), width: bw, height: Math.max(0, sy(g.logY ? y0 : Math.max(y0, 0)) - sy(bh)), rx: 2 }));
+    }
+    for (const c of curves) {
+      let d = '', pen = false;
+      for (const [x, y] of c.pts) {
+        if (!Number.isFinite(y) || (g.logY && y <= 0)) { pen = false; continue; }
+        d += (pen ? 'L' : 'M') + sx(x).toFixed(1) + ' ' + Math.max(-1e4, Math.min(1e4, sy(y))).toFixed(1); pen = true;
+      }
+      plotArea.append(s('path', { class: 'curve tone-' + (c.tone || 'a'), d }));
+    }
+    for (const m of g.marks || []) plotArea.append(s('line', { class: 'mark', x1: sx(m.x), x2: sx(m.x), y1: T, y2: H - B }));
+    svg.append(plotArea);
+    const marks = h('div', { class: 'graph-marks' }, (g.marks || []).map(m => h('div', { class: 'graph-mark', style: `left:${(sx(m.x) / W * 100).toFixed(2)}%` }, helpMath(m.label || ''))));
+    const legend = h('div', { class: 'legend' }, curves.map(c => h('span', null, h('span', { class: 'sw tone-' + (c.tone || 'a') }), helpMath(c.label || ''))),
+      g.bars ? h('span', null, h('span', { class: 'sw tone-' + (g.bars.tone || 'b') }), helpMath(g.bars.label || '')) : null);
+    return h('figure', { class: 'graph' }, svg, marks, legend, g.caption ? h('figcaption', { class: 'graph-cap' }, helpMath(g.caption)) : null);
+  }
+
+  function helpStep(st) {
+    if (typeof st === 'string') return h('li', null, helpMath(st));
+    const li = h('li', null, helpMath(st.text || ''));
+    if (st.table) li.append(h('div', { class: 'help-table-wrap' }, h('table', { class: 'help-table' },
+      h('thead', null, h('tr', null, st.table.head.map(c => h('th', null, helpMath(c))))),
+      h('tbody', null, st.table.rows.map(r => h('tr', null, r.map(c => h('td', null, helpMath(c)))))))));
+    return li;
+  }
+
+  function openHelp() {
+    if (!current) return;
+    const card = current.card, help = FC.help && FC.help[card.id];
+    if (!help) return;
+    if (!current.pending) giveUp();
+    const sec = (title, ...kids) => h('section', { class: 'help-sec' }, h('h2', null, title), ...kids);
+    const body = [h('p', { class: 'help-q' }, helpMath(card.prompt))];
+    if (card.code) body.push(h('pre', { class: 'code' }, card.code));
+    body.push(sec('What it’s asking', h('p', null, helpMath(help.asks))));
+    if (help.idea) body.push(sec('The idea', h('p', null, helpMath(help.idea))));
+    if (help.graph) body.push(sec('Picture it', plot(help.graph)));
+    if (help.steps) body.push(sec('Step by step', h('ol', { class: 'help-steps' }, help.steps.map(helpStep))));
+    if (help.answer) body.push(sec('Answer', h('div', { class: 'help-answer' }, helpMath(help.answer))));
+    if (help.mistake) body.push(sec('Watch out', h('div', { class: 'help-mistake' }, helpMath(help.mistake))));
+    if (help.tryIt) {
+      const a = h('p', { class: 'muted-p', hidden: true }, helpMath(help.tryIt.a));
+      const btn = h('button', { class: 'btn', type: 'button', onclick: () => { a.hidden = false; btn.remove(); } }, 'Show answer');
+      body.push(sec('Try one', h('p', null, helpMath(help.tryIt.q)), btn, a));
+    }
+    $('helpBody').replaceChildren(...body);
+    $('screen-study').hidden = true;
+    $('screen-help').hidden = false;
+    document.body.classList.remove('studying');
+    window.scrollTo(0, 0);
+    $('helpBack').focus();
+  }
+  function closeHelp() {
+    if ($('screen-help').hidden) return;
+    $('screen-help').hidden = true;
+    if (!session) { show(returnTo || 'class'); return; }
+    $('screen-study').hidden = false;
+    document.body.classList.add('studying');
+    refit();
+  }
+  $('helpBtn').addEventListener('click', openHelp);
+  $('helpBack').addEventListener('click', closeHelp);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('screen-help').hidden) { e.preventDefault(); closeHelp(); } });
+
   // Report a wrong or unclear card: logged, listed in Settings, fixed next session.
   // (Not a "suspend" button: dropping cards early hurts retention, Karpicke 2009.)
   $('reportBtn').addEventListener('click', () => {
@@ -549,6 +671,7 @@
     const card = base.type === 'gen' && FC.gen ? Object.assign(FC.gen.instance(base.generator), { deck: base.deck, cat: base.cat, sub: base.sub }) : base;
     current = { card, pending: null, progress: learnProgress(base) };
     $('screen-study').classList.remove('answered');
+    $('helpBtn').hidden = !(FC.help && FC.help[card.id]);
     if ($('reportBox')) $('reportBox').remove();
     const mins = Math.floor((Date.now() - session.started) / 60000);
     $('leftCount').textContent = `${session.remaining} left` + (isFinite(session.limitMs) ? ` · ${mins}/${Math.round(session.limitMs / 60000)} min` : '');

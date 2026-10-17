@@ -712,7 +712,7 @@
       prompt: M`Let $f(n) = n^3$ and $g(n) = 2^n$. For each of $O$, $o$, $\Omega$, $\omega$, $\Theta$, say whether $f$ is that of $g$.`,
       answer: M`$O$: yes. $o$: yes. $\Omega$: no. $\omega$: no. $\Theta$: no. Because $\lim n^3/2^n = 0$.`,
       points: [M`$O$ yes, $o$ yes`, M`$\Omega$ no, $\omega$ no, $\Theta$ no`, M`reason: $n^3/2^n \to 0$`],
-      why: M`Every polynomial is $o$ of every exponential $b^n$ with $b > 1$.`,
+      why: M`The slide's growth ladder puts cubic below exponential; the ratio table makes it concrete: $n^3/2^n$ is $0.98$ at $n = 10$ and about $10^{-10}$ at $n = 50$.`,
       source: `${L3}, slides 11, 20-24 (practice pair)`, assignment: ['a1'] },
     { id: 'c310-3-cmp-log2-sqrt', lecture: '3', cat: 'Asymptotics', sub: 'Comparing growth', type: 'recall',
       prompt: M`Let $f(n) = (\lg n)^2$ and $g(n) = \sqrt{n}$. For each of $O$, $o$, $\Omega$, $\omega$, $\Theta$, say whether $f$ is that of $g$.`,

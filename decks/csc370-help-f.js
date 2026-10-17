@@ -124,7 +124,7 @@
   };
 
   H['l51-name-issues'] = {
-    asks: 'The four questions a language designer must settle about how names are spelled.',
+    asks: 'Asking whether twoDArray and twoDarray are one name settles one of the four design issues for names. Name it.',
     idea: 'Think of the rules on any sign-up form for a username: which characters? Is "Bob" the same as "bob"? Are some words banned? How long can it be? A language designer answers the same four questions for names.',
     steps: [
       { text: 'Each issue, with the examples from her slides:', table: { head: ['issue', 'question', 'examples'], rows: [
@@ -135,7 +135,7 @@
       ] } },
       'All four are about the spelling of the name itself, not about what the name refers to.',
     ],
-    answer: 'Which characters are allowed; case sensitivity; reserved words or keywords; length.',
+    answer: 'Case sensitivity. (The four issues: allowed characters, case sensitivity, reserved words or keywords, length.)',
     mistake: 'Listing variable attributes (type, scope, lifetime). Those belong to the variable; these four belong to the name’s spelling.',
     tryIt: { q: 'A language rule says: "names may be up to 8 characters long, and `Total` and `total` are different names". Which two design issues does it settle?', a: 'Length (max 8) and case sensitivity (yes, case-sensitive).' },
   };
@@ -227,20 +227,20 @@
   };
 
   H['l51-entities'] = {
-    asks: 'Name the three kinds of things a name can stand for, with one example of each.',
+    asks: 'Name the kind of entity the name evenNum: stands for.',
     idea: 'A name labels a place in memory, and three kinds of things live in memory: data (variables), statements (labels mark where one sits), and code you call (subprograms).',
     steps: [
       { text: 'All three in one C fragment:', code: 'char *stuName = "Jackie";   /* variable   */\nevenNum:                    /* label      */\n    n = n + 2;\nsumToN(12);                 /* subprogram */' },
       { text: 'What each name stands for:', table: { head: ['kind', 'example', 'the name stands for'], rows: [['variable', '`stuName = “Jackie”`', 'the cells holding the data'], ['label', '`evenNum:`', 'the location of a statement (a `goto` target)'], ['subprogram', '`sumToN(12)`', 'where the subprogram’s code starts']] } },
       'In every case the name is an abstraction of a memory location.',
     ],
-    answer: 'A variable (`stuName = “Jackie”`), a label marking a statement location (`evenNum:`), and a subprogram with its calls (`sumToN(12)`).',
+    answer: 'A label (a statement location). Names can also stand for variables (stuName) and subprograms (sumToN(12)).',
     mistake: 'Forgetting labels. They are rare in modern code, but `goto evenNum;` jumps to a statement by its name.',
     tryIt: { q: 'In the C line `loop: total = total + price(item);`, find a name of each kind.', a: 'Label: `loop`. Variables: `total`, `item`. Subprogram: `price`.' },
   };
 
   H['l51-binding-def'] = {
-    asks: 'Two definitions: what a binding is, and what binding time is.',
+    asks: 'Define a binding.',
     idea: 'A binding is a pairing: this thing goes with this property. Binding time is simply when the pairing is made.',
     steps: [
       'Binding: an association between an entity (a variable, a symbol) and an attribute (a type, a value, an operation, an address).',
@@ -248,13 +248,13 @@
       'Binding time: the moment that association is made, anywhere from language design to run time.',
       'Made before run time and never changed: static. Made during the run, or able to change: dynamic.',
     ],
-    answer: 'A binding is an association between an entity and an attribute (e.g. a variable and its type, or a symbol and its operation). Binding time is when that association is made.',
+    answer: 'An association between an entity and an attribute. Binding time is when that association is made.',
     mistake: 'Defining binding as "assigning a value". Assignment is only one kind of binding (variable and value); types, addresses and operations are bound too.',
     tryIt: { q: 'Inside a C function, `float rate;`. Name two bindings and their times.', a: '`rate` with type `float` at compile time; `rate` with a stack cell at run time, on each call.' },
   };
 
   H['l51-bind-classify'] = {
-    asks: 'For five parts of `count = count + 5;` in C, say when each one gets fixed.',
+    asks: 'Give the binding time of the type of count in count = count + 5; (C).',
     idea: 'For each part ask who could possibly decide it: the compiler writers (for every program), the compiler reading THIS program, or the program as it runs.',
     steps: [
       { text: 'Work through the five:', table: { head: ['part', 'bound to', 'when', 'why'], rows: [
@@ -267,13 +267,13 @@
       { text: 'You can see (3) being decided: gcc turned the line into an integer add instruction.', code: 'addl $0x5,-0x4(%rbp)' },
       'Sebesta words (2) and (4) as "compiler design time". That is the same as language implementation time.',
     ],
-    answer: '(1) compile time; (2) language implementation time; (3) compile time, once the operand types are known; (4) language implementation time; (5) run time.',
+    answer: 'Compile time. (Values count can hold: implementation; meaning of +: compile; representation of 5: implementation; value of count: run.)',
     mistake: 'Calling (3) design time. The designers bound `+` to addition in general, but whether it is integer or floating-point addition depends on this program’s types, so the compiler decides.',
     tryIt: { q: 'Inside a C function, `double avg = total / 2.0;`. Binding time of (1) the meaning of `/` here, (2) the value of `avg`?', a: '(1) Compile time: seeing a `double` operand, the compiler picks floating-point division. (2) Run time.' },
   };
 
   H['l51-bind-classify2'] = {
-    asks: 'Four C items: say when each gets bound.',
+    asks: 'Give the binding time of a C global variable’s address.',
     idea: 'Walk the life of a program: the language is designed, a compiler is built, the program is loaded, then it runs. Put each item where it is first settled.',
     steps: [
       { text: 'The four items:', table: { head: ['item', 'when', 'how you know'], rows: [
@@ -285,7 +285,7 @@
       { text: 'Proof for (1) and (2): a recursive function printed both addresses three calls deep.', table: { head: ['call depth', '&local', '&global'], rows: [['1', '0x7ffdf48a2284', '0x55c05b59b02c'], ['2', '0x7ffdf48a2254', '0x55c05b59b02c'], ['3', '0x7ffdf48a2224', '0x55c05b59b02c']] } },
       'The global never moved during the run (it was placed at load); the local got a fresh stack cell on each call.',
     ],
-    answer: '(1) load time; (2) run time, on each call; (3) language implementation time; (4) language design time.',
+    answer: 'Load time. (Non-static local’s address: run; bits in an int: implementation; while starts a loop: design.)',
     mistake: 'Giving both addresses the same time. Globals and `static` variables are placed once, at load; non-static locals get new storage every call.',
     tryIt: { q: 'In C: (1) the address of a `static` local variable, (2) that `%` means remainder, (3) the value of a global after `g = 4;` executes.', a: '(1) Load time. (2) Language design time. (3) Run time.' },
   };
@@ -424,14 +424,14 @@
   };
 
   H['l51-name-objcode'] = {
-    asks: 'Two parts: who are names for, and what happens to a name when the program is compiled?',
+    asks: 'Say where a variable’s name ends up in the object code.',
     idea: 'Names are for people. The machine only uses addresses, so the compiler looks each name up in its symbol table and writes the address into the instructions instead.',
     steps: [
       'Names let people avoid knowing where something is in memory, what bits it actually holds, and how long it is stored.',
       { text: 'Compile `count = count + 5;` (with `count` a local) and look at the machine code. The instruction says "add 5 to the cell at -4 from the frame pointer"; `count` is gone.', code: 'count = count + 5;\naddl $0x5,-0x4(%rbp)' },
       'One nuance: names that other files need, such as global variables and function names, are kept in a symbol table in the object file so the linker can join files together (`nm` lists them). Local names like `count` vanish completely, and the instructions themselves never contain names.',
     ],
-    answer: 'Names are for people (programmers and readers): they hide where something is in memory, what its actual value is, and how long it is stored. The compiled instructions use addresses, never the name.',
+    answer: 'Nowhere: names are for people (they hide address, value and lifetime); the name never exists in the object code.',
     mistake: 'Thinking the computer looks names up while the program runs. The lookup happens at compile time, and only addresses reach the instructions.',
     tryIt: { q: 'Two functions each have a local named `temp`. In the compiled code, how does the machine tell them apart?', a: 'By location: each `temp` becomes a different stack offset in its own function’s instructions. The name `temp` is not in the instructions at all.' },
   };

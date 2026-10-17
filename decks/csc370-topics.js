@@ -74,6 +74,9 @@
 
   (FC.topics = FC.topics || {}).csc370 = card => {
     if (byId.has(card.id)) return byId.get(card.id);
+    // Quick cards split from a card (<id>-q2, -q3 …) sit with the card they came from.
+    const base = card.id.replace(/-q\d+$/, '');
+    if (base !== card.id && byId.has(base)) return byId.get(base);
     if (card.blankRef) return blankTopic(card.blankRef.lecture, card.blankRef.slide);
     if (card.lecture === '10') return { cat: 'Theory', sub: 'Control structures' };
     return { cat: 'Theory', sub: 'Other' };

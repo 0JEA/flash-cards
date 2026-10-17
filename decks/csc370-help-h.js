@@ -127,7 +127,7 @@
       { text: 'The same line `echo $x` finds two different variables:', table: { head: ['call', 'chain, newest first', 'x found in', 'prints'], rows: [['show from p', 'show, p, main', 'p', '2'], ['show from main', 'show, main', 'main', '1']] } },
       'Which `x` you get depends on the order of calls at run time, not the layout of the text. That is why it is called temporal.',
     ],
-    answer: 'By the calling sequence at run time, not the textual layout: search back through the chain of subprogram calls for the most recent declaration. Dynamic is temporal; static is spatial.',
+    answer: 'By the calls at run time, not the text: search back through the chain of calls for the most recent declaration (temporal, where static scoping is spatial).',
     mistake: 'Saying "search the enclosing functions". Enclosing (where it is written) is static scoping. Dynamic scoping follows the callers, which can be written anywhere in the program.',
     tryIt: { q: 'Dynamic scoping: `a` declares `y = 1` and calls `b`. `b` declares `y = 2` and calls `c`. `c` prints `y` and declares none. Then `a` calls `c` directly. What are the two outputs?', a: '2, then 1. First chain c ← b ← a: `b`’s `y` is the most recent. Second chain c ← a: `a`’s `y`.' },
   };
@@ -162,14 +162,14 @@
   };
 
   H['l52-const-compare'] = {
-    asks: 'For each named-constant keyword, say whether its value is bound statically (before run time) or dynamically (while running).',
+    asks: 'Say when Java’s final constants get their values, according to the slides.',
     idea: 'For each keyword ask one question: does the compiler already know the value, or may it be computed when the program runs? Only two are "known early": C `#define` and C# `const`.',
     steps: [
       { text: 'The whole picture in one table:', table: { head: ['language', 'keyword', 'binding', 'why'], rows: [['C', '#define', 'static', 'replaced before compiling'], ['C', 'const', 'not static', '`const int n = rand() % 10;` is legal'], ['Java', 'final', 'dynamic', 'can be set from any expression, e.g. input'], ['C#', 'const', 'compile time', 'literals or other consts only'], ['C#', 'readonly', 'dynamic', 'set in its declaration or a constructor']] } },
       'Watch the trap: the word `const` means different things in C and C#. C `const` is not static; C# `const` is.',
       'The slides say Java `final` is "all dynamic". Strictly, a `static final` with a constant value can be filled in by the compiler, but for this course write: `final` is dynamic.',
     ],
-    answer: 'C: `#define` is static, `const` is not. Java: `final` is all dynamic. C#: `const` values are bound at compile time; `readonly` values are bound dynamically.',
+    answer: 'Dynamically: Java final is all dynamic. (C: #define static, const not. C#: const at compile time, readonly dynamic.)',
     mistake: 'Grouping by keyword name. C `const` and C# `const` sound the same but are bound at different times.',
     tryIt: { q: 'Static or dynamic? (1) Java `final double rate = readRate();` (2) C# `const int Days = 7;` (3) C `#define DAYS 7` (4) C# `readonly int id;` set in a constructor.', a: '(1) dynamic, (2) static (compile time), (3) static, (4) dynamic.' },
   };
@@ -203,7 +203,7 @@
   };
 
   H['l52-static-adv'] = {
-    asks: 'Why are static variables good, and what makes them so?',
+    asks: 'Name the advantage of static variables.',
     idea: 'The address is fixed before the program runs, so the machine code can contain the address itself. And there is no setting up or tearing down of memory while running.',
     steps: [
       'A static variable gets a fixed address before execution. An instruction can read or write that exact address: direct addressing.',
@@ -211,20 +211,20 @@
       'For `sa`, nothing happens on entry to or exit from `foo`. For the plain local `a`, every call must allocate a cell and every return must release it.',
       'Put together: efficiency.',
     ],
-    answer: 'Efficiency: all addressing is direct, and there is no run-time allocation or deallocation.',
+    answer: 'Efficiency: addressing is direct and nothing is allocated or freed at run time.',
     mistake: 'Answering only "it remembers its value between calls". That is a use of static variables; the advantage asked for here is speed, and where the speed comes from (direct addressing, no run-time allocation).',
     tryIt: { q: 'A function is called a million times. It has one plain local and one `static` local. For which one does the program do allocation work on every call?', a: 'The plain local: it gets a fresh cell on each call and gives it back on return. The static local was given its cell once, before the program started.' },
   };
 
   H['l52-static-disadv'] = {
-    asks: 'List what goes wrong when variables are static.',
+    asks: 'Sum up the disadvantage of static variables in one phrase.',
     idea: 'All the problems come from one fact: one fixed cell per variable for the whole run. That is a lack of flexibility, and it shows up three ways.',
     steps: [
       'No recursion: every active call of a recursive function needs its own copy of the locals, but a static variable has only one cell.',
       'Size must be known before run time: the cell is reserved before the program starts, so it cannot depend on input. gcc rejects `void f(int n) { static int buf[n]; }` with “storage size of ‘buf’ isn’t constant”.',
       'Storage cannot be shared: two functions that are never active at the same time still each keep their static arrays for the whole run. That memory is always used.',
     ],
-    answer: 'Lack of flexibility: no recursion, the size must be known before run time, and storage cannot be shared among variables.',
+    answer: 'Lack of flexibility: no recursion, size must be known before run time, storage cannot be shared among variables.',
     mistake: 'Listing "slow". Static variables are the fast ones. Their cost is flexibility, not speed.',
     tryIt: { q: '`load()` and `save()` each have a `static char buf[1000000];` and are never running at the same time. Which disadvantage is this, and how much memory do the buffers take during the run?', a: 'Storage cannot be shared: both 1 MB buffers exist for the whole run (2 MB), although stack-dynamic buffers would never need more than 1 MB at once.' },
   };
@@ -245,7 +245,7 @@
 
   // ----------------------------------------------------------- declaration rules
   H['l52-decl-rules'] = {
-    asks: 'Two families of languages differ on where you may declare a local and where its scope starts. Describe both.',
+    asks: 'Say where declarations must be placed in C89 and Pascal.',
     idea: 'Older C89 and Pascal: declarations first, then code, and a local is visible in the whole block. Newer C99 and Java: declare anywhere, and a local is visible only from its declaration down.',
     steps: [
       { text: 'Side by side:', table: { head: ['', 'C89 / Pascal', 'C99 / Java'], rows: [['where declarations go', 'at the beginning of the block', 'anywhere a statement can go'], ['scope of a local', 'the whole block', 'from its declaration to the end of the block']] } },
@@ -253,14 +253,14 @@
       'gcc in C89 mode rejects it (“ISO C90 forbids mixed declarations and code”); in C99 mode it compiles.',
       'In C99, `b` cannot be used on the `a++` line: its scope has not started yet.',
     ],
-    answer: 'C89/Pascal: all declarations at the start of the block, and a local’s scope is the whole block. C99/Java: declarations anywhere a statement can go, and a local’s scope runs from its declaration to the end of the block.',
+    answer: 'At the beginning of the block (and a local’s scope is the whole block). C99/Java: anywhere a statement can go, scope from the declaration to the end of the block.',
     mistake: 'Mixing the pairs up. Remember the newer languages (C99, Java) are the looser ones: declare anywhere, and scope starts at the declaration.',
     tryIt: { q: 'In C99: `{ x = 3; int x = 5; }` with no other `x` anywhere. Is it legal? Would C89 accept the layout?', a: 'Not legal in C99: `x`’s scope starts at its declaration, so `x = 3` uses an undeclared name. C89 rejects it as well, because a declaration comes after a statement.' },
   };
 
   // ------------------------------------------------- evaluating the two scopings
   H['l52-static-scope-adv'] = {
-    asks: 'Give the advantages of static scoping.',
+    asks: 'Give the main advantage of static scoping for a reader.',
     idea: 'Static scope can be settled before the program runs, just from the text. So a person (or the compiler) can tell what a name means by reading. That, and the fact that nearly every language works this way.',
     steps: [
       'Most languages do it (C, Python, JavaScript, …), so it is familiar.',
@@ -268,13 +268,13 @@
       'Under dynamic scoping, the same question needed the call trace g → h → f to find 12.',
       'The exact blank wording on her slide is a best guess, but these two ideas are what the slide and the textbook say.',
     ],
-    answer: 'Most languages use it, so it is familiar; and you can tell which variable a name refers to by reading the program, without having to run (trace) it.',
+    answer: 'You can tell what a name refers to by reading the program, without running it. (Also: most languages do it, so it is familiar.)',
     mistake: 'Writing "it is faster" as the main point. Speed is real but the slide’s points are familiarity and that you can just look at the program.',
     tryIt: { q: 'You see `print(total)` inside a function `report` in a statically scoped program. What do you need to look at to know which `total` it is, and what can you ignore?', a: 'Only the text: `report`’s own declarations, then the functions it is written inside, then the globals. You can ignore who calls `report`.' },
   };
 
   H['l52-dynamic-disadv'] = {
-    asks: 'List the problems with dynamic scoping.',
+    asks: 'Give the main disadvantage of dynamic scoping for someone reading the code.',
     idea: 'Because a name is resolved by whoever happens to be calling, the meaning of a name moves around at run time. Each disadvantage comes from that.',
     steps: [
       { text: 'A real example in bash (dynamic `local`). `bump` declares no `total`:', code: 'bump()   { total=$((total + 100)); }\nreport() { local total=1; bump; echo $total; }\nreport   # prints 101' },
@@ -283,13 +283,13 @@
       'Slower: finding a nonlocal means searching back through the active calls at run time.',
       'Unfamiliar: few languages use it, so it is harder to learn and program in.',
     ],
-    answer: 'You can’t tell what a variable refers to by reading the program; called subprograms can see and change their callers’ locals (less reliable); nonlocal access is slower; few languages use it, so it is unfamiliar.',
+    answer: 'You can’t tell what a variable refers to by reading the program. (Also: callees can change callers’ locals; slower non-local access; unfamiliar.)',
     mistake: 'Writing one vague point like "it is confusing". Give the separate problems: unreadable, unsafe locals, slow, unfamiliar. Its one advantage (no need to pass the caller’s variables as parameters) is not a disadvantage.',
     tryIt: { q: 'Dynamic scoping: `report` declares `count = 0`, calls `helper`, which runs `count = count + 1` without declaring `count`, and then `report` prints `count`. What prints, and which disadvantage does it show?', a: '1. `helper` found and changed `report`’s local `count` through the call chain: called subprograms can change their callers’ locals, so programs are less reliable.' },
   };
 
   H['l52-named-const'] = {
-    asks: 'Say what a named constant is, and why you would use one.',
+    asks: 'Define a named constant.',
     idea: 'A named constant is a name tied to a value exactly once. After that, the name is just a readable label for the value, and the one line that sets it is the only place to change it.',
     steps: [
       { text: 'In C:', code: 'const double PI = 3.14159;\nconst int MAX = 100;\n\narea = PI * r * r;               /* readable */\nfor (i = 0; i < MAX; i++) ...    /* change MAX in one place */' },
@@ -298,26 +298,26 @@
       'Modifiability: if 100 appears in five places, changing to 200 means one edit, not five (and none missed).',
       'Parameterizing: `MAX` controls every array size and loop bound, so the program works for any `MAX`.',
     ],
-    answer: 'A "variable" bound to a value only once. Advantages: readability (`PI` instead of 3.14159), modifiability (change the value in one place), and it is used to parameterize programs.',
+    answer: 'A “variable” bound to a value only once. Advantages: readability (PI), modifiability (one place to change), parameterizing programs.',
     mistake: 'Reading "modifiability" as "you can change the constant while the program runs". It means the programmer can change the program easily, by editing one line.',
     tryIt: { q: 'A program uses 24 in six places to mean hours per day, and once to mean a class size. Why is `const int HOURS = 24;` better than editing the 24s by hand?', a: 'Readability: `HOURS` says what the number means. Modifiability: one line changes all six, and the class-size 24 cannot be changed by mistake.' },
   };
 
   H['l52-manifest'] = {
-    asks: 'Name the kind of named constant whose value is fixed before run time, and the C feature that makes one.',
+    asks: 'Give the name for named constants whose values are bound statically.',
     idea: 'A statically bound named constant is a manifest constant: its value is plain to see (manifest) before the program runs. In C, `#define` does this, because the preprocessor pastes the value into the code before compiling.',
     steps: [
       { text: 'Running only the preprocessor (`gcc -E`) shows the name is gone before compiling starts:', code: '/* you write */\n#define SIZE 8\nint a[SIZE];\n\n/* the compiler sees */\nint a[8];' },
       'The value 8 is bound before the program ever runs: static binding, so a manifest constant.',
       'A C `const` is not manifest: its value can be computed at run time.',
     ],
-    answer: 'Manifest constants; `#define` makes one in C.',
+    answer: 'Manifest constants (in C, made with #define).',
     mistake: 'Answering `const` for C. That is the dynamically bound one in C.',
     tryIt: { q: 'In C#, which named-constant keyword gives a manifest (statically bound) constant?', a: '`const`: its value is bound at compile time. `readonly` values are bound dynamically.' },
   };
 
   H['l52-storage-classify'] = {
-    asks: 'Put each item into one of the four lifetime categories: static, stack-dynamic, explicit heap, implicit heap.',
+    asks: 'Classify the storage of int g; declared at file scope in C.',
     idea: 'Ask two questions: when is it given memory, and who gives it back? Before the run: static. On a function call: stack-dynamic. When the programmer asks (malloc/free): explicit heap. Automatically on assignment: implicit heap.',
     steps: [
       { text: 'Item by item:', table: { head: ['item', 'category', 'gets memory', 'gives it back'], rows: [['(1) global `int g;`', 'static', 'before the run', 'end of the run'], ['(2) `static int s;` in a function', 'static', 'before the run', 'end of the run'], ['(3) plain local `int t;`', 'stack-dynamic', 'function call', 'return'], ['(4) the pointer `p`', 'stack-dynamic', 'function call', 'return'], ['(5) the int `p` points to', 'explicit heap', '`malloc` runs', '`free` runs'], ['(6) a Python list', 'implicit heap', 'assignment', 'automatically']] } },
@@ -325,7 +325,7 @@
       'Implicit heap: memory is handed out automatically whenever a value is assigned (Python lists, strings in JavaScript).',
       '(4) and (5) are on the same line but are two different things: `p` is a local variable that dies when the function returns; the int it points to lives until `free()`.',
     ],
-    answer: '(1) static; (2) static; (3) stack-dynamic; (4) stack-dynamic; (5) explicit heap; (6) implicit heap.',
+    answer: 'Static. (static local s: static; plain local t: stack-dynamic; pointer p: stack-dynamic; the malloc’d int: explicit heap; Python list: implicit heap.)',
     mistake: 'Calling `p` heap because `malloc` is on its line. `p` itself is a local on the stack; only the thing it points to is on the heap.',
     tryIt: { q: 'Classify: (1) `static char buf[64];` at file scope in C, (2) the parameter `int n` of a C function, (3) the array made by `calloc(10, sizeof(int))`, (4) a JavaScript string.', a: '(1) static, (2) stack-dynamic, (3) explicit heap, (4) implicit heap.' },
   };
@@ -391,7 +391,7 @@
   const subTree = { tree: node('global', node('main x=1', node('sub1', node('sub2 uses x')), node('sub3'))), caption: 'Nesting in the text (sub3 calls sub1 but does not contain it). sub2’s ancestors are the path up from it: sub1, main, global. sub3 is not on that path.' };
 
   H['l52-static-parent'] = {
-    asks: 'Using only where the functions are written, name `sub2`’s static parent, list its static ancestors, and say where its `x` is found.',
+    asks: 'Name sub2’s static parent.',
     idea: 'Static parent = the function a function is written directly inside. Static ancestors = the parent, its parent, and so on outward. Calls play no part.',
     steps: [
       '`sub2` is written directly inside `sub1`, so `sub1` is its static parent.',
@@ -400,7 +400,7 @@
       '`sub3` calls `sub1`, but it does not enclose it, so `sub3` is not an ancestor and is never searched. Python prints 1.',
     ],
     ptree: subTree,
-    answer: 'Static parent: `sub1`. Static ancestors: `sub1`, then `main` (then global). The `x` in `sub2` is found in `main`.',
+    answer: 'sub1. Static ancestors: sub1, then main (then global); x is found in main.',
     mistake: 'Listing `sub3` as an ancestor because it calls `sub1`. Calling is about run time; ancestors are about the text.',
     tryIt: { q: 'Under static scoping, what are `c`’s static parent and static ancestors, and where is `z` found?', code: "def a():\n    def b():\n        def c():\n            print(z)\n        c()\n    def d():\n        z = 2\n        b()\n    z = 1\n    d()\na()", a: 'Parent `b`; ancestors `b`, `a` (then global). `z` is found in `a` (1); `d`’s `z = 2` is not an ancestor’s, so it prints 1.' },
   };

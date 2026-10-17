@@ -436,7 +436,7 @@
   };
 
   H['l52-py-unbound'] = {
-    asks: 'If the commented `print(... x)` at the top of `f` is switched on, what happens, and why?',
+    asks: 'Say what happens when the commented-out print at the top of f is turned back on.',
     idea: 'Python decides scope before running, for the whole function at once. Because `f` assigns `x` somewhere (`x = 13`), every `x` in `f` means f’s local x, even on lines above the assignment.',
     steps: [
       'Compile time: Python sees `x = 13` in `f`, so `x` is local to all of `f`.',
@@ -444,7 +444,7 @@
       'It does not fall back to the global `x = 12`: the scope was already decided, statically.',
       { text: 'python3 output:', code: 'In f top, y is:  82\nUnboundLocalError: cannot access local variable \'x\' where it is not associated with a value' },
     ],
-    answer: 'It crashes with UnboundLocalError. Because `f` assigns `x` later (`x = 13`), `x` is local to the whole body of `f`, so the first line reads a local that isn’t bound yet. It does not use the global x.',
+    answer: 'UnboundLocalError: x = 13 later in f makes x local to all of f, so the read comes before the local is bound.',
     mistake: 'Expecting it to print the global 12 because the assignment comes later. Scope is fixed for the whole function by the text, not by which line runs first.',
     tryIt: { q: 'Python, three lines: `n = 1`, then `def p(): print(n); n = 2`, then `p()`. What happens? And if you delete `; n = 2`?', a: 'UnboundLocalError, because `n = 2` makes n local to all of p. Without it, n is not local, so the search reaches the global and it prints 1.' },
   };

@@ -40,7 +40,7 @@
   };
 
   H['c310-3-littleo-def'] = {
-    asks: 'Write the formal definition of $f(n) \\in o(g(n))$, and the limit that says the same thing.',
+    asks: "Write the formal definition of $f(n) \\in o(g(n))$.",
     idea: 'Big-O lets you pick ONE stretch $c$. Little-o hands you every $c$, even $c = 0.001$, and $f$ must still end up below $c\\,g(n)$. That is only possible if $f$ becomes a vanishing fraction of $g$.',
     steps: [
       'Definition (Lecture 3, slide 20): $f(n) \\in o(g(n))$ iff for every constant $c > 0$ there is an $n_0 > 0$ with $0 \\le f(n) < c\\,g(n)$ for all $n \\ge n_0$.',
@@ -55,13 +55,13 @@
       curves: [{ label: '$f(n) = n$', f: n => n, tone: 'a' }, { label: '$0.1\\,n^2$', f: n => 0.1 * n * n, tone: 'b' }, { label: '$0.05\\,n^2$', f: n => 0.05 * n * n, tone: 'c' }],
       marks: [{ x: 11, label: '$n_0 = 11$' }, { x: 21, label: '$n_0 = 21$' }],
     },
-    answer: 'For every $c > 0$ there is an $n_0 > 0$ such that $0 \\le f(n) < c\\,g(n)$ for all $n \\ge n_0$. Equivalently $\\lim_{n\\to\\infty} f(n)/g(n) = 0$.',
+    answer: "For every $c > 0$ there is an $n_0 > 0$ such that $0 \\le f(n) < c\\,g(n)$ for all $n \\ge n_0$.",
     mistake: 'Writing "there exist $c$ and $n_0$", which is big-O. Little-o says for EVERY $c$, and its inequality is strict ($<$).',
     tryIt: { q: 'Showing $3n \\in o(n^2)$ from the definition: which $n_0$ works for $c = 0.01$?', a: '$3n < 0.01\\,n^2 \\iff 3 < 0.01\\,n \\iff n > 300$, so $n_0 = 301$. In general any $n_0 > 3/c$ works.' },
   };
 
   H['c310-3-littleomega-def'] = {
-    asks: 'Write the formal definition of $f(n) \\in \\omega(g(n))$, and the limit that says the same thing.',
+    asks: "Write the formal definition of $f(n) \\in \\omega(g(n))$.",
     idea: 'Little-omega is little-o turned around. However big a stretch $c$ you apply to $g$, $f$ eventually climbs above $c\\,g(n)$ and stays there: $f$ outgrows every multiple of $g$.',
     steps: [
       'Definition (Lecture 3, slide 22): $f(n) \\in \\omega(g(n))$ iff for every constant $c > 0$ there is an $n_0 > 0$ with $0 \\le c\\,g(n) < f(n)$ for all $n \\ge n_0$.',
@@ -76,7 +76,7 @@
       curves: [{ label: '$f(n) = n^2$', f: n => n * n, tone: 'a' }, { label: '$10n$', f: n => 10 * n, tone: 'b' }, { label: '$20n$', f: n => 20 * n, tone: 'c' }],
       marks: [{ x: 11, label: '$n_0 = 11$' }, { x: 21, label: '$n_0 = 21$' }],
     },
-    answer: 'For every $c > 0$ there is an $n_0 > 0$ such that $0 \\le c\\,g(n) < f(n)$ for all $n \\ge n_0$. Equivalently $\\lim_{n\\to\\infty} f(n)/g(n) = \\infty$.',
+    answer: "For every $c > 0$ there is an $n_0 > 0$ such that $0 \\le c\\,g(n) < f(n)$ for all $n \\ge n_0$.",
     mistake: 'Confusing it with $\\Omega$, which needs only ONE $c$ and allows $\\ge$. $2n \\in \\Omega(n)$, but $2n \\notin \\omega(n)$: with $c = 3$, $3n < 2n$ never holds.',
     tryIt: { q: 'Showing $n^2/4 \\in \\omega(n)$ from the definition: which $n_0$ works for $c = 10$?', a: '$10n < n^2/4 \\iff 10 < n/4 \\iff n > 40$, so $n_0 = 41$. In general any $n_0 > 4c$ works.' },
   };
@@ -102,7 +102,7 @@
   };
 
   H['c310-3-limit-test'] = {
-    asks: 'Compute $L = \\lim_{n\\to\\infty} f(n)/g(n)$. What does each possible value of $L$ tell you about $f$ compared with $g$?',
+    asks: "Suppose $L = \\lim_{n\\to\\infty} f(n)/g(n)$ is a positive constant. What does that tell you about $f$ compared with $g$?",
     idea: 'The ratio $f/g$ is a scoreboard with three possible endings. If it sinks to 0, $f$ becomes negligible next to $g$; if it settles at a positive number, they grow at the same rate. If it runs off to infinity, $f$ outgrows $g$.',
     steps: [
       'Form the ratio $f(n)/g(n)$, simplify it, and let $n \\to \\infty$.',
@@ -117,13 +117,13 @@
       x: [1, 100], y: [0.005, 200], logY: true, xLabel: 'n', yLabel: 'f / g',
       curves: [{ label: '$n / n^2 \\to 0$', f: n => 1 / n, tone: 'a' }, { label: '$(5n+2)/n \\to 5$', f: n => 5 + 2 / n, tone: 'b' }, { label: '$n^2 / n \\to \\infty$', f: n => n, tone: 'c' }],
     },
-    answer: '$L = 0$: $o$ (and $O$). $L = \\infty$: $\\omega$ (and $\\Omega$). $L$ a positive constant: $\\Theta$ (and $O$, $\\Omega$), but neither $o$ nor $\\omega$.',
+    answer: "$f \\in \\Theta(g)$ (and so $O$ and $\\Omega$), but neither $o$ nor $\\omega$.",
     mistake: 'Stopping at "$L = 0$ means $o$" and answering no for $O$: $o$ implies $O$, and $\\omega$ implies $\\Omega$. If the ratio has no limit at all (it keeps oscillating), the test says nothing and you go back to the definitions.',
     tryIt: { q: 'Let $f = 3n^2 + n$ and $g = n^2$. Find $L$ and all five answers.', a: '$(3n^2 + n)/n^2 = 3 + 1/n \\to 3$, a positive constant: $O$, $\\Omega$, $\\Theta$ yes; $o$, $\\omega$ no.' },
   };
 
   H['c310-3-tf-x2-ox3'] = {
-    asks: 'Decide whether $x^2$ grows strictly slower than $x^3$ (that is what $\\in o(\\cdot)$ means), and prove it with the limit of the ratio.',
+    asks: "Show with the limit of the ratio that $x^2$ grows strictly slower than $x^3$ (that is what $\\in o(\\cdot)$ means).",
     idea: '$x^3$ is $x^2$ times one more $x$. That extra factor keeps growing, so $x^2$ becomes a smaller and smaller fraction of $x^3$.',
     steps: [
       'Little-o test (slide 20): $x^2 \\in o(x^3)$ iff $\\lim_{x\\to\\infty} x^2/x^3 = 0$.',
@@ -137,13 +137,13 @@
       x: [1, 100], y: [0.005, 2e6], logY: true, xLabel: 'x', yLabel: 'value',
       curves: [{ label: '$x^2$', f: x => x * x, tone: 'a' }, { label: '$x^3$', f: x => x ** 3, tone: 'b' }, { label: 'ratio $x^2/x^3 = 1/x$', f: x => 1 / x, tone: 'c' }],
     },
-    answer: 'True: $x^2/x^3 = 1/x \\to 0$.',
+    answer: "$x^2/x^3 = 1/x \\to 0$.",
     mistake: 'Arguing "$x^2 < x^3$, so it is little-o". Being smaller is not enough ($x^3 < 2x^3$, yet the ratio is $1/2$, so $x^3 \\notin o(2x^3)$); the ratio must go to 0.',
     tryIt: { q: 'True or false: $x^3 + x \\in o(x^4)$.', a: 'True: $\\dfrac{x^3 + x}{x^4} = \\dfrac{1}{x} + \\dfrac{1}{x^3} \\to 0 + 0 = 0$.' },
   };
 
   H['c310-3-tf-lnx-ox'] = {
-    asks: 'Decide whether $\\ln x$ grows strictly slower than $x$, and prove it with the limit of $\\ln x / x$.',
+    asks: "Show with the limit of $\\ln x / x$ that $\\ln x$ grows strictly slower than $x$.",
     idea: 'To raise $\\ln x$ by about 2.3 you must multiply $x$ by 10. When $x$ goes from 10 to 1000 it gains 990, but $\\ln x$ gains only about 4.6. The log falls hopelessly behind.',
     steps: [
       'Little-o test: $\\ln x \\in o(x)$ iff $\\lim_{x\\to\\infty} \\ln x / x = 0$.',
@@ -157,13 +157,13 @@
       x: [2, 1000], y: [0.005, 2000], logY: true, xLabel: 'x', yLabel: 'value',
       curves: [{ label: '$\\ln x$', f: x => Math.log(x), tone: 'a' }, { label: '$x$', f: x => x, tone: 'b' }, { label: 'ratio $\\ln x / x$', f: x => Math.log(x) / x, tone: 'c' }],
     },
-    answer: 'True: by L’Hôpital, $\\lim \\ln x / x = \\lim (1/x)/1 = 0$.',
+    answer: "By L’Hôpital, $\\lim \\ln x / x = \\lim (1/x)/1 = 0$.",
     mistake: 'Differentiating the fraction with the quotient rule. L’Hôpital differentiates the top and the bottom separately.',
     tryIt: { q: 'True or false: $\\ln x \\in o(\\sqrt{x})$.', a: 'True. L’Hôpital: $\\dfrac{1/x}{1/(2\\sqrt{x})} = \\dfrac{2\\sqrt{x}}{x} = \\dfrac{2}{\\sqrt{x}} \\to 0$.' },
   };
 
   H['c310-3-tf-x2-oxfact'] = {
-    asks: 'Decide whether $x^2$ grows strictly slower than $x! = 1 \\cdot 2 \\cdot 3 \\cdots x$, and justify it.',
+    asks: "Justify that $x^2$ grows strictly slower than $x! = 1 \\cdot 2 \\cdot 3 \\cdots x$.",
     idea: 'From $x$ to $x + 1$, the factorial is multiplied by $x + 1$: by 11, then 12, then 13, a bigger factor every step. $x^2$ is multiplied only by $((x+1)/x)^2$, which is barely above 1 for large $x$. The factorial pulls away.',
     steps: [
       'Goal: $\\lim_{x\\to\\infty} x^2/x! = 0$. L’Hôpital does not help, because $x!$ is built by multiplying whole numbers, not given by a formula to differentiate. Squeeze the ratio instead.',
@@ -178,13 +178,13 @@
       x: [1, 12], y: [1e-7, 1e9], logY: true, xLabel: 'x', yLabel: 'value',
       curves: [{ label: '$x^2$', f: x => x * x, tone: 'a' }, { label: '$x!$', f: fact, tone: 'b' }, { label: 'ratio $x^2/x!$', f: x => x * x / fact(x), tone: 'c' }],
     },
-    answer: 'True: for $x \\ge 3$, $0 \\le x^2/x! \\le x/((x-1)(x-2)) \\to 0$.',
+    answer: "For $x \\ge 3$, $0 \\le x^2/x! \\le x/((x-1)(x-2)) \\to 0$: $x!$ outgrows any polynomial.",
     mistake: 'Trying L’Hôpital on $x!$. Bound $x!$ from below by a product of higher degree than the top, then squeeze.',
     tryIt: { q: 'Show $x^3 \\in o(x!)$.', a: 'For $x \\ge 4$, $x! \\ge x(x-1)(x-2)(x-3)$, so $0 \\le \\dfrac{x^3}{x!} \\le \\dfrac{x^2}{(x-1)(x-2)(x-3)} \\to 0$ (degree 2 over degree 3).' },
   };
 
   H['c310-3-tf-omega-n2half'] = {
-    asks: 'Show that $n^2/2$ grows strictly faster than $n$ (so it is $\\in \\omega(n)$), but NOT strictly faster than $n^2$.',
+    asks: "Show that $n^2/2$ grows strictly faster than $n$ (so it is $\\in \\omega(n)$).",
     idea: 'Dividing by 2 is a constant squeeze; it never changes a growth rate. Against $n$, the extra factor $n$ wins. Against $n^2$, the ratio is stuck at $1/2$, and $\\omega$ needs a ratio that blows up.',
     steps: [
       '$\\omega$ test (slide 22): $f \\in \\omega(g)$ iff $\\lim_{n\\to\\infty} f(n)/g(n) = \\infty$.',
@@ -199,13 +199,13 @@
       x: [1, 20], y: [0, 10], xLabel: 'n', yLabel: 'f / g',
       curves: [{ label: '$(n^2/2)/n = n/2$', f: n => n / 2, tone: 'a' }, { label: '$(n^2/2)/n^2 = 1/2$', f: n => 0.5, tone: 'b' }],
     },
-    answer: '$(n^2/2)/n = n/2 \\to \\infty$, so $\\omega(n)$. $(n^2/2)/n^2 = 1/2$, finite, so not $\\omega(n^2)$; it is $\\Theta(n^2)$.',
+    answer: "$(n^2/2)/n = n/2 \\to \\infty$, so $\\omega(n)$.",
     mistake: 'Thinking the $1/2$ makes $n^2/2$ "smaller than $n^2$" and so maybe $o(n^2)$. A constant ratio means the same rate: neither $o$ nor $\\omega$.',
     tryIt: { q: 'Is $n^3/10 \\in \\omega(n^2)$? Is it $\\in \\omega(n^3)$?', a: '$(n^3/10)/n^2 = n/10 \\to \\infty$: yes. $(n^3/10)/n^3 = 1/10$, finite: no (it is $\\Theta(n^3)$).' },
   };
 
   H['c310-3-cmp-n3-2n'] = {
-    asks: 'Fill in five yes/no boxes: is $n^3$ big-O, little-o, big-Omega, little-omega, or Theta of $2^n$? One limit answers all five.',
+    asks: "Which of big-O, little-o, big-Omega, little-omega and Theta hold for $n^3$ relative to $2^n$? One limit answers all five.",
     idea: '$2^n$ doubles every time $n$ goes up by 1. $n^3$ is multiplied by $((n+1)/n)^3$, which is less than 2 once $n$ is moderately big. Something that doubles every step eventually buries something that does not.',
     steps: [
       'Ratio: $r(n) = n^3/2^n$. We need $L = \\lim_{n\\to\\infty} r(n)$.',
@@ -220,13 +220,13 @@
       curves: [{ label: '$n^3$', f: n => n ** 3, tone: 'a' }, { label: '$2^n$', f: n => 2 ** n, tone: 'b' }, { label: 'ratio $n^3/2^n$', f: n => n ** 3 / 2 ** n, tone: 'c' }],
       marks: [{ x: 10, label: '$n = 10$' }],
     },
-    answer: '$O$ yes, $o$ yes, $\\Omega$ no, $\\omega$ no, $\\Theta$ no, because $\\lim_{n\\to\\infty} n^3/2^n = 0$.',
+    answer: "$O$ and $o$ only, because $\\lim_{n\\to\\infty} n^3/2^n = 0$.",
     mistake: 'Trusting small $n$: at $n = 8$, $n^3 = 512$ is still bigger than $2^8 = 256$. Asymptotic questions are about the trend as $n \\to \\infty$.',
     tryIt: { q: 'Let $f = n^2 \\lg n$ and $g = n^3$. Give all five answers.', a: '$\\dfrac{n^2 \\lg n}{n^3} = \\dfrac{\\lg n}{n} \\to 0$, so $L = 0$: $O$ yes, $o$ yes; $\\Omega$, $\\omega$, $\\Theta$ no.' },
   };
 
   H['c310-3-cmp-log2-sqrt'] = {
-    asks: 'Five yes/no boxes again: how does $(\\lg n)^2$, a log squared, compare with $\\sqrt{n} = n^{1/2}$?',
+    asks: "Which of the five relations hold for $(\\lg n)^2$, a log squared, relative to $\\sqrt{n} = n^{1/2}$?",
     idea: 'Rename $n = 2^m$, so $m = \\lg n$ counts doublings. Then $(\\lg n)^2 = m^2$ only squares the count, while $\\sqrt{n} = 2^{m/2}$ doubles every time $m$ goes up by 2. Squaring loses to repeated doubling.',
     steps: [
       'Ratio: $\\dfrac{(\\lg n)^2}{\\sqrt{n}}$. Substitute $n = 2^m$: $\\lg n = m$ and $\\sqrt{n} = (2^m)^{1/2} = 2^{m/2}$. As $n \\to \\infty$, $m \\to \\infty$ too.',
@@ -241,13 +241,13 @@
       curves: [{ label: '$(\\lg n)^2 = m^2$', f: m => m * m, tone: 'a' }, { label: '$\\sqrt{n} = 2^{m/2}$', f: m => 2 ** (m / 2), tone: 'b' }, { label: 'ratio $m^2 / 2^{m/2}$', f: m => m * m / 2 ** (m / 2), tone: 'c' }],
       marks: [{ x: 16, label: '$n = 2^{16}$' }],
     },
-    answer: '$O$ yes, $o$ yes, $\\Omega$ no, $\\omega$ no, $\\Theta$ no: $(\\lg n)^2/\\sqrt{n} \\to 0$.',
+    answer: "$O$ and $o$ only: $(\\lg n)^2/\\sqrt{n} \\to 0$.",
     mistake: 'Concluding from $n = 10, 100, 1000$ that the ratio is roughly constant (it sits between 3 and 4.5 there). Push $n$ much further, or substitute $n = 2^m$, before answering.',
     tryIt: { q: 'Compare $f = (\\lg n)^3$ with $g = n$: give all five answers.', a: 'With $n = 2^m$ the ratio is $m^3/2^m \\to 0$, so $L = 0$: $O$ and $o$ yes; $\\Omega$, $\\omega$, $\\Theta$ no. (At $n = 10^9$ the ratio is about $2.7 \\times 10^{-5}$.)' },
   };
 
   H['c310-3-cmp-logbase'] = {
-    asks: 'Five yes/no boxes for $\\log_2 n$ against $\\log_{10} n$. Do logs with different bases grow at different rates?',
+    asks: "Which of the five relations hold for $\\log_2 n$ relative to $\\log_{10} n$? Do logs with different bases grow at different rates?",
     idea: '$\\log_2 n$ counts how many doublings reach $n$; $\\log_{10} n$ counts how many multiply-by-10 steps reach $n$. One multiply-by-10 is about 3.32 doublings ($2^{3.32} \\approx 10$), so one count is always 3.32 times the other. A fixed multiple is the same growth rate.',
     steps: [
       'Let $y = \\log_2 n$. By definition, $2^y = n$.',
@@ -262,13 +262,13 @@
       x: [1, 100], y: [0, 7.5], xLabel: 'n', yLabel: 'value',
       curves: [{ label: '$\\log_2 n$', f: n => Math.log2(n), tone: 'a' }, { label: '$\\log_{10} n$', f: n => Math.log10(n), tone: 'b' }, { label: 'ratio $\\approx 3.32$', f: n => 1 / Math.log10(2), tone: 'c' }],
     },
-    answer: '$O$, $\\Omega$, $\\Theta$ yes; $o$, $\\omega$ no. $\\log_2 n / \\log_{10} n = 1/\\log_{10} 2 \\approx 3.32$, a positive constant.',
+    answer: "$O$, $\\Omega$ and $\\Theta$ only (not $o$, $\\omega$): $\\log_2 n / \\log_{10} n = 1/\\log_{10} 2 \\approx 3.32$, a positive constant.",
     mistake: 'Thinking base 2 grows faster because $\\log_2 n$ is bigger. Bigger by a fixed factor is the same rate, which is why $\\Theta(\\log n)$ is written with no base.',
     tryIt: { q: 'Compare $\\ln n$ with $\\lg n = \\log_2 n$: give all five answers.', a: '$\\ln n = \\lg n \\cdot \\ln 2$, so $\\ln n / \\lg n = \\ln 2 \\approx 0.693$, a positive constant: $O$, $\\Omega$, $\\Theta$ yes; $o$, $\\omega$ no.' },
   };
 
   H['c310-3-cmp-n2n'] = {
-    asks: 'Is $n \\cdot 2^n$ bounded above by some constant multiple of $2^n$? Answer true or false using the definition of big-O.',
+    asks: "Using the definition of big-O, show that $n \\cdot 2^n$ is NOT bounded above by a constant multiple of $2^n$.",
     idea: '$n \\cdot 2^n$ is $2^n$ copied $n$ times. Big-O lets you copy $2^n$ a fixed number $c$ of times. Once $n$ passes $c$, the $n$ copies beat the $c$ copies, whatever $c$ you chose.',
     steps: [
       'Suppose it were true: there are $c > 0$ and $n_0$ with $n \\cdot 2^n \\le c \\cdot 2^n$ for all $n \\ge n_0$.',
@@ -283,13 +283,13 @@
       curves: [{ label: '$n \\cdot 2^n$', f: n => n * 2 ** n, tone: 'a' }, { label: '$10 \\cdot 2^n$', f: n => 10 * 2 ** n, tone: 'b' }, { label: '$2^n$', f: n => 2 ** n, tone: 'c' }],
       marks: [{ x: 10, label: '$n = c = 10$' }],
     },
-    answer: 'False. $n \\cdot 2^n \\le c \\cdot 2^n$ reduces to $n \\le c$, which no constant $c$ satisfies for all large $n$. (The ratio is $n \\to \\infty$, so it is $\\omega(2^n)$.)',
+    answer: "$n \\cdot 2^n \\le c \\cdot 2^n$ reduces to $n \\le c$, which no constant $c$ satisfies for all large $n$. (The ratio is $n \\to \\infty$, so it is $\\omega(2^n)$.)",
     mistake: 'Reasoning "the exponential dominates, so the factor $n$ does not matter". A factor that grows with $n$ always changes the rate; only constant factors can be dropped.',
     tryIt: { q: 'True or false: $(n + 5)\\,2^n = O(n\\,2^n)$.', a: 'True. Dividing by $n\\,2^n$, we need $(n + 5)/n \\le c$. For $n \\ge 1$, $(n + 5)/n = 1 + 5/n \\le 6$, so $c = 6$, $n_0 = 1$.' },
   };
 
   H['c310-3-cmp-2n-n5'] = {
-    asks: 'Does adding $n^5$ to $2^n$ change its growth rate? Decide whether $2^n + n^5 = \\Theta(2^n)$, and justify.',
+    asks: "Justify that adding $n^5$ to $2^n$ does not change its growth rate: $2^n + n^5 = \\Theta(2^n)$.",
     idea: 'It is like dropping $10n + 20$ from $0.3n^2 + 10n + 20$ (slide 4): a term that becomes a vanishing fraction of the leading term does not change the rate. Here $n^5$ ends up a vanishing fraction of $2^n$, even though it is far bigger for small $n$.',
     steps: [
       'Ratio: $\\dfrac{2^n + n^5}{2^n} = \\dfrac{2^n}{2^n} + \\dfrac{n^5}{2^n} = 1 + \\dfrac{n^5}{2^n}$.',
@@ -305,7 +305,7 @@
       marks: [{ x: 23, label: '$n_0 = 23$' }],
       from: 23,
     },
-    answer: 'True. $(2^n + n^5)/2^n = 1 + n^5/2^n \\to 1$, a positive constant; concretely $2^n \\le 2^n + n^5 \\le 2 \\cdot 2^n$ for $n \\ge 23$.',
+    answer: "$(2^n + n^5)/2^n = 1 + n^5/2^n \\to 1$, a positive constant; concretely $2^n \\le 2^n + n^5 \\le 2 \\cdot 2^n$ for $n \\ge 23$.",
     mistake: 'Checking small $n$ and concluding $n^5$ dominates (at $n = 16$ it is still 16 times $2^n$). The rate is decided by the limit, not by early values.',
     tryIt: { q: 'True or false: $n^2 + 100\\,n \\lg n = \\Theta(n^2)$.', a: 'True. The ratio is $1 + \\dfrac{100 \\lg n}{n} \\to 1 + 0 = 1$. (At $n = 1000$ it is still about 2.0; at $n = 10^6$, about 1.002.)' },
   };

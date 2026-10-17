@@ -14,6 +14,7 @@
   "cat": "Professional ethics",
   "sub": "SE Code of Ethics",
   "type": "mc",
+  "noRecall": true,
   "prompt": "A software engineer encounters a situation where meeting project deadlines requires cutting corners and compromising on software quality. According to the SECEPP, what should the engineer prioritize?",
   "answer": "Ensuring the highest possible software quality",
   "options": [
@@ -30,6 +31,7 @@
   "cat": "Ethical theories",
   "sub": "Kantianism",
   "type": "mc",
+  "noRecall": true,
   "prompt": "According to Kantian ethics, what moral responsibility does Robert Tappan Morris, Jr. bear for launching the Internet Worm?",
   "answer": "Full moral accountability, as he violated the privacy and property rights of others",
   "options": [
@@ -97,6 +99,7 @@
   "cat": "Tech & society",
   "sub": "Tech & society",
   "type": "mc",
+  "noRecall": true,
   "prompt": "Analyze the ethical implications of social media platforms utilizing algorithmic content moderation. Which option best reflects the potential unintended consequence of algorithmic moderation?",
   "answer": "It reinforces existing biases and amplifies echo chambers.",
   "options": [
@@ -114,6 +117,7 @@
   "cat": "Tech & society",
   "sub": "Tech & society",
   "type": "mc",
+  "noRecall": true,
   "prompt": "Assess the ethical implications of government-mandated internet censorship in the context of protecting national security. Which option best reflects the primary challenge in balancing security concerns with individual freedoms?",
   "answer": "It undermines democratic principles and restricts free expression.",
   "options": [
@@ -131,6 +135,7 @@
   "cat": "Tech & society",
   "sub": "Tech & society",
   "type": "mc",
+  "noRecall": true,
   "prompt": "Consider the ethical implications of autonomous vehicles in modern transportation systems. Which option best reflects a potential ethical dilemma associated with self-driving cars?",
   "answer": "They challenge traditional notions of moral responsibility and decision-making, raising questions about the ethical programming of AI systems.",
   "options": [
@@ -165,6 +170,7 @@
   "cat": "Privacy & data",
   "sub": "Privacy",
   "type": "mc",
+  "noRecall": true,
   "prompt": "Evaluate the ethical considerations surrounding the collection and storage of user data by online service providers. Which option best reflects the main ethical concern associated with data retention policies?",
   "answer": "It protects user privacy and prevents unauthorized access to sensitive information.",
   "options": [
@@ -182,6 +188,7 @@
   "cat": "Privacy & data",
   "sub": "Privacy",
   "type": "mc",
+  "noRecall": true,
   "prompt": "Evaluate the ethical considerations surrounding the practice of online behavioral advertising based on user data tracking. Which option best articulates a nuanced ethical dilemma associated with targeted advertising?",
   "answer": "It prompts concerns regarding the manipulation of user behavior and the invasion of personal privacy, raising questions about the ethical boundaries of advertising practices.",
   "options": [
@@ -199,6 +206,7 @@
   "cat": "Tech & society",
   "sub": "Tech & society",
   "type": "mc",
+  "noRecall": true,
   "prompt": "Evaluate the ethical implications of digital content manipulation technologies, such as deepfake videos. Which option best reflects a potential ethical concern associated with the proliferation of manipulated content?",
   "answer": "They undermine trust in visual evidence and authenticity, posing significant challenges to truth and reality.",
   "options": [
@@ -233,6 +241,7 @@
   "cat": "Ethical theories",
   "sub": "Kantianism",
   "type": "mc",
+  "noRecall": true,
   "prompt": "How does Kant's first formulation of the categorical imperative differ from rule utilitarian ethics?",
   "answer": "It focuses on the intention behind actions",
   "options": [
@@ -334,6 +343,7 @@
   "cat": "Professional ethics",
   "sub": "Whistleblowing",
   "type": "mc",
+  "noRecall": true,
   "prompt": "In what way does the Whistleblower Protection Act differ from the False Claims Act?",
   "answer": "Unlike the Whistleblower Protection Act, the False Claims Act safeguards federal employees from retaliation.",
   "options": [
@@ -351,15 +361,15 @@
   "sub": "Other theories",
   "type": "mc",
   "prompt": "The problem of moral luck is raised as a criticism of:",
-  "answer": "Kantianism",
+  "answer": "Act utilitarianism.",
   "options": [
    "The divine command theory.",
-   "Act utilitarianism.",
+   "Kantianism.",
    "Rule utilitarianism.",
    "Cultural relativism."
   ],
-  "why": "",
-  "source": "Ethics quiz bank (archived question 21)"
+  "why": "Act utilitarianism judges an act by its actual outcome, and outcomes can depend on luck beyond your control. Kantianism judges the will and the rule, not the outcome.",
+  "source": "Ethics quiz bank (archived question 21); key corrected 2026-10-17: the old key said Kantianism, but Quinn lists moral luck under act utilitarianism (e.g. UBC CS430 Lect2-3 slides)"
  },
  {
   "id": "eth-22",
@@ -384,6 +394,7 @@
   "cat": "Professional ethics",
   "sub": "Whistleblowing",
   "type": "mc",
+  "noRecall": true,
   "prompt": "What do the Whistleblower Protection Act and the False Claims Act have in common?",
   "answer": "Neither of them safeguards corporate employees from retaliation.",
   "options": [
@@ -451,6 +462,7 @@
   "cat": "Intellectual property",
   "sub": "Copyright & patents",
   "type": "mc",
+  "noRecall": true,
   "prompt": "What is a major difference between software copyrights and software patents?",
   "answer": "Software copyrights are granted automatically upon creation, while software patents require registration.",
   "options": [
@@ -485,6 +497,7 @@
   "cat": "Professional ethics",
   "sub": "SE Code of Ethics",
   "type": "mc",
+  "noRecall": true,
   "prompt": "Which action aligns with Principle 4 (Judgment) of the software engineering code of ethics in the scenario about a friend's misconduct at work?",
   "answer": "Reporting the friend's misconduct to the employer with evidence",
   "options": [
@@ -502,6 +515,7 @@
   "cat": "Professional ethics",
   "sub": "SE Code of Ethics",
   "type": "mc",
+  "noRecall": true,
   "prompt": "Which action aligns with Principle (Judgment) of the software engineering code of ethics in the ergonomic workstation bill scenario?",
   "answer": "Conducting a comprehensive cost-benefit analysis before making a decision",
   "options": [
@@ -519,6 +533,7 @@
   "cat": "Professional ethics",
   "sub": "SE Code of Ethics",
   "type": "mc",
+  "noRecall": true,
   "prompt": "Which action aligns with Principle (Judgment) of the software engineering code of ethics in a scenario where a client requests a less secure system to cut costs?",
   "answer": "Refusing to build the system as requested and explaining the ethical implications",
   "options": [
@@ -553,6 +568,7 @@
   "cat": "Intellectual property",
   "sub": "Open source",
   "type": "mc",
+  "noRecall": true,
   "prompt": "Which of the following actions is NOT typically permitted under most open-source software licenses?",
   "answer": "Charging exorbitant fees for distributing the software",
   "options": [
@@ -570,6 +586,7 @@
   "cat": "Intellectual property",
   "sub": "Copyright & patents",
   "type": "mc",
+  "noRecall": true,
   "prompt": "Which of the following is NOT true regarding software copyrights?",
   "answer": "Software copyrights only protect the functionality of the software, not its code.",
   "options": [
@@ -587,6 +604,7 @@
   "cat": "Ethical theories",
   "sub": "Kantianism",
   "type": "mc",
+  "noRecall": true,
   "prompt": "Which of the following statements best contrasts the method of rule derivation in Kantianism and social contract theory?",
   "answer": "Kantianism derives rules by assessing their compatibility with the Categorical Imperative, while social contract theory derives rules by evaluating their potential for mutual benefit if universally adopted.",
   "options": [
@@ -604,6 +622,7 @@
   "cat": "Ethical theories",
   "sub": "Kantianism",
   "type": "mc",
+  "noRecall": true,
   "prompt": "Which of the following statements best distinguishes between divine command theory and Kantianism?",
   "answer": "Both divine command theory and Kantianism uphold moral objectivity, but divine command theory identifies the good with the will of God communicated through holy books, while Kantianism relies on human reason to determine what is good.",
   "options": [

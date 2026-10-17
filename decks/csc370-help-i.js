@@ -16,7 +16,7 @@
   // ---------- What control is ----------
 
   H['l10-control-stmt'] = {
-    asks: 'Say what makes a statement a control statement, and name two of them.',
+    asks: 'Define a control statement.',
     idea: 'With no control statements, a program runs like reading a page: line 1, then line 2, then line 3, each once. A control statement is anything that breaks that “just go to the next line” habit: it skips lines, repeats lines, or jumps somewhere else.',
     steps: [
       'Start from the default order: sequential. Each statement runs once, top to bottom.',
@@ -80,7 +80,7 @@
   // ---------- Two-way selection ----------
 
   H['l10-two-way-issues'] = {
-    asks: 'List the decisions a language designer must make when adding `if … else`.',
+    asks: 'Name the two-way selection design issue that the dangling else is about.',
     idea: 'Pretend you are designing `if` for a new language. You must decide three things: what is allowed inside the condition, how the clauses are wrapped, and what it means when one if sits inside another. Each real language answers these differently.',
     steps: [
       { text: '1. Form and type of the control expression. C, C++ and Python allow an arithmetic condition (nonzero means true); Java demands a `boolean`.', code: 'if (count) …     /* C: fine, true when count != 0 */\nif (count) …     // Java: compile error, int is not boolean' },
@@ -88,7 +88,7 @@
       '3. Meaning of nested selection. With two `if`s and one `else`, which `if` owns the else? That is the dangling else. C and Java settle it with a rule: the closest previous if.',
       'Memory hook: what goes IN the parentheses, how the clauses are WRAPPED, what happens when ifs are NESTED.',
     ],
-    answer: 'The form and type of the control expression; the form of the structure (bracketing); the meaning of nested selection (e.g. the dangling else).',
+    answer: 'The meaning of nested selection. (The others: form and type of the control expression; bracketing.)',
     mistake: 'Mixing in the multi-way (switch) issues, such as fall-through or unrepresented values. Those only arise when there are many cases; two-way selection has just these three.',
     tryIt: { q: 'Ruby writes `if a > b then … else … end`. Which design issue does the `end` keyword answer, and what problem does it remove?', a: 'Bracketing (form of the structure). Because `end` closes each if, you can always see which if an else belongs to, so the dangling-else problem disappears.' },
   };
@@ -110,7 +110,7 @@
   };
 
   H['l10-assign-why'] = {
-    asks: 'Name the language-design choice that lets `if (userNum = favNum)` compile in C, and explain what Java does differently.',
+    asks: 'Say which C rules let an assignment be used as an if condition.',
     idea: 'Two features have to line up for the bug to compile: the condition may be a number, and an assignment produces a number. Java keeps the second but removes the first.',
     steps: [
       'The design issue is the form and type of the control expression. C (also C++ and Python) lets it be arithmetic: 0 is false, anything else is true.',
@@ -118,7 +118,7 @@
       { text: 'Java answers the design question the other way: the condition must be a `boolean`. The assignment still has a value, but its type is `int`, so javac rejects it:', code: 'error: incompatible types: int cannot be converted to boolean\n  if (userNum = favNum) …' },
       'Python allows arithmetic conditions too, but it blocks this bug another way: its `=` is a statement, not an expression, so `if x = 5:` is a syntax error.',
     ],
-    answer: 'C allows an arithmetic control expression (nonzero = true), and an assignment is an expression whose value is the value assigned. Java requires a boolean control expression, so the int assignment is a compile-time type error.',
+    answer: 'C allows an arithmetic control expression (nonzero = true), and an assignment yields a value. Java requires a boolean, so it won’t compile there.',
     mistake: 'Saying Java “forbids assignment in an if”. It does not: with booleans, `if (done = true)` compiles in Java and is always true. Java only catches the int case, because an `int` is not a `boolean`.',
     tryIt: { q: 'In C, how many times does the body of `while (n = 0) { … }` run? Would Java accept it if `n` is an `int`?', a: 'Zero times: `n = 0` stores 0, and its value 0 is false. Java rejects it at compile time: int cannot be converted to boolean.' },
   };
@@ -187,7 +187,7 @@
   };
 
   H['l10-dangling-rule'] = {
-    asks: 'State the rule C and Java use to decide which if a dangling else belongs to, and what early C did instead.',
+    asks: 'Say which if a dangling else is matched with in C today and Java.',
     idea: 'The grammar for if/else is ambiguous: one sentence, two parse trees. A language must pick one, either with a rule or by changing the syntax.',
     steps: [
       '`if (A) if (B) S1; else S2;` has two ifs and one else. The grammar allows both pairings, so it has two parse trees and two meanings.',
@@ -200,7 +200,7 @@
       { tree: treeInner, caption: 'Closest-if rule (C now, Java): else pairs with the inner if. (c is count, r is result.)' },
       { tree: treeOuter, caption: 'The other legal parse: else pairs with the outer if. C and Java never choose this unless braces force it.' },
     ],
-    answer: 'The closest previous if, by a formal semantic rule. Early versions of C had no formal semantics for it.',
+    answer: 'The closest previous if, by a formal semantic rule. Early C had no formal semantics for it.',
     mistake: 'Saying the else goes with the if it lines up with. Indentation is ignored in C and Java (Python is the exception, because there indentation is the structure).',
     tryIt: { q: '`if (a) if (b) if (c) x = 1; else x = 2;` Which if owns the else, and when does `x = 2` run?', a: 'The innermost, `if (c)`. `x = 2` runs only when a and b are true and c is false.' },
   };
@@ -208,7 +208,7 @@
   // ---------- Multi-way selection ----------
 
   H['l10-multiway-issues'] = {
-    asks: 'Rebuild the five design questions a language designer must answer for a switch/case statement.',
+    asks: 'Name the multi-way selection design issue that C answers with its default clause.',
     idea: 'Imagine designing `switch` from scratch. You must decide: what can you switch on, how is each arm written, can more than one arm run, how are the arm labels written, and what if nothing matches. Those five decisions are the five issues.',
     steps: [
       { text: 'Walk through each question with two real answers:', table: { head: ['design issue', 'C', 'another language'], rows: [
@@ -221,7 +221,7 @@
       'Why have switch at all, when nested ifs can do it? The original goal was speed: jump straight to the right segment instead of testing condition after condition.',
       'Memory hook: what goes IN, how the ARMS are written, how MANY arms run, how the LABELS look, what if NOTHING matches.',
     ],
-    answer: 'Form and type of the control expression; how the selectable segments are specified; whether execution is restricted to a single segment; how case values are specified; what is done about unrepresented values.',
+    answer: 'What is done about unrepresented values. (All five: control expression form and type; how segments are specified; single segment only?; how case values are specified; unrepresented values.)',
     mistake: 'Answering with the two-way issues (bracketing, dangling else). The multi-way list is longer because many cases create new questions: fall-through, case labels, and the no-match value.',
     tryIt: { q: 'Give C#’s answers to issue 1 (control expression type) and issue 3 (single segment only?).', a: 'Issue 1: integer or string. Issue 3: yes, only one segment runs: each segment must end with an unconditional branch (`break` or `goto`).' },
   };
@@ -268,7 +268,7 @@
   };
 
   H['l10-switch-why'] = {
-    asks: 'Say what multi-way selection was originally meant to achieve, and whether compilers always deliver it.',
+    asks: 'Say what multi-way selection was originally meant to achieve.',
     idea: 'A chain of if/else-ifs is like asking “is it 0? is it 1? is it 2?…” one question at a time. A switch can, in principle, go straight to the right door, like using the value as an index into a table of addresses.',
     steps: [
       'With nested ifs, finding case 9 out of 10 may take 9 or 10 tests, one after another.',
@@ -277,13 +277,13 @@
       'But not every compiler does this. Some just turn the switch into a series of if / else-ifs, which is no faster than writing them yourself.',
       'This is also why case values must be constants: the table has to be built when the program is compiled.',
     ],
-    answer: 'Speed: jump straight to the right segment instead of testing conditions one by one. Not every compiler achieves it; some just generate a chain of if / else-ifs.',
+    answer: 'Speed: jump straight to the right segment instead of testing conditions one by one. Not every compiler does; some just produce a chain of if / else-ifs.',
     mistake: 'Saying the purpose was only readability. Readability is a bonus; the stated original goal is speed.',
     tryIt: { q: 'A switch has cases 0 through 7, each with its own segment. How could a compiler reach the segment for 5 without testing 0, 1, 2, 3 and 4 first?', a: 'Build an array of 8 segment addresses indexed by the case value, and jump to entry 5 directly: one lookup, whichever value comes in.' },
   };
 
   H['l10-csharp-switch'] = {
-    asks: 'Name two ways C#’s switch differs from C’s.',
+    asks: 'Say how each segment of a C# switch has to end.',
     idea: 'C# kept C’s switch shape but fixed C’s most common switch bug (falling through by accident) and widened what you can switch on.',
     steps: [
       'Difference 1: no implicit fall-through. Every segment that has code must end with an unconditional branch: `break`, or a `goto` such as `goto case 1;`. Leave it out and it is a compile error, not a silent bug.',
@@ -291,13 +291,13 @@
       { text: 'Both differences in one example (C#):', code: 'switch (day) {            // day is a string\n   case "Sat":\n   case "Sun":            // stacked labels, no code between: allowed\n      weekend = true;\n      break;              // required\n   case "Mon":\n      weekend = false;\n      break;\n}' },
       'Sharing code between values still works by stacking labels with nothing between them; what is banned is running one segment’s code and then sliding into the next.',
     ],
-    answer: 'C# disallows implicitly running more than one segment (each segment must end with `break` or `goto`), and its control expression can be a string.',
+    answer: 'With an unconditional branch (break or goto): no implicit fall-through. C#’s switch can also use a string.',
     mistake: 'Saying C# “has no fall-through at all, so cases can’t share code”. Stacked empty labels are fine, and `goto case` lets you continue on purpose.',
     tryIt: { q: 'Would this compile in C#? `case 1: x++; case 2: y++; break;` How would you fix it if you really want both increments for 1?', a: 'No: the `case 1` segment has code and does not end in `break` or `goto`. Fix: end it with `goto case 2;`.' },
   };
 
   H['l10-selector'] = {
-    asks: 'Define a selector expression, then write “m is the larger of x and y” with one in C and in ML.',
+    asks: 'Define a selector expression.',
     idea: 'A statement does something; an expression has a value. A selector expression is a choice that produces a value, so it can sit on the right side of `=`.',
     steps: [
       'C’s `if` is a statement, so `m = if (x > y) x else y;` is not C. C provides a separate operator for a choice with a value: `cond ? a : b`.',
@@ -306,7 +306,7 @@
       'Because an ML `if` must produce a value, it must always have an `else` (otherwise there would be no value when the test is false). That also means ML has no dangling-else problem.',
       'Python has one too: `m = x if x > y else y` (with x = 4, y = 9 it gives 9).',
     ],
-    answer: 'A selection that produces a value (an expression, not a statement). C: `m = x > y ? x : y;`  ML: `let m = if x > y then x else y`.',
+    answer: 'A selection that yields a value. C: m = x > y ? x : y;  ML: let m = if x > y then x else y',
     mistake: 'Writing `m = if (x > y) x; else y;` in C. C’s if does not produce a value; you need `?:`.',
     tryIt: { q: 'Write “d is the distance between x and y” (always non-negative) with a selector expression in C and in ML. What is d for x = 3, y = 8?', a: 'C: `d = x < y ? y - x : x - y;`  ML: `let d = if x < y then y - x else x - y`. With 3 and 8, d = 5.' },
   };
@@ -329,7 +329,7 @@
   // ---------- Loops ----------
 
   H['l10-iter-design'] = {
-    asks: 'List the design questions a language designer must answer for loops.',
+    asks: 'Name the iteration design issue that pretest and posttest loops answer differently.',
     idea: 'Design a loop from scratch and three questions jump out: what decides how many times it runs, where can you come in, and when do you check whether to stop?',
     steps: [
       { text: '1. How is iteration controlled? By a logical condition, by a count, or by a data type that hands out its own elements.', code: 'while (x < 10) …               /* logical */\nfor (i = 0; i < 10; i++) …     /* counted */\nfor weather in myList:         # data type with its own iterator (Python)' },
@@ -337,7 +337,7 @@
       '3. Where is it decided whether the loop is done? At the top (pretest: `while`, `for`; the body may run 0 times) or at the bottom (posttest: `do … while`; the body runs at least once).',
       { text: 'Issue 3 in action, with `k = 5`:', code: 'while (k < 3) { … }        /* body runs 0 times */\ndo { … } while (k < 3);    /* body runs once */' },
     ],
-    answer: 'How is iteration controlled (logically, by a count, or by a data type with its own iterator)? Can a loop be entered other than at the top? Where is it decided whether the loop is done (top = pretest, bottom = posttest)?',
+    answer: 'Where the done-test is: top (pretest) or bottom (posttest). (The others: how iteration is controlled; whether it can be entered other than at the top.)',
     mistake: 'Listing kinds of loops (for, while, do-while) instead of questions. Each issue is a question; the loop kinds are the different answers to it.',
     tryIt: { q: 'How does Python’s `for x in myList:` answer the three questions?', a: 'Controlled by the list’s own iterator (a data type). Entered only at the top (Python has no goto). Tested at the top before each pass, so an empty list runs the body 0 times (pretest).' },
   };
@@ -429,7 +429,7 @@
   };
 
   H['l10-loop-compare'] = {
-    asks: 'Explain why the same `i *= 5` changes how often the C loop runs but not the Python loop.',
+    asks: 'Explain why changing i inside the C loop changes how many times it runs.',
     idea: 'C’s for is a while loop in disguise: it re-tests an ordinary variable each pass. Python’s for asks an iterator for the next value each pass, ignoring what you did to the variable.',
     steps: [
       { text: 'C’s `for(exp1; exp2; exp3)` is really this while loop:', code: 'i = 0;               /* exp1 */\nwhile (i < 10) {     /* exp2, tested every pass */\n    printf("%d ", i);\n    i *= 5;\n    i++;             /* exp3 */\n}' },
@@ -437,7 +437,7 @@
       'Python’s `for i in range(10)` assigns `i` the next value from `range` at the start of every pass. Your `i *= 5` is overwritten before anyone checks it. Python prints 0 through 9.',
       'The intent of a counted loop is easy counting. Python’s version sticks to that intent; C’s is more general (and so easier to break).',
     ],
-    answer: 'C’s `for(exp1; exp2; exp3)` is a while loop over an ordinary variable, so changing i changes the test. Python’s for takes the next value from `range()` each pass, so changes to i inside the body are overwritten.',
+    answer: 'C’s for is really a while over an ordinary variable that is tested each pass. Python’s for takes the next value from range() each pass, so changes to i are lost.',
     mistake: 'Saying “Python makes i read-only” or “Python copies i”. Python does let you change i; the change simply gets overwritten by the next value from range.',
     tryIt: { q: 'What does each loop print?', code: '# Python\nfor i in range(5):\n    print(i)\n    i += 10\n\n/* C */\nfor(i = 0; i < 5; i++){\n    printf("%d ", i);\n    i += 10;\n}', a: 'Python: `0 1 2 3 4` (range ignores the change). C: just `0` (i becomes 10, then 11, and 11 < 5 fails).' },
   };
@@ -456,7 +456,7 @@
   };
 
   H['l10-break-continue'] = {
-    asks: 'Explain `break` and `continue`, and how Java leaves an outer loop from inside an inner one.',
+    asks: 'Say what Java’s break does.',
     idea: 'Java removed `goto` but kept the useful, tame jumps. Each jumps only to a fixed, nearby place: `break` to just after the loop, `continue` to the loop’s next pass.',
     steps: [
       '`break` exits the closest enclosing loop (or switch) and goes to the statement just after it.',
@@ -464,13 +464,13 @@
       { text: 'Both in one loop (prints `0 1 3`):', code: 'for (i = 0; i < 6; i++) {\n    if (i == 2) continue;   /* skip printing 2 */\n    if (i == 4) break;      /* stop the loop at 4 */\n    printf("%d ", i);\n}' },
       { text: 'A plain `break` inside the inner loop only stops the inner loop. To stop both, label the outer loop and break to the label:', code: 'outer:\nfor (int r = 0; r < 3; r++)\n    for (int c = 0; c < 3; c++)\n        if (found(r, c)) break outer;   // leaves BOTH loops' },
     ],
-    answer: '`break` exits the closest loop or switch; `continue` goes to the next iteration of the closest loop. To exit an outer loop, use a labelled break.',
+    answer: 'break exits the closest loop or switch; continue goes to the next iteration of the closest loop; a labelled break exits an outer loop.',
     mistake: 'Thinking `continue` restarts the loop from the beginning (i = 0 again). It only skips to the next pass, so `i++` still happens.',
     tryIt: { q: 'What does this Java print?', code: 'outer:\nfor (int r = 0; r < 3; r++)\n    for (int c = 0; c < 3; c++) {\n        if (c == 1) continue;\n        if (r == 1 && c == 2) break outer;\n        System.out.println(r + "," + c);\n    }', a: '`0,0` `0,2` `1,0`, then nothing more. c = 1 is always skipped, and at r = 1, c = 2 the labelled break leaves both loops.' },
   };
 
   H['l10-foreach'] = {
-    asks: 'Explain how a for-each loop works and divide the work: what the library author writes, and what the user writes.',
+    asks: 'Say what the library creator must write so users can loop with for-each.',
     idea: 'Someone has to know how to walk through the data: where am I now, and what comes next? The library author writes that once (the iterator). After that, every user just says “for each element” and never thinks about positions.',
     steps: [
       'The library creator implements an iterator (in Java: the class implements `Iterable`). The iterator remembers the current element and knows how to move to the next and when there are none left.',

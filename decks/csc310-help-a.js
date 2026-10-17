@@ -30,7 +30,7 @@
   };
 
   H['c310-2-what-to-count'] = {
-    asks: 'The lecture estimates running time by counting operations and comparing the count to the input size. Which two kinds of operations does it say to count?',
+    asks: "The lecture estimates running time by counting operations and comparing the count to the input size. Which two kinds of operations does it say to count?",
     idea: 'Running time means "how many steps", and in the RAM model every simple step costs the same constant time. So instead of timing a program, you count the steps that do the work: the tests and the arithmetic.',
     steps: [
       'Comparisons: every $<, >, \\le, \\ge, ==$ that decides something, e.g. A[i] > max in an if, or A[i] > key in a while test.',
@@ -44,7 +44,7 @@
       x: [1, 20], y: [0, 60], xLabel: 'n', yLabel: 'operations',
       curves: [{ label: '$3n - 2$ (all comparisons and additions)', f: n => 3 * n - 2, tone: 'a' }, { label: '$n - 1$ (only A[i] > max)', f: n => n - 1, tone: 'b' }],
     },
-    answer: 'Comparisons, and arithmetic operations (addition, multiplication, division, mod).',
+    answer: "Comparisons, and arithmetic operations (addition, multiplication, division, mod).",
     mistake: 'Not saying which operation you count. "The loop runs $n$ times" and "the comparison runs $n - 1$ times" are different counts: name the operation, then count it.',
     tryIt: { q: 'For "for $i = 1$ to $n$: $s = s + i \\cdot i$", how many multiplications and how many additions does the body perform in total?', a: 'The body runs $n$ times, with one multiplication ($i \\cdot i$) and one addition ($s + \\dots$) each: $n$ multiplications and $n$ additions, $2n$ operations, $\\Theta(n)$.' },
   };
@@ -52,7 +52,7 @@
   // ---------------------------------------------------------------- Best/worst/average case
 
   H['c310-2-best-def'] = {
-    asks: 'Say what "best-case running time" means, and whether it is an upper or a lower bound.',
+    asks: "Say what \"best-case running time\" means.",
     idea: 'Fix the input size $n$ and line up every possible input of that size. Each input costs some number of steps. The best case is the cheapest input in that lineup, so no input can cost less: it is a floor (a lower bound).',
     steps: [
       'Take linear search on $n = 5$ elements (Lecture 2): it compares the key with A[1], A[2], … and stops when it finds it.',
@@ -66,13 +66,13 @@
       x: [1, 20], y: [0, 21], xLabel: 'n', yLabel: 'comparisons',
       curves: [{ label: 'best case: $1$', f: () => 1, tone: 'a' }, { label: 'worst case: $n$', f: n => n, tone: 'b' }],
     },
-    answer: 'Best case = the fewest operations over all inputs of size $n$. It is a lower bound: no input of size $n$ runs faster.',
+    answer: "The fewest operations (shortest running time) over all inputs of size $n$.",
     mistake: 'Taking a tiny input size (like $n = 1$) as "the best case". The best case is the best input for a fixed, general $n$, not the smallest $n$.',
     tryIt: { q: 'An algorithm scans an array left to right and stops at the first negative number. What is its best case on $n$ elements, and which input gives it?', a: 'A[1] is negative: it stops after 1 comparison, whatever $n$ is. Best case $= 1 = \\Theta(1)$.' },
   };
 
   H['c310-2-worst-def'] = {
-    asks: 'Say what "worst-case running time" means, and why it is the number usually reported.',
+    asks: "Say what \"worst-case running time\" means.",
     idea: 'Line up every input of size $n$ again; the worst case is the most expensive one. Because nothing costs more, it is a promise (an upper bound): "this algorithm never takes longer than this".',
     steps: [
       'Linear search on $n$ elements: the costliest input has the key missing (or in the last slot), $n$ comparisons. No input needs more, so the worst case is $n$.',
@@ -86,13 +86,13 @@
       x: [0, 30], y: [0, 450], xLabel: 'n', yLabel: 'shifts',
       curves: [{ label: 'worst: $n(n-1)/2$', f: n => n * (n - 1) / 2, tone: 'b' }, { label: 'average: $n(n-1)/4$', f: n => n * (n - 1) / 4, tone: 'a' }],
     },
-    answer: 'Worst case = the most operations over all inputs of size $n$. It is an upper bound, a guarantee for every input; and the average case usually grows just as fast.',
+    answer: "The most operations (longest running time) over all inputs of size $n$.",
     mistake: 'Thinking the average case is $(\\text{best} + \\text{worst})/2$. The lecture says it is NOT: it is the cost averaged over all inputs of size $n$.',
     tryIt: { q: 'A loop compares neighbours A[i] and A[i+1] for $i = 1, \\dots, n - 1$ and stops at the first pair that is out of order. What is its worst case on $n$ elements, and which input causes it?', a: 'An already sorted array: no pair is out of order, so it checks all $n - 1$ pairs. Worst case $= n - 1 = \\Theta(n)$.' },
   };
 
   H['c310-2-findmax-sorted'] = {
-    asks: 'For FindMaximum on $n$ elements, give the best and worst number of comparisons. Then count how often max is updated when the input is sorted smallest to largest.',
+    asks: "For FindMaximum on $n$ elements, give the best and worst number of comparisons.",
     idea: 'Two different operations, two different answers. The comparison runs every iteration no matter what; the update runs only when the comparison says "yes", so it depends on the input.',
     steps: [
       'Comparisons: one per iteration, $i = 1, \\dots, n - 1$, on every input. So best = worst = $n - 1$, $\\Theta(n)$.',
@@ -106,7 +106,7 @@
       curves: [{ label: 'comparisons: $n - 1$ (any input)', f: n => n - 1, tone: 'a' }, { label: 'updates, descending input: $0$', f: () => 0, tone: 'c' }],
       bars: { label: 'updates, ascending input', tone: 'b', values: [[1, 0], [2, 1], [3, 2], [4, 3], [5, 4], [6, 5], [7, 6], [8, 7], [9, 8], [10, 9]] },
     },
-    answer: 'Comparisons: best = worst = $n - 1$, $\\Theta(n)$. Ascending input: $n - 1$ updates (descending: 0).',
+    answer: "Best = worst = $n - 1$, $\\Theta(n)$: the comparison runs once per iteration whatever the input.",
     mistake: 'Calling sorted input FindMaximum’s best (or worst) case for comparisons. The comparison count never changes; only the update count does, so always name the operation you count.',
     tryIt: { q: 'FindMaximum on ⟨2, 7, 1, 8, 3⟩: how many comparisons, and how many updates?', a: '4 comparisons ($n - 1$ with $n = 5$). Updates: 7 > 2 yes, 1 > 7 no, 8 > 7 yes, 3 > 8 no: 2 updates.' },
   };
@@ -138,7 +138,7 @@
   // ---------------------------------------------------------------- Insertion sort: counting
 
   H['c310-2-ins-tj'] = {
-    asks: 'In the insertion-sort cost table, say what $t_j$ counts, and why the while body (lines 5 and 6) is charged $\\sum (t_j - 1)$ instead of $\\sum t_j$.',
+    asks: "In the insertion-sort cost table, say what $t_j$ counts.",
     idea: 'A loop test always runs once more than its body. Every test that says "yes" lets the body run once, and one final test says "no" and leaves. So if the test ran $t_j$ times, the body ran $t_j - 1$ times.',
     steps: [
       '$t_j$ = how many times the line-4 test "(i > 0) and (A[i] > key)" runs during the pass for one value of $j$. It depends on the input, so it is a variable.',
@@ -153,7 +153,7 @@
       curves: [{ label: 'body runs: $t_j - 1 = j - 1$', f: j => j - 1, tone: 'a' }],
       bars: { label: 'while tests $t_j = j$', tone: 'b', values: [[2, 2], [3, 3], [4, 4], [5, 5], [6, 6], [7, 7], [8, 8]] },
     },
-    answer: '$t_j$ is the number of times the while test (line 4) runs in pass $j$. The last test fails and exits, so the body (lines 5, 6) runs $t_j - 1$ times.',
+    answer: "$t_j$ is the number of times the while test (line 4) runs in pass $j$.",
     mistake: 'Treating $t_j$ as the number of shifts. $t_j$ counts tests, including the final failing one, so shifts are $t_j - 1$ and $t_j \\ge 1$ always.',
     tryIt: { q: 'x starts at 1. How many times does the test of "while x < 10: x = x + 3" run, and how many times does the body run?', a: 'Tests at x = 1, 4, 7 (yes) and x = 10 (no): 4 tests. Body: 3 times, one fewer than the tests.' },
   };
@@ -223,7 +223,7 @@
   // ---------------------------------------------------------------- Insertion sort: cases
 
   H['c310-2-ins-best'] = {
-    asks: 'Say which input makes insertion sort do the least work, what $t_j$ equals for it, and what $T(n)$ becomes.',
+    asks: "Say which input makes insertion sort do the least work.",
     idea: 'Insertion sort slides each new key left until it meets something no bigger. If the array is already sorted, the element just to the left is never bigger, so every key stays put after one look.',
     steps: [
       { text: 'Trace sorted A = ⟨1, 2, 3, 4, 5⟩:', table: { head: ['$j$', 'key', 'A[j − 1]', 'A[j − 1] > key?', '$t_j$'], rows: [['2', '2', '1', 'no', '1'], ['3', '3', '2', 'no', '1'], ['4', '4', '3', 'no', '1'], ['5', '5', '4', 'no', '1']] } },
@@ -238,13 +238,13 @@
       curves: [{ label: 'worst case: $t_j = j$', f: j => j, tone: 'c' }],
       bars: { label: 'sorted input: $t_j = 1$', tone: 'a', values: [[2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [7, 1], [8, 1], [9, 1], [10, 1]] },
     },
-    answer: 'Already sorted input; $t_j = 1$ for every $j$; $T(n) = an + b = \\Theta(n)$.',
+    answer: "An already sorted (or nearly sorted) array.",
     mistake: 'Saying $t_j = 0$. The while test still runs once per pass to find out that nothing needs to move, so $t_j = 1$.',
     tryIt: { q: 'Insertion sort on ⟨2, 1, 3, 4, 5, 6⟩: what is $\\sum t_j$ (total while tests)?', a: '$j = 2$: key 1 passes 2 (test yes), then $i = 0$ (test no), so $t_2 = 2$. $j = 3, \\dots, 6$: $t_j = 1$ each, 4 more. Total $2 + 4 = 6$, just one more than sorted.' },
   };
 
   H['c310-2-ins-worst'] = {
-    asks: 'Say which input makes insertion sort do the most work, what $t_j$ equals for it, and what the running time becomes.',
+    asks: "Say which input makes insertion sort do the most work.",
     idea: 'In a reverse-sorted array each new key is smaller than everything to its left, so it slides all the way to the front. Pass $j$ moves past all $j - 1$ earlier elements.',
     steps: [
       'In pass $j$ the test says "yes" for A[$j - 1$], …, A[1] ($j - 1$ times), then fails once at $i = 0$. So $t_j = (j - 1) + 1 = j$.',
@@ -258,7 +258,7 @@
       x: [0, 20], y: [0, 200], xLabel: 'n', yLabel: 'operations',
       curves: [{ label: 'worst: $n(n-1)/2$ shifts', f: n => n * (n - 1) / 2, tone: 'b' }, { label: 'best: $n - 1$ tests', f: n => n - 1, tone: 'a' }],
     },
-    answer: 'Reverse-sorted input; $t_j = j$; shifts $\\sum (j - 1) = \\frac{n(n-1)}{2}$, so $T(n) = \\Theta(n^2)$.',
+    answer: "A reverse-sorted array.",
     mistake: 'Writing $t_j = j - 1$. That is the number of shifts; the test runs one more time (the failing check at $i = 0$).',
     tryIt: { q: 'Insertion sort on a reverse-sorted array of $n = 7$ elements: total while tests $\\sum_{j=2}^{7} t_j$?', a: '$t_j = j$: $2 + 3 + 4 + 5 + 6 + 7 = 27$. (Shifts: one fewer per pass, $27 - 6 = 21 = \\frac{7 \\cdot 6}{2}$.)' },
   };

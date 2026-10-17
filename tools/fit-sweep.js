@@ -39,7 +39,7 @@ const { chromium } = require('playwright-core');
           FC.app.session.queue.splice(0, FC.app.session.queue.length, c.id);
           FC.app.renderNow(c.id); shown++;
           let o = over(); if (o > 1) (bad['ask:' + c.id] = bad['ask:' + c.id] || []).push(o);
-          btn('I don').click();
+          (btn('I don') || btn('Show answer')).click();
           o = over(); if (o > 1) (bad['fb:' + c.id] = bad['fb:' + c.id] || []).push(o);
         }
       }

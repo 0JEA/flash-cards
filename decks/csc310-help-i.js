@@ -39,7 +39,7 @@
   // ---------------------------------------------------------------- the form and its parts
 
   H['c310-6-master-form'] = {
-    asks: 'The master method only works on recurrences of one exact shape. Name the shape, and the rule that each part ($a$, $b$, $f(n)$) must obey.',
+    asks: "Give the form a recurrence must have for the master method to apply.",
     idea: 'Picture one call of a recursive function on size $n$: it makes $a$ recursive calls, every one on a piece of size $n/b$, and does $f(n)$ work of its own. If the recurrence is not literally that picture, none of the three cases may be used.',
     tree: GEN_TREE('Every node has $a$ children and every child is $b$ times smaller. That only makes sense if $a$ and $b$ are fixed numbers with $a \\ge 1$ and $b > 1$.'),
     steps: [
@@ -56,13 +56,13 @@
         ['$n\\,T(n/2) + 1$', 'no', '$a = n$ is not a constant'],
       ] } },
     ],
-    answer: '$T(n) = aT(n/b) + f(n)$, where $a \\ge 1$ is a constant, $b > 1$ is a constant, and $f(n)$ is asymptotically positive (Lecture 6, slide 7).',
+    answer: "$T(n) = aT(n/b) + f(n)$, with constants $a \\ge 1$, $b > 1$, and $f(n)$ asymptotically positive.",
     mistake: 'Jumping to the three cases for something like $T(n-1) + n$ or $T(n/4) + T(3n/4) + n$. Check the shape first: one subproblem size $n/b$, constant $a \\ge 1$, constant $b > 1$.',
     tryIt: { q: 'Which fit the master form? (i) $3T(n/5) + n^2$, (ii) $T(n-2) + 1$, (iii) $2T(n/2) + T(n/4) + n$.', a: '(i) Yes: $a = 3$, $b = 5$, $f(n) = n^2$. (ii) No: the size goes down by subtracting 2. (iii) No: two different sizes, $n/2$ and $n/4$.' },
   };
 
   H['c310-master-parts'] = {
-    asks: 'In $T(n) = aT(n/b) + f(n)$, say what $a$, $b$ and $f(n)$ each stand for in the algorithm.',
+    asks: "Say what $b$ stands for in $T(n) = aT(n/b) + f(n)$.",
     idea: 'Read the recurrence as a description of ONE call: "I make $a$ recursive calls, each on input $b$ times smaller, and I do $f(n)$ work myself." In the recursion tree, $a$ is the number of children per node, $b$ is how much smaller each child is, and $f$ is the cost written inside a node.',
     tree: {
       sumsLabel: 'sizes',
@@ -87,13 +87,13 @@
       ] } },
       'The rules: $a \\ge 1$ (at least one call) and $b > 1$ (the input really gets smaller). Both must be constants.',
     ],
-    answer: '$a \\ge 1$: the number of recursive subproblems. $b > 1$: the factor by which the subproblem size decreases. $f(n)$: the non-recursive work done per call (dividing and combining).',
+    answer: "The factor by which the subproblem size decreases ($b > 1$); $a$ is the number of subproblems and $f(n)$ the non-recursive work.",
     mistake: 'Mixing up $a$ and $b$: $a$ counts calls, $b$ divides the size. Merge sort hides the difference ($a = b = 2$); binary search shows it ($a = 1$, $b = 2$).',
     tryIt: { q: 'An algorithm splits its input of size $n$ into 4 quarters, recurses on 3 of them, and spends $n^2$ time combining. Write its recurrence and name $a$, $b$, $f$.', a: '$T(n) = 3T(n/4) + n^2$: $a = 3$ (calls), $b = 4$ (each piece is $n/4$), $f(n) = n^2$.' },
   };
 
   H['c310-master-compare'] = {
-    asks: 'The master theorem decides everything by comparing two functions. Which two, and what does each one measure?',
+    asks: "Name the two quantities the master theorem compares.",
     idea: 'The recursion tree has a top, the root’s own work $f(n)$, and a bottom, the base-case leaves, of which there are exactly $n^{\\log_b a}$. The theorem asks which end of the tree is heavier.',
     tree: GEN_TREE('Top row: the root’s work $f(n)$. Bottom row: $n^{\\log_b a}$ leaves, each a constant. The master theorem weighs these two ends against each other.'),
     steps: [
@@ -108,7 +108,7 @@
       ] } },
       'So the theorem compares $f(n)$, the non-recursive work at the top, with $n^{\\log_b a}$, the work of the recursive calls at the bottom. Polynomially bigger wins; a tie makes every level cost the same, and the number of levels ($\\log n$) multiplies in.',
     ],
-    answer: '$f(n)$, the non-recursive work, against $n^{\\log_b a}$, the work done in the recursive calls (the number of leaves of the recursion tree).',
+    answer: "$f(n)$ (non-recursive work) against $n^{\\log_b a}$ (recursive work: the number of leaves).",
     mistake: 'Comparing $f(n)$ with $n$, or with $a$, instead of with $n^{\\log_b a}$. Work out the exponent $\\log_b a$ first, every time.',
     tryIt: { q: 'For $T(n) = 3T(n/9) + f(n)$, what is $n^{\\log_b a}$? How many leaves does the tree have when $n = 81$?', a: '$9^{1/2} = 3$, so $\\log_9 3 = \\tfrac12$ and $n^{\\log_b a} = \\sqrt{n}$. At $n = 81$: depth $\\log_9 81 = 2$, leaves $3^2 = 9 = \\sqrt{81}$.' },
   };
@@ -183,7 +183,7 @@
   };
 
   H['c310-master-regularity'] = {
-    asks: 'Write the regularity condition from Case 3, and explain what it guarantees about the levels of the recursion tree.',
+    asks: "State the regularity condition of master-theorem case 3.",
     idea: '$a f(n/b)$ is not a random expression: it is the total cost of level 1 of the tree ($a$ nodes, each doing $f(n/b)$). Regularity says level 1 costs at most a fixed fraction of the root, so the level costs shrink like a bouncing ball, and the first bounce (the root) carries the total.',
     steps: [
       'The condition: $a f(n/b) \\le c f(n)$ for some constant $c < 1$ and all sufficiently large $n$.',
@@ -198,13 +198,13 @@
       curves: [{ label: 'running total', f: i => (1 - 0.25 ** (i + 1)) / 0.75, tone: 'a' }, { label: 'limit $\\tfrac43$', f: () => 4 / 3, tone: 'c' }],
       bars: { label: 'level cost $(1/4)^i$', tone: 'b', values: [[0, 1], [1, 1 / 4], [2, 1 / 16], [3, 1 / 64], [4, 1 / 256], [5, 1 / 1024]] },
     },
-    answer: '$a f(n/b) \\le c f(n)$ for some constant $c < 1$ and all sufficiently large $n$. Level 1 costs at most a constant fraction of the root, so level costs shrink geometrically and the root dominates.',
+    answer: "$a f(n/b) \\le c f(n)$ for some constant $c < 1$ and all large $n$: level costs shrink geometrically, so the root dominates.",
     mistake: 'Writing $f(n/b) \\le c f(n)$ without the $a$. The condition is about the WHOLE of level 1, all $a$ nodes together.',
     tryIt: { q: 'Check the regularity condition for $T(n) = 3T(n/2) + n^2$.', a: '$3(n/2)^2 = \\tfrac34 n^2$, so $c = \\tfrac34 < 1$: it holds. (And since $\\log_2 3 \\approx 1.585 < 2$, Case 3 gives $\\Theta(n^2)$.)' },
   };
 
   H['c310-master-epsilon'] = {
-    asks: 'What does $\\epsilon$ measure in the master theorem, and do you have to find a particular value for it?',
+    asks: "Say what $\\epsilon$ measures in the master theorem.",
     idea: '$\\epsilon$ sits in an exponent, so it measures a gap that is a power of $n$: $n^{0.5}$, $n^1$, $n^2$. It is a yes/no test (does SOME positive power separate $f$ from $n^{\\log_b a}$?), not a number you have to get exactly right.',
     steps: [
       '$\\epsilon$ is a positive constant. Because it is an exponent, it measures a POLYNOMIAL gap, a factor of $n^\\epsilon$.',
@@ -218,13 +218,13 @@
       ['$n^{3-1} = n^2$', n => n * n],
       ['$n^{\\log_b a} = n^3$', n => n ** 3],
     ]),
-    answer: 'A small positive constant measuring a polynomial gap ($n^\\epsilon$) between $f(n)$ and $n^{\\log_b a}$: slower in Case 1, faster in Case 3. No specific value is needed; some $\\epsilon > 0$ only has to exist.',
+    answer: "A polynomial gap $n^\\epsilon$ between $f(n)$ and $n^{\\log_b a}$; any constant $\\epsilon > 0$ that works is enough.",
     mistake: 'Treating a log factor as if it were $n^\\epsilon$. $\\epsilon$ must be a positive constant, and $\\lg n$ grows slower than every $n^\\epsilon$.',
     tryIt: { q: 'For $T(n) = 4T(n/2) + n^{2.5}$, give a valid $\\epsilon$ and the answer.', a: '$n^{\\log_2 4} = n^2$. $n^{2.5} = \\Omega(n^{2+\\epsilon})$ with $\\epsilon = 0.5$ (any $0 < \\epsilon \\le 0.5$ works). Regularity: $4(n/2)^{2.5} = n^{2.5}/\\sqrt{2}$, $c \\approx 0.71$. Case 3: $\\Theta(n^{2.5})$.' },
   };
 
   H['c310-master-eps-classify'] = {
-    asks: 'The leaf count is $n^{\\log_b a} = n^2$. For $f = n^{1.5}$, $n^2$ and $n^3$, say which case applies and give $\\epsilon$ where there is one.',
+    asks: "With $n^{\\log_b a} = n^2$ and $f(n) = n^{1.5}$, give the master case and $\\epsilon$.",
     idea: 'All three are powers of $n$, so only the exponents matter: compare each exponent with 2. Smaller means Case 1, equal means Case 2, bigger means Case 3, and $\\epsilon$ is the distance between the exponents.',
     steps: [
       '$f = n^{1.5}$: $1.5 < 2$, so $f$ is smaller by a factor $n^{0.5}$. $f = O(n^{2-\\epsilon})$ with $\\epsilon = 0.5$: Case 1.',
@@ -242,13 +242,13 @@
       ['$n^2/n^2 = 1$', () => 1],
       ['$n^3/n^2 = n$', n => n],
     ], { yLabel: 'f / n² (log scale)' }),
-    answer: '$n^{1.5}$: Case 1, $\\epsilon = 0.5$. $n^2$: Case 2 (no $\\epsilon$). $n^3$: Case 3, $\\epsilon = 1$ (if regularity holds).',
+    answer: "Case 1, $\\epsilon = 0.5$ (likewise $n^2$: case 2; $n^3$: case 3 with $\\epsilon = 1$).",
     mistake: 'Getting the sign backwards. Case 1 has $-\\epsilon$ ($f$ smaller), Case 3 has $+\\epsilon$ ($f$ bigger), and $\\epsilon$ itself is always positive.',
     tryIt: { q: 'Now $n^{\\log_b a} = n^3$. Classify $f = n^{2.2}$, $n^3$ and $n^4$.', a: '$n^{2.2}$: Case 1, $\\epsilon = 0.8$. $n^3$: Case 2. $n^4$: Case 3, $\\epsilon = 1$ (if regularity holds).' },
   };
 
   H['c310-master-summary'] = {
-    asks: 'For each of the three cases, say in one phrase which part of the work dominates.',
+    asks: "Name the master-theorem case in which the recursion (the leaves) dominates.",
     idea: 'In the recursion tree, the leaves are the recursion and the root is the non-recursive work. Case 1: the bottom is heaviest; Case 2: every level weighs the same; Case 3: the top is heaviest.',
     steps: [
       'Case 1, $f$ polynomially smaller than $n^{\\log_b a}$: recursion dominates. The leaves are heaviest, so $T(n) = \\Theta(n^{\\log_b a})$.',
@@ -270,7 +270,7 @@
         { label: 'Case 3: $(1/4)^i$', f: i => 0.25 ** i, tone: 'c' },
       ],
     },
-    answer: 'Case 1: recursion dominates. Case 2: balanced growth. Case 3: non-recursive work dominates.',
+    answer: "Case 1 (case 2: balanced; case 3: the root dominates).",
     mistake: 'Matching "recursion dominates" to Case 3 because $f$ is "bigger". The recursion is the leaves, $n^{\\log_b a}$ (Case 1); the non-recursive work is $f(n)$ at the root (Case 3).',
     tryIt: { q: 'For $T(n) = 2T(n/2) + \\sqrt{n}$, which part dominates, and what is $T(n)$?', a: '$n^{\\log_2 2} = n$, and $\\sqrt{n} = O(n^{1 - 0.5})$: Case 1. Recursion dominates: $T(n) = \\Theta(n)$.' },
   };
@@ -278,7 +278,7 @@
   // ---------------------------------------------------------------- Lecture 6 worked examples
 
   H['c310-6-master-2T-2'] = {
-    asks: 'Use the master theorem on $T(n) = 2T(n/2) + 2$: give $a$, $b$, $n^{\\log_b a}$, the case, and the answer.',
+    asks: "Pick the master-theorem case and solution for $T(n) = 2T(n/2) + 2$.",
     idea: 'Each call does only constant work, but the number of calls doubles at every level. By the bottom there are $n$ leaves, and they outweigh the constant at the top.',
     tree: tree([
       [['$2$'], '$2$'],
@@ -299,13 +299,13 @@
       caseStep('Summary:', [['2', '2', '1', '$2$', '$2 = O(n^{1-1})$, $\\epsilon = 1$', '1']]),
       'Case 1 gives $T(n) = \\Theta(n^{\\log_b a}) = \\Theta(n)$. This matches the iteration method in Lecture 5, which gave exactly $4n - 2$ (with $T(1) = 2$).',
     ],
-    answer: '$a = 2$, $b = 2$, $f(n) = 2$, $n^{\\log_2 2} = n$. $f = O(n^{1-\\epsilon})$ with $\\epsilon = 1$, so Case 1: $T(n) = \\Theta(n)$.',
+    answer: "Case 1: $n^{\\log_2 2} = n$ and $f = 2 = O(n^{1-\\epsilon})$ with $\\epsilon = 1$, so $T(n) = \\Theta(n)$.",
     mistake: 'Calling a constant $f(n)$ Case 2. Case 2 needs $f = \\Theta(n^{\\log_b a})$, here $\\Theta(n)$; a constant $f$ matches only when $a = 1$, as in binary search.',
     tryIt: { q: 'Solve $T(n) = 3T(n/3) + 5$.', a: '$n^{\\log_3 3} = n^1 = n$. $5 = O(n^{1-\\epsilon})$ with $\\epsilon = 1$, so Case 1: $T(n) = \\Theta(n)$.' },
   };
 
   H['c310-6-master-2n3'] = {
-    asks: 'Use the master theorem on $T(n) = T(2n/3) + 1$: give $a$, $b$, $n^{\\log_b a}$, the case, and the answer.',
+    asks: "Pick the master-theorem case and solution for $T(n) = T(2n/3) + 1$.",
     idea: 'One call per level, each doing 1 unit of work, while the size keeps shrinking to two thirds. The total is just the number of levels, and shrinking by a constant factor takes logarithmically many levels.',
     tree: tree([
       [['$1$'], '$1$'],
@@ -330,7 +330,7 @@
       'Case 2 gives $T(n) = \\Theta(n^{\\log_b a} \\lg n) = \\Theta(n^0 \\lg n) = \\Theta(\\lg n)$.',
       'Check with the tree: the levels number $\\log_{3/2} n = \\frac{\\lg n}{\\lg 1.5} \\approx 1.71 \\lg n$, each costing 1. Total $\\approx 1.71 \\lg n = \\Theta(\\lg n)$.',
     ],
-    answer: '$a = 1$, $b = 3/2$, $f(n) = 1$. $n^{\\log_{3/2} 1} = n^0 = 1$, $f = \\Theta(1) = \\Theta(n^{\\log_b a})$, so Case 2: $T(n) = \\Theta(\\lg n)$.',
+    answer: "Case 2: $a = 1$, $b = 3/2$, $n^{\\log_{3/2} 1} = 1 = \\Theta(f)$, so $T(n) = \\Theta(\\lg n)$.",
     mistake: 'Writing $b = 2/3$. $b$ is what $n$ is divided by, so $b = 3/2$; a $b$ below 1 would make the subproblems grow.',
     tryIt: { q: 'Solve $T(n) = T(3n/4) + 1$.', a: '$3n/4 = n/(4/3)$: $a = 1$, $b = 4/3$, $n^{\\log_{4/3} 1} = n^0 = 1 = \\Theta(f)$. Case 2: $T(n) = \\Theta(\\lg n)$.' },
   };
@@ -415,7 +415,7 @@
   };
 
   H['c310-6-master-gap-nlgn'] = {
-    asks: 'For $T(n) = 2T(n/2) + n \\lg n$, $f$ is bigger than $n^{\\log_2 2} = n$. Explain why Case 3 still does not apply.',
+    asks: "Explain why master case 3 fails for $T(n) = 2T(n/2) + n \\lg n$.",
     idea: 'Case 3 needs $f$ bigger by a POWER of $n$, some $n^\\epsilon$. Here the whole difference is a factor $\\lg n$, and a log loses to every power of $n$ in the long run, even $n^{0.1}$. So the recurrence falls between the cases.',
     tree: tree([
       [['$n \\lg n$'], '$n \\lg n$'],
@@ -442,7 +442,7 @@
       'Regularity fails too: $2 f(n/2) = n(\\lg n - 1)$, and $\\frac{n(\\lg n - 1)}{n \\lg n} = 1 - \\frac{1}{\\lg n}$ climbs toward 1, so no fixed $c < 1$ works. (Slide 12 lists this inequality as a step, but the $\\epsilon$ step is the one it uses to rule out Case 3.)',
       'With the tree instead: level $i$ costs $n(\\lg n - i)$, and the sum is $n(\\lg n + (\\lg n - 1) + \\dots + 1) = \\frac{n \\lg n (\\lg n + 1)}{2}$, so $T(n) = \\Theta(n \\lg^2 n)$.',
     ],
-    answer: 'Case 3 needs $f/n^{\\log_b a} \\ge n^\\epsilon$ for some $\\epsilon > 0$, but here the ratio is $\\frac{n \\lg n}{n} = \\lg n$, which is asymptotically less than $n^\\epsilon$ for every $\\epsilon > 0$. It falls into the gap between Cases 2 and 3 (true answer $\\Theta(n \\lg^2 n)$).',
+    answer: "The ratio $f/n^{\\log_b a} = \\lg n$ is less than $n^\\epsilon$ for every $\\epsilon > 0$: not polynomially larger, so it falls in the gap between cases 2 and 3.",
     mistake: '"$f$ is bigger than $n^{\\log_b a}$, so Case 3." Bigger is not enough; it must be bigger by a power of $n$, and a log factor is not one.',
     tryIt: { q: 'Can the master theorem solve $T(n) = 4T(n/2) + n^2 \\lg n$?', a: 'No. $n^{\\log_2 4} = n^2$ and the ratio $\\frac{n^2 \\lg n}{n^2} = \\lg n$ is not $\\Omega(n^\\epsilon)$: gap between Cases 2 and 3. (A tree gives level costs $n^2(\\lg n - i)$, so $\\Theta(n^2 \\lg^2 n)$.)' },
   };
@@ -500,7 +500,7 @@
   };
 
   H['c310-master-ex-2Tn3'] = {
-    asks: 'Solve $T(n) = 2T(n/2) + n^3$ with the master theorem, showing $\\epsilon$ and the regularity check.',
+    asks: "Pick the master-theorem case and solution for $T(n) = 2T(n/2) + n^3$.",
     idea: 'Halving the size cuts the cube by 8 but there are only 2 children, so each level costs a quarter of the level above. The root’s $n^3$ is most of the whole tree.',
     tree: tree([
       [['$n^3$'], '$n^3$'],
@@ -520,7 +520,7 @@
       caseStep('Summary:', [['2', '2', '1', '$n^3$', 'bigger by $n^2$; $c = \\tfrac14$', '3']]),
       'Case 3: $T(n) = \\Theta(f(n)) = \\Theta(n^3)$.',
     ],
-    answer: '$n^{\\log_2 2} = n$; $n^3 = \\Omega(n^{1+\\epsilon})$ with $\\epsilon = 2$; regularity $2(n/2)^3 = \\tfrac14 n^3$, $c = \\tfrac14$. Case 3: $\\Theta(n^3)$.',
+    answer: "Case 3: $\\epsilon = 2$, regularity $2(n/2)^3 = n^3/4$ with $c = 1/4$, so $T(n) = \\Theta(n^3)$.",
     mistake: 'Forgetting the factor $a$ in the regularity check and writing $(n/2)^3 = \\tfrac18 n^3$. The condition is $a f(n/b)$: here $2 \\cdot \\tfrac18 = \\tfrac14$.',
     tryIt: { q: 'Solve $T(n) = 3T(n/3) + n^2$, showing $\\epsilon$ and regularity.', a: '$n^{\\log_3 3} = n$; $n^2 = \\Omega(n^{1+1})$, $\\epsilon = 1$. Regularity: $3(n/3)^2 = \\tfrac13 n^2$, $c = \\tfrac13$. Case 3: $\\Theta(n^2)$.' },
   };
@@ -528,7 +528,7 @@
   // ---------------------------------------------------------------- the gaps
 
   H['c310-master-gaps'] = {
-    asks: 'Describe the two "gaps" where none of the three master-theorem cases applies.',
+    asks: "Describe the gap between master cases 1 and 2.",
     idea: 'The cases only handle POLYNOMIAL differences: $f$ smaller by $n^\\epsilon$, equal, or bigger by $n^\\epsilon$. If $f$ differs from $n^{\\log_b a}$ by something smaller than every power of $n$, like a log, it falls between two cases.',
     steps: [
       'Measure everything with the ratio $f(n) / n^{\\log_b a}$. Case 1 needs it below some $n^{-\\epsilon}$, Case 2 needs it between two constants, Case 3 needs it above some $n^\\epsilon$.',
@@ -553,7 +553,7 @@
       ],
       marks: [{ x: 58.77, label: '$2^{58.8}$' }],
     },
-    answer: 'Between Cases 1 and 2: $f$ is smaller than $n^{\\log_b a}$ but not polynomially smaller (only by a log factor, say). Between Cases 2 and 3: $f$ is larger but not polynomially larger. Then use other techniques (substitution, an extended master theorem).',
+    answer: "$f(n)$ is smaller than $n^{\\log_b a}$ but not polynomially smaller (e.g. only by a log factor), so no case applies.",
     mistake: 'Calling every $f$ with a log in it a gap. Divide by $n^{\\log_b a}$ first: if a power of $n$ is left over (like $n/\\lg n$), that power supplies the $\\epsilon$.',
     tryIt: { q: 'Classify (i) $4T(n/2) + n^2/\\lg n$ and (ii) $4T(n/2) + n/\\lg n$.', a: '(i) Ratio $\\frac{n^2/\\lg n}{n^2} = \\frac{1}{\\lg n}$: gap between Cases 1 and 2. (ii) Ratio $\\frac{1}{n \\lg n} \\le n^{-1}$: Case 1 with $\\epsilon = 1$, so $\\Theta(n^2)$.' },
   };
@@ -586,7 +586,7 @@
   };
 
   H['c310-master-gap12'] = {
-    asks: 'Can the master theorem solve $T(n) = 2T(n/2) + n/\\lg n$? Argue it.',
+    asks: "Explain why no master case fits $T(n) = 2T(n/2) + n / \\lg n$.",
     idea: '$f = n/\\lg n$ is a little smaller than the leaf count $n$, but only by a log. Case 1 needs it smaller by a power of $n$, and Case 2 needs them equal, so it slips into the gap between them.',
     tree: tree([
       [['$\\frac{n}{\\lg n}$'], '$\\frac{n}{\\lg n}$'],
@@ -612,7 +612,7 @@
       'Case 2 fails: $n/\\lg n$ is not $\\Theta(n)$, because the ratio $1/\\lg n$ goes to 0. Case 3 fails: $f$ is smaller, not bigger.',
       'No case applies: this is the gap between Cases 1 and 2. A recursion tree gives the true answer, $\\Theta(n \\lg\\lg n)$ (level sums $n/(\\lg n - i)$ add up to $n$ times a harmonic sum).',
     ],
-    answer: 'No. $n^{\\log_2 2} = n$ and $f = n/\\lg n$ is smaller only by a factor $\\lg n$, not by $n^\\epsilon$ for any $\\epsilon > 0$. Cases 1, 2 and 3 all fail: it is in the gap between Cases 1 and 2.',
+    answer: "$f = n/\\lg n$ is smaller than $n$ only by a $\\lg n$ factor, not by $n^\\epsilon$: the gap between cases 1 and 2.",
     mistake: 'Calling it Case 1 because $f$ is smaller. Case 1 needs smaller by a power of $n$; a log factor is not one.',
     tryIt: { q: 'Can the master theorem solve $T(n) = 4T(n/4) + n/\\lg n$?', a: 'No. $n^{\\log_4 4} = n$ and the ratio is $1/\\lg n$, smaller only by a log: gap between Cases 1 and 2.' },
   };
@@ -720,7 +720,7 @@
   };
 
   H['c310-master-binsearch'] = {
-    asks: 'Binary search has $T(n) = T(n/2) + \\Theta(1)$. Solve it with the master theorem: $a$, $b$, $n^{\\log_b a}$, the case, the answer.',
+    asks: "Pick the master-theorem case and solution for $T(n) = T(n/2) + \\Theta(1)$.",
     idea: 'One call per level, constant work per call: the total is the number of times you can halve $n$ before reaching 1. That is $\\lg n$, and the master theorem gets there through Case 2.',
     tree: tree([
       [['$\\Theta(1)$'], '$\\Theta(1)$'],
@@ -736,13 +736,13 @@
       caseStep('Summary:', [['1', '2', '0', '$\\Theta(1)$', 'equal', '2']]),
       'Case 2: $T(n) = \\Theta(n^0 \\log n) = \\Theta(\\log n)$. This matches the halving argument: $n/2^k = 1$ at $k = \\lg n$.',
     ],
-    answer: '$a = 1$, $b = 2$, $n^{\\log_2 1} = n^0 = 1$. $f = \\Theta(1) = \\Theta(n^{\\log_b a})$, Case 2: $T(n) = \\Theta(\\log n)$.',
+    answer: "Case 2: $n^{\\log_2 1} = 1 = \\Theta(f)$, so $T(n) = \\Theta(\\log n)$.",
     mistake: 'Calling it Case 1 because "$f$ is a constant, which is small". The leaf count is also a constant here ($n^0 = 1$), so they tie.',
     tryIt: { q: 'Solve $T(n) = T(n/4) + 2$.', a: '$n^{\\log_4 1} = n^0 = 1$, and $f = 2 = \\Theta(1)$: Case 2, $T(n) = \\Theta(\\log n)$.' },
   };
 
   H['c310-master-3T2'] = {
-    asks: 'Solve $T(n) = 3T(n/2) + n$ with the master theorem, giving the exponent to two decimals.',
+    asks: "Pick the solution of $T(n) = 3T(n/2) + n$.",
     idea: 'Three calls on halves: each level costs $\\tfrac32$ times the one above, so the leaves win. Their number, $n^{\\log_2 3}$, is a power of $n$ between $n^1$ and $n^2$.',
     tree: tree([
       [['$n$'], '$n$'],
@@ -762,13 +762,13 @@
       caseStep('Summary:', [['3', '2', '$\\approx 1.585$', '$n$', 'smaller by $n^{0.585}$', '1']]),
       'Case 1: $T(n) = \\Theta(n^{\\log_2 3}) \\approx \\Theta(n^{1.58})$. This is Karatsuba multiplication.',
     ],
-    answer: '$n^{\\log_2 3} \\approx n^{1.58}$; $f = n = O(n^{1.58 - \\epsilon})$, $\\epsilon \\approx 0.58$. Case 1: $T(n) = \\Theta(n^{\\log_2 3}) \\approx \\Theta(n^{1.58})$.',
+    answer: "Case 1: $n^{\\log_2 3} \\approx n^{1.58}$ beats $f = n$ polynomially, so $T(n) = \\Theta(n^{\\log_2 3})$.",
     mistake: 'Rounding $\\log_2 3$ to 1 or 2 and landing in the wrong case. Keep the exact form $n^{\\log_2 3}$ in the answer; the decimal is only a description.',
     tryIt: { q: 'Solve $T(n) = 5T(n/4) + n$, exponent to two decimals.', a: '$\\log_4 5 = \\frac{\\ln 5}{\\ln 4} \\approx 1.16 > 1$. $f = n$ is smaller by $n^{0.16}$: Case 1, $\\Theta(n^{\\log_4 5}) \\approx \\Theta(n^{1.16})$.' },
   };
 
   H['c310-master-7T2'] = {
-    asks: 'Solve $T(n) = 7T(n/2) + n^2$ with the master theorem.',
+    asks: "Pick the solution of $T(n) = 7T(n/2) + n^2$.",
     idea: 'Seven calls on halves: each child does $\\tfrac14$ of the parent’s $n^2$, but there are 7 of them, so each level costs $\\tfrac74$ times the one above. The leaves win, and there are $n^{\\log_2 7} \\approx n^{2.81}$ of them.',
     tree: tree([
       [['$n^2$'], '$n^2$'],
@@ -789,7 +789,7 @@
       caseStep('Summary:', [['7', '2', '$\\approx 2.807$', '$n^2$', 'smaller by $n^{0.807}$', '1']]),
       'Case 1: $T(n) = \\Theta(n^{\\log_2 7}) \\approx \\Theta(n^{2.81})$. This is Strassen’s matrix multiplication: 7 calls instead of 8 beats $n^3$.',
     ],
-    answer: '$n^{\\log_2 7} \\approx n^{2.81}$; $f = n^2 = O(n^{2.81 - \\epsilon})$. Case 1: $T(n) = \\Theta(n^{\\log_2 7}) \\approx \\Theta(n^{2.81})$.',
+    answer: "Case 1: $n^{\\log_2 7} \\approx n^{2.81}$ beats $f = n^2$ polynomially, so $T(n) = \\Theta(n^{\\log_2 7})$.",
     mistake: 'Seeing $f = n^2$ and answering $\\Theta(n^2)$. The answer follows whichever side is bigger, and here the leaves ($n^{2.81}$) are.',
     tryIt: { q: 'Solve $T(n) = 7T(n/3) + n^2$.', a: '$\\log_3 7 \\approx 1.77 < 2$, so $f = n^2$ is BIGGER: $\\epsilon \\approx 0.2$. Regularity: $7(n/3)^2 = \\tfrac79 n^2$, $c = \\tfrac79$. Case 3: $\\Theta(n^2)$.' },
   };
@@ -912,7 +912,7 @@
   };
 
   H['c310-master-not-form'] = {
-    asks: 'Can the master theorem solve $T(n) = T(n-1) + n$? If not, solve it another way.',
+    asks: "Explain why the master theorem cannot solve $T(n) = T(n-1) + n$.",
     idea: 'The master theorem only handles DIVIDING the size by a constant $b > 1$. Here the size drops by 1 each step, so the tree is a long chain of $n$ levels. Add the chain up with the iteration method.',
     tree: {
       sumsLabel: 'level total',
@@ -940,7 +940,7 @@
       'Use the sum formula $1 + 2 + \\dots + n = \\frac{n(n+1)}{2}$. Check with $n = 4$: $4 + 3 + 2 + 1 = 10 = \\frac{4 \\cdot 5}{2}$.',
       '$\\frac{n(n+1)}{2} = \\frac{n^2}{2} + \\frac{n}{2} = \\Theta(n^2)$.',
     ],
-    answer: 'No: the subproblem is $n - 1$, not $n/b$ with $b > 1$. Iterating gives $n + (n-1) + \\dots + 1 = n(n+1)/2 = \\Theta(n^2)$.',
+    answer: "The size drops to $n - 1$, not $n/b$ with $b > 1$, so it is not of the form $aT(n/b) + f(n)$ (iteration gives $\\Theta(n^2)$).",
     mistake: 'Forcing it into the template as "$a = 1$, $b = 1$". The theorem requires $b > 1$; with $b = 1$ there is no $\\log_b a$ at all.',
     tryIt: { q: 'Can the master theorem solve $T(n) = 2T(n-1) + 1$ with $T(1) = 1$? Solve it.', a: 'No (subtraction, no $b > 1$). Iterating: $T(n) = 2^{n-1} + 2^{n-2} + \\dots + 2 + 1 = 2^n - 1$, so $\\Theta(2^n)$. Check: $T(2) = 3$, $T(3) = 7$.' },
   };

@@ -111,7 +111,7 @@
   };
 
   H['c310-heap-zero-index'] = {
-    asks: 'Rewrite the three index formulas for an array whose root is at index 0 (as in Java), instead of the slides’ A[1].',
+    asks: "For an array whose root is at index 0 (as in Java), give the index of node $j$’s LEFT child.",
     idea: 'Same tree, every label shifted by one. Convert the 0-based index to the slides’ 1-based one (add 1), use the formula you know, then convert back (subtract 1).',
     steps: [
       'Let $j$ be the 0-based index. The same node has 1-based index $j + 1$.',
@@ -121,13 +121,13 @@
       { text: 'Check against the drawing (its badges are 1-based; 0-based $j$ = badge $- 1$):', table: { head: ['0-based $j$', 'left $2j + 1$', 'right $2j + 2$', 'parent $\\lfloor (j-1)/2 \\rfloor$'], rows: [['0', '1', '2', 'none (root)'], ['1', '3', '4', '0'], ['2', '5', '6', '0'], ['3', '7', '8', '1'], ['4', '9', '10', '1']] } },
     ],
     heap: SLIDE_HEAP,
-    answer: 'Left $= 2j + 1$, right $= 2j + 2$, parent $= \\lfloor (j - 1)/2 \\rfloor$.',
+    answer: "$2j + 1$. (Right $= 2j + 2$, parent $= \\lfloor (j - 1)/2 \\rfloor$.)",
     mistake: 'Mixing conventions: using $2j$ for the left child with a 0-based array makes the root its own left child ($2 \\cdot 0 = 0$). Pick one convention and use all three of its formulas.',
     tryIt: { q: 'In a 0-based heap array, what are the children of index 4, and what is the parent of index 9?', a: 'Children $2 \\cdot 4 + 1 = 9$ and $2 \\cdot 4 + 2 = 10$. Parent of 9 $= \\lfloor 8/2 \\rfloor = 4$ (consistent).' },
   };
 
   H['c310-heap-max-property'] = {
-    asks: 'State the rule a max-heap obeys between each node and its parent, and say where that rule forces the largest value to be.',
+    asks: "State the rule a max-heap obeys between each node and its parent.",
     idea: 'Every parent is at least as big as its children. Walk up from any node and values can only grow, so every path ends at the root holding the biggest value.',
     steps: [
       'The rule: for every node $i$ except the root, $A[\\text{Parent}(i)] \\ge A[i]$.',
@@ -137,7 +137,7 @@
       'It is not sorted: A[9] = 4 on level 3 is bigger than A[7] = 3 on level 2, because they are on different branches.',
     ],
     heap: SLIDE_HEAP,
-    answer: 'For every node $i$ other than the root, $A[\\text{Parent}(i)] \\ge A[i]$. So the largest element is at the root, A[1].',
+    answer: "For every node $i$ other than the root, $A[\\text{Parent}(i)] \\ge A[i]$. (So the largest element is at the root, A[1].)",
     mistake: 'Thinking a max-heap is sorted level by level, or that the left child must be bigger than the right. The rule is only "parent $\\ge$ child".',
     tryIt: { q: 'In a max-heap with distinct values, where can the second-largest value be?', a: 'At index 2 or 3 (a child of the root). Its parent must be $\\ge$ it, and the only larger value is the maximum at A[1].' },
   };
@@ -182,7 +182,7 @@
   // ---------------------------------------------------------------- MAX-HEAPIFY
 
   H['c310-heap-heapify-assume'] = {
-    asks: 'State MAX-HEAPIFY(A, i)’s precondition (what must already be true) and its postcondition (what it guarantees afterwards).',
+    asks: "State MAX-HEAPIFY(A, i)’s precondition: what must already be true when it is called.",
     idea: 'MAX-HEAPIFY is a repair for one misplaced value. It only works if everything below that value is already a heap, so the only possible problem is A[i] being too small for its spot.',
     steps: [
       'Precondition: the subtrees rooted at Left(i) and Right(i) are already max-heaps. Only A[i] itself may be smaller than a child.',
@@ -197,13 +197,13 @@
       { text: 'Precondition broken: ⟨1, 2, 3, 4, 5, 6, 7⟩, subtrees at 2 and 3 are not heaps.', heap: [1, 2, 3, 4, 5, 6, 7] },
       { text: 'After MAX-HEAPIFY(A, 1): still not a heap (3 < 7, 2 < 4, 2 < 5).', heap: [3, 2, 7, 4, 5, 6, 1] },
     ],
-    answer: 'It assumes the subtrees rooted at Left(i) and Right(i) are already max-heaps (only A[i] may be out of place), and it makes the subtree rooted at $i$ a max-heap.',
+    answer: "The subtrees rooted at Left(i) and Right(i) are already max-heaps; only A[i] may be out of place. (It then makes the subtree at $i$ a max-heap.)",
     mistake: 'Calling MAX-HEAPIFY on an arbitrary array and expecting a heap. One call fixes one misplaced value; turning a whole array into a heap takes BuildHeap.',
     tryIt: { q: 'A = ⟨2, 9, 8, 5, 6⟩. Does MAX-HEAPIFY(A, 1)’s precondition hold?', a: 'Yes. Subtree at 2: 9 with children 5, 6, a heap. Subtree at 3: the leaf 8, a heap. Only A[1] = 2 is out of place.' },
   };
 
   H['c310-heap-heapify-process'] = {
-    asks: 'Describe, step by step, what MAX-HEAPIFY(A, i) does to move a too-small A[i] into place.',
+    asks: "When a child is larger than A[i], say which node MAX-HEAPIFY swaps A[i] with.",
     idea: 'The small value sinks. At each level, compare it with its two children; if a child is bigger, the bigger child moves up and the small value moves down into its spot. Repeat until it is at least both children or reaches a leaf.',
     steps: [
       'Compute $l = $ Left(i) $= 2i$ and $r = $ Right(i) $= 2i + 1$. A child counts only if its index is $\\le$ heap_size.',
@@ -218,7 +218,7 @@
       { text: 'At index 2, children 10 and 8: largest = 4, swap.', heap: [14, 10, 12, 3, 8, 9, 5, 4, 7] },
       { text: 'At index 4, children 4 and 7: largest = 9, swap. Index 9 has no children: done.', heap: [14, 10, 12, 7, 8, 9, 5, 4, 3] },
     ],
-    answer: 'Find the largest of A[i], A[Left(i)], A[Right(i)] (children only if $\\le$ heap_size). If it is a child, swap A[i] with that larger child and recurse on the child’s index; stop when A[i] is the largest.',
+    answer: "The larger of the two children (children only if $\\le$ heap_size); then it recurses on that child’s index, stopping when A[i] is the largest.",
     mistake: 'Swapping with the first child that is bigger, or the smaller child. Always swap with the LARGER child, so the value moving up is $\\ge$ its new sibling.',
     tryIt: { q: 'MAX-HEAPIFY(A, 1) on ⟨5, 13, 9, 11, 7, 8, 2⟩: which swaps happen?', a: '5 vs 13, 9: swap with 13 (index 2). 5 vs 11, 7: swap with 11 (index 4). Index 4 has no children ($8 > 7$): stop. Result ⟨13, 11, 9, 5, 7, 8, 2⟩.' },
   };

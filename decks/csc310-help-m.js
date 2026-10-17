@@ -217,7 +217,7 @@
   };
 
   H['c310-buildheap-why-infinite'] = {
-    asks: 'In the BuildHeap proof, the finite sum $\\sum_{h=0}^{\\lg n} h/2^h$ is replaced by the infinite one, and $n$ is pulled outside the sum. Justify both moves.',
+    asks: "In the BuildHeap proof, the finite sum $\\sum_{h=0}^{\\lg n} h/2^h$ is replaced by the infinite one. Justify that move.",
     idea: 'Adding more nonnegative numbers can only make a total bigger, so the infinite sum is a safe ceiling for the finite one. And $n$ is the same in every term, so it factors out like any constant.',
     steps: [
       'Every term $h/2^h$ is $\\ge 0$. The infinite sum is the finite sum plus more nonnegative terms, so finite $\\le$ infinite.',
@@ -228,7 +228,7 @@
       'Result: $T(n) \\le c\\,n \\cdot 2 = 2c\\,n = O(n)$.',
     ],
     graph: G_PARTIAL,
-    answer: 'All terms $h/2^h$ are nonnegative, so the finite sum is at most the infinite one, and an upper bound stays valid. $n$ does not depend on $h$, so it is a constant factor of every term.',
+    answer: "All terms $h/2^h$ are nonnegative, so the finite sum is at most the infinite one, and an upper bound stays valid.",
     mistake: 'Fearing that an infinite sum must be infinite. These terms shrink fast (from $h = 2$ on, each is at most $\\tfrac34$ of the one before), so the total is the finite number 2.',
     tryIt: { q: 'Why is $\\sum_{h=0}^{10} 1/2^h \\le 2$?', a: 'All terms are positive, so it is at most the infinite sum $1 + \\tfrac12 + \\tfrac14 + \\cdots = 2$. (Exactly, it is $2 - 1/2^{10} \\approx 1.999$.)' },
   };
@@ -272,7 +272,7 @@
   };
 
   H['c310-buildheap-leaves-work'] = {
-    asks: 'How many nodes have height 0, and how much does BuildHeap spend on them?',
+    asks: "How much does BuildHeap spend on the height-0 nodes?",
     idea: 'Height 0 means no children: a leaf. A single value is already a heap, so there is nothing to fix. Half the tree costs nothing.',
     steps: [
       'Node $i$ has a left child only if $2i \\le n$. So the leaves are the indices with $2i > n$: $\\lfloor n/2 \\rfloor + 1$ through $n$.',
@@ -281,13 +281,13 @@
       'This is the heart of the linear bound: half of the nodes cost nothing, and the next quarter cost at most 1 swap each.',
     ],
     heapSteps: [HEIGHTS15_STEP],
-    answer: 'About $n/2$ (exactly $\\lceil n/2 \\rceil$) leaves, and they need 0 work: a one-node subtree is already a heap.',
+    answer: "Nothing: they are the leaves (about $n/2$ of them), and a one-node subtree is already a heap.",
     mistake: 'Thinking the leaves must be "checked" too. The loop starts at $\\lfloor n/2 \\rfloor$ precisely so that no leaf is ever visited.',
     tryIt: { q: 'A heap has $n = 20$ nodes. Which indices are leaves, and where does BuildHeap’s loop start?', a: 'Leaves: indices 11–20, ten nodes, no work. The loop starts at $i = \\lfloor 20/2 \\rfloor = 10$.' },
   };
 
   H['c310-buildheap-lower'] = {
-    asks: 'Explain why BuildHeap needs at least linear time, and what that gives together with the $O(n)$ ceiling.',
+    asks: "Explain why BuildHeap needs at least linear time.",
     idea: 'A ceiling says "no more than"; a tight bound also needs a floor, "no less than". BuildHeap’s floor is easy: its loop runs about $n/2$ times whatever the input is.',
     steps: [
       'The loop runs $i = \\lfloor n/2 \\rfloor, \\dots, 1$: $\\lfloor n/2 \\rfloor$ Heapify calls, even on an input that is already a heap.',
@@ -301,7 +301,7 @@
       curves: [{ label: 'floor $n/4$', f: n => n / 4, tone: 'a' }],
       bars: { label: 'Heapify calls $\\lfloor n/2 \\rfloor$', tone: 'b', values: Array.from({ length: 14 }, (_, k) => [2 * k + 3, k + 1]) },
     },
-    answer: 'It processes $\\lfloor n/2 \\rfloor$ internal nodes, one Heapify call each, so it does at least linear work: $\\Omega(n)$. With $O(n)$, the bound is $\\Theta(n)$.',
+    answer: "It processes $\\lfloor n/2 \\rfloor$ internal nodes, one Heapify call each, so it does at least linear work: $\\Omega(n)$.",
     mistake: 'Stopping at $O(n)$ and writing $\\Theta(n)$. $\\Theta$ needs the floor too; here it is one line, but it has to be said.',
     tryIt: { q: 'BuildHeap runs on a 1,000-element array that is already a max-heap. How many Heapify calls, and how many swaps?', a: '500 calls ($\\lfloor 1000/2 \\rfloor$) and 0 swaps. The calls alone are linear work, which is the $\\Omega(n)$ floor.' },
   };
@@ -426,7 +426,7 @@
   // ---------------------------------------------------------------- Comparison-sort lower bound
 
   H['c310-lowerbound-def'] = {
-    asks: 'What does a lower bound for a problem tell you, and how is it different from one algorithm’s running time?',
+    asks: "What does a lower bound for a problem tell you?",
     idea: 'An upper bound is a promise about one algorithm: "this method never needs more than X". A lower bound is a wall around the problem: "no method, even one not invented yet, can always do it with fewer than Y".',
     steps: [
       'Upper bound (one algorithm): merge sort never needs more than about $n \\lg n$ comparisons.',
@@ -436,7 +436,7 @@
       'Merge sort is close to the wall. No comparison sort, however clever, can guarantee fewer than 45.',
     ],
     graph: G_SORTS,
-    answer: 'The minimum amount of work that ANY algorithm must do to solve the problem; for sorting, the fewest comparisons any comparison sort needs on $n$ elements in the worst case.',
+    answer: "The minimum amount of work that ANY algorithm must do to solve the problem; for sorting, the fewest comparisons any comparison sort needs on $n$ elements in the worst case.",
     mistake: 'Treating a lower bound as an algorithm’s best case. It is a statement about every algorithm’s worst case.',
     tryIt: { q: 'Which is a lower-bound statement? (a) Quicksort makes at most $n^2/2$ comparisons. (b) Any algorithm that finds the largest of $n$ numbers must make at least $n - 1$ comparisons.', a: '(b): it is about every algorithm for the problem. (a) is an upper bound on one algorithm.' },
   };
@@ -474,7 +474,7 @@
   };
 
   H['c310-lowerbound-tree-parts'] = {
-    asks: 'In the decision tree of a comparison sort, say what each part stands for: an internal node, a branch, a leaf, and a path from the root to a leaf.',
+    asks: "In the decision tree of a comparison sort, say what an internal node stands for.",
     idea: 'The decision tree is a map of every run the algorithm could make on $n$ elements. Each fork is a question, each turn is an answer, each endpoint is a final verdict about the order.',
     steps: [
       'Internal node "$i{:}j$": one comparison, of $a_i$ with $a_j$ (original positions). Figure 8.1 is insertion sort on 3 elements.',
@@ -485,7 +485,7 @@
       'There is one tree per algorithm and per input size $n$.',
     ],
     tree: FIG81_TOP,
-    answer: 'Internal node: one comparison ($a_i$ vs $a_j$). Branch: its outcome. Leaf: a possible sorted order (a permutation, the algorithm’s conclusion). Root-to-leaf path: the comparisons the algorithm makes on one input.',
+    answer: "One comparison ($a_i$ vs $a_j$). (Branch: its outcome; leaf: a permutation; root-to-leaf path: the comparisons made on one input.)",
     mistake: 'Reading a leaf as values. A leaf lists positions: ⟨3, 1, 2⟩ means the element that started in position 3 comes first.',
     tryIt: { q: 'Follow Figure 8.1 for ⟨a1, a2, a3⟩ = ⟨6, 2, 9⟩. Which leaf, after how many comparisons?', a: '1:2: $6 > 2$, right. 1:3: $6 \\le 9$, left. Leaf ⟨2, 1, 3⟩ ($2 \\le 6 \\le 9$), after 2 comparisons.' },
   };
@@ -587,7 +587,7 @@
   };
 
   H['c310-lowerbound-chain'] = {
-    asks: 'Put the two leaf counts together to get a lower bound on the decision tree’s height $h$.',
+    asks: "Put the two leaf counts together to get a lower bound on the decision tree’s height $h$.",
     idea: 'The tree needs at least $n!$ leaves, and height $h$ allows at most $2^h$. So $2^h$ must be big enough to hold $n!$; taking $\\lg$ turns "how big $2^h$ is" into "how big $h$ is".',
     steps: [
       'Needed: $L \\ge n!$; available: $L \\le 2^h$. Chain them: $n! \\le L \\le 2^h$, so $2^h \\ge n!$.',
@@ -596,7 +596,7 @@
       'Example, $n = 3$: $h \\ge \\lg 6 \\approx 2.585$, and a height is a whole number, so $h \\ge 3$. Figure 8.1 has height 3, as good as possible.',
     ],
     graph: leavesGraph(3, 5, 'Leaves available, $2^h$, reach the leaves needed, $3! = 6$, at $h = \\lg 6 \\approx 2.585$. The first whole height past that is 3 (shaded from there).'),
-    answer: '$n! \\le L \\le 2^h$, so $2^h \\ge n!$. Taking $\\log_2$ of both sides: $h \\ge \\lg(n!)$.',
+    answer: "$n! \\le L \\le 2^h$, so $2^h \\ge n!$. Taking $\\log_2$ of both sides: $h \\ge \\lg(n!)$.",
     mistake: 'Flipping the inequality while taking logs. $\\lg$ is increasing, so $2^h \\ge n!$ becomes $h \\ge \\lg(n!)$, still $\\ge$.',
     tryIt: { q: 'Find the smallest height allowed for a comparison sort on 6 elements.', a: '$2^h \\ge 6! = 720$. $2^9 = 512 < 720 \\le 1024 = 2^{10}$, so $h \\ge 10$ ($\\lg 720 \\approx 9.49$).' },
   };
@@ -619,7 +619,7 @@
   };
 
   H['c310-lowerbound-why-half'] = {
-    asks: 'Justify the step $n! \\ge (n/2)^{n/2}$ in the proof that $\\lg(n!) = \\Omega(n \\lg n)$.',
+    asks: "In the step $n! \\ge (n/2)^{n/2}$, justify dropping the first-half factors of $n!$.",
     idea: 'A floor is allowed to be stingy. Throw away factors and round the rest down; whatever is left is smaller than $n!$, so if it is still large, $n!$ is large too.',
     steps: [
       'Multiplying by a number $\\ge 1$ never makes a product smaller. So removing factors that are $\\ge 1$ can only make it smaller or keep it equal.',
@@ -630,7 +630,7 @@
       'For odd $n$, keep $\\lceil n/2 \\rceil, \\dots, n$: more than $n/2$ factors, each $\\ge n/2$, so the same bound holds.',
     ],
     graph: G_LG,
-    answer: 'Dropping the first-half factors (each $\\ge 1$) can only make the product smaller; each of the remaining $\\approx n/2$ factors is $\\ge n/2$, so their product is $\\ge (n/2)^{n/2}$.',
+    answer: "Each dropped factor is $\\ge 1$, so dropping them can only make the product smaller. (Each of the $\\approx n/2$ kept factors is $\\ge n/2$.)",
     mistake: 'Thinking the step needs $n!$ to be close to $(n/2)^{n/2}$. It is far bigger (40320 against 256 at $n = 8$); a floor only has to be below and still grow like $n \\lg n$ after the log.',
     tryIt: { q: 'Use the same step to show $10! \\ge 5^5$.', a: 'Keep the top five factors: $10! \\ge 6 \\cdot 7 \\cdot 8 \\cdot 9 \\cdot 10 = 30240$, and each is $\\ge 5$, so $\\ge 5^5 = 3125$. (In fact $10! = 3{,}628{,}800$.)' },
   };
@@ -761,7 +761,7 @@
   };
 
   H['c310-lowerbound-best-case'] = {
-    asks: 'Insertion sort makes only $n - 1$ comparisons on sorted input. Does that contradict the $\\Omega(n \\lg n)$ lower bound?',
+    asks: "Insertion sort makes only $n - 1$ comparisons on sorted input. Explain why that does not contradict the $\\Omega(n \\lg n)$ lower bound.",
     idea: 'The bound is about the deepest leaf, not every leaf. A tree may have some short paths as long as it is tall somewhere.',
     steps: [
       'What the theorem says: height $\\ge \\lg(n!)$. The height is the longest path, which belongs to the worst input.',
@@ -771,13 +771,13 @@
       'No contradiction: the bound only demands some path of length at least 22, and insertion sort’s longest is 45.',
     ],
     tree: { ...FIG81_TOP, caption: 'Sorted input stops at ⟨1, 2, 3⟩ after 2 comparisons. The tree is still height 3: ⟨1,3,2⟩, ⟨3,1,2⟩ (under the left 1:3) and ⟨2,3,1⟩, ⟨3,2,1⟩ (under the right 2:3) are at depth 3.' },
-    answer: 'No. The bound is on the WORST case: the tree’s height must be $\\ge \\lg(n!)$. Single leaves, like the sorted input’s, can be much shallower.',
+    answer: "The bound is on the WORST case: the tree’s height must be $\\ge \\lg(n!)$. Single leaves, like the sorted input’s, can be much shallower.",
     mistake: 'Reading $\\Omega(n \\lg n)$ as "every input takes $n \\lg n$". It is a worst-case statement: at least one input must.',
     tryIt: { q: 'In Figure 8.1, which other leaf is reached after only 2 comparisons? Give an input that reaches it.', a: '⟨2, 1, 3⟩, via 1:2 right then 1:3 left. Example: $a = ⟨4, 1, 8⟩$ ($4 > 1$, then $4 \\le 8$).' },
   };
 
   H['c310-lowerbound-optimal'] = {
-    asks: 'What does the $\\Omega(n \\lg n)$ lower bound let you conclude about merge sort and heapsort?',
+    asks: "What does the $\\Omega(n \\lg n)$ lower bound let you call merge sort and heapsort?",
     idea: 'The lower bound is a floor for every comparison sort, and merge sort and heapsort already reach it, up to a constant factor. When the best possible and what you have meet, you have found the optimum.',
     steps: [
       'Merge sort and heapsort: worst case $O(n \\lg n)$, a ceiling for these two algorithms.',
@@ -788,13 +788,13 @@
       'Merge sort stays within 10% of the floor here; insertion sort’s gap keeps growing.',
     ],
     graph: G_SORTS,
-    answer: 'Their $O(n \\lg n)$ worst case matches the lower bound, so they are asymptotically optimal comparison sorts, and their worst case is tight: $\\Theta(n \\lg n)$.',
+    answer: "Asymptotically optimal comparison sorts: their $O(n \\lg n)$ worst case matches the lower bound (so it is tight, $\\Theta(n \\lg n)$).",
     mistake: 'Reading "optimal" as "no faster sort exists". Counting and radix sort beat $n \\lg n$ by not comparing; optimal here means among comparison sorts, up to a constant factor.',
     tryIt: { q: 'Quicksort’s worst case is $\\Theta(n^2)$. Is it asymptotically optimal by this argument?', a: 'No. Its worst case exceeds the $\\Omega(n \\lg n)$ floor by more than any constant factor; the bound only says $n \\lg n$ is the best possible.' },
   };
 
   H['c310-lowerbound-scope'] = {
-    asks: 'State the sorting lower bound with all its conditions, and explain how counting sort and radix sort get under it.',
+    asks: "State which sorts and which case the $\\Omega(n \\lg n)$ sorting lower bound applies to.",
     idea: 'The proof only counts yes/no answers to comparisons. An algorithm that learns from the values themselves, by using a key as an array index, is not a tree of comparisons, so the proof says nothing about it.',
     steps: [
       'Precise statement: every comparison-based sort makes $\\Omega(n \\lg n)$ comparisons in the worst case.',
@@ -810,7 +810,7 @@
       curves: [{ label: 'counting sort $n + 255$', f: n => n + 255, tone: 'b' }, { label: 'comparison floor $\\lg(n!)$', f: lgFact, tone: 'a' }],
       marks: [{ x: 69, label: '$n = 69$' }],
     },
-    answer: 'Comparison-based sorting has a worst-case lower bound of $\\Omega(n \\lg n)$. Counting and radix sort do not rely only on comparisons; with assumptions about the keys (small integer range, fixed digits) they run faster.',
+    answer: "Comparison-based sorts, worst case. (Counting and radix sort do not rely only on comparisons; with assumptions about the keys they run faster.)",
     mistake: 'Saying "no sort can beat $n \\lg n$". Only comparison sorts are bound by it; counting and radix sort beat it by using the key values, under their assumptions.',
     tryIt: { q: 'Radix sort on 1,000,000 nine-digit IDs, one decimal digit per pass (10 counters). About how many steps, compared with the comparison-sort floor?', a: '9 passes × $(10^6 + 10) \\approx 9{,}000{,}090$ steps, about half of $\\lceil \\lg(10^6!) \\rceil = 18{,}488{,}885$. And it grows linearly in $n$.' },
   };

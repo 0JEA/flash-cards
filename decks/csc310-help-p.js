@@ -25,7 +25,7 @@
   // ═══════════════════════ Binary search worksheet ═══════════════════════
 
   H['c310-ws-precondition'] = {
-    asks: 'Say what binary search needs from the array before it can be used, and what one step of it does.',
+    asks: "Say what must be true of the array before binary search can be used.",
     idea: 'Think of finding a word in a dictionary: open near the middle, see that the word there comes after yours, and tear away the whole back half without reading it. You may only throw that half away because the dictionary is in order.',
     steps: [
       'Requirement: a[1..n] is sorted in ascending order. Then everything left of mid is $\\le a[\\text{mid}]$ and everything right of it is $\\ge a[\\text{mid}]$.',
@@ -34,7 +34,7 @@
       { text: 'What goes wrong without sorting: search for key 2 in the unsorted [7, 2, 9, 4, 1].', table: { head: BHEAD, rows: [['1', '1', '5', '3', '9', '9 > 2', 'high = 2'], ['2', '1', '2', '1', '7', '7 > 2', 'high = 0'], ['—', '1', '0', '—', '—', 'low > high', 'return −1']] } },
       'It returns −1, yet 2 sits at index 2: at iteration 2, "7 > 2" threw that index away. On unsorted data a comparison says nothing about which side the key is on.',
     ],
-    answer: 'The array must be sorted. Each step compares the key with the middle element of the current interval and discards the half that cannot contain the key, so the interval halves every step.',
+    answer: "The array must be sorted; otherwise comparing with the middle element says nothing about which half holds the key.",
     mistake: 'Saying the array must be "small" or "free of duplicates". The only requirement is sorted order (with duplicates it returns one of the matching indices).',
     tryIt: { q: 'Binary search for key 8 in the unsorted [9, 8, 2, 7, 5]. What is returned, and is it right?', a: 'mid = 3: 2 < 8, low = 4. mid = 4: 7 < 8, low = 5. mid = 5: 5 < 8, low = 6 > high = 5: returns −1. Wrong: 8 is at index 2, which the first step discarded.' },
   };
@@ -144,7 +144,7 @@
   };
 
   H['c310-ws-cases'] = {
-    asks: 'Give binary search’s best, worst and average case: when each happens and about how many comparisons it makes.',
+    asks: "Say about how many comparisons binary search makes in the worst case on $n$ elements, and when that happens.",
     idea: 'Picture every place the search can stop as a tree: the first mid at the top, the two possible second mids below it, and so on (the card draws it for $n = 10$). The best case is the top and the worst case is the bottom level. Most positions are near the bottom, so the average is close to the worst.',
     steps: [
       'Best case: the key is a[mid] for the very first mid. 1 comparison, $T_{best}(n) = 1$, whatever $n$ is.',
@@ -162,7 +162,7 @@
         { label: 'best: 1', f: () => 1, tone: 'b' },
       ],
     },
-    answer: 'Best: the key is the first middle element, 1 comparison, $T(n) = 1$. Worst: the key is absent (or found only when one element remains), about $\\log_2 n$ comparisons. Average: also about $\\log_2 n$.',
+    answer: "About $\\log_2 n$, when the key is absent (or found only when one element remains).",
     mistake: 'Expecting the average to be half the worst, as in linear search ($n/2$ vs $n$). In binary search most keys sit in the bottom levels, so the average is only about one step below the worst.',
     tryIt: { q: 'For $n = 7$ (indices 1..7), how many keys are found in 1, 2 and 3 iterations, and what is the average?', a: '1 key (index 4) in 1, 2 keys (2, 6) in 2, 4 keys (1, 3, 5, 7) in 3. Average $= \\frac{1 + 4 + 12}{7} = \\frac{17}{7} \\approx 2.43$; worst 3.' },
   };
@@ -202,7 +202,7 @@
   };
 
   H['c310-ws-1e6'] = {
-    asks: 'For a million elements, compare the worst-case comparison counts of linear search and binary search.',
+    asks: "Give the worst-case number of comparisons of binary search for $n = 1{,}000{,}000$.",
     idea: 'Linear search pays one comparison per element. Binary search pays one per halving, and a million can only be halved about 20 times.',
     steps: [
       'Linear: the worst case is $n$, so $1{,}000{,}000$.',
@@ -211,7 +211,7 @@
       { text: 'Side by side:', table: { head: ['$n$', 'linear (worst)', 'binary (worst iterations)'], rows: [['10', '10', '4'], ['1,024', '1,024', '11'], ['1,000,000', '1,000,000', '20']] } },
       'Ratio: $10^6 / 20 = 50{,}000$ times fewer comparisons.',
     ],
-    answer: 'Linear search: $1{,}000{,}000$. Binary search: about $\\log_2(10^6) \\approx 20$ (19.93; exactly 20 loop iterations).',
+    answer: "About 20: $\\log_2(10^6) \\approx 19.93$, so exactly 20 loop iterations (linear search would need $1{,}000{,}000$).",
     mistake: 'Using $\\log_{10}(10^6) = 6$. Binary search halves, so the base is 2.',
     tryIt: { q: 'Same comparison for $n = 10^9$.', a: 'Linear $10^9$. Binary: $2^{30} \\approx 10^9$, so about 30; exactly $\\lfloor 29.9 \\rfloor + 1 = 30$ iterations.' },
   };
@@ -237,7 +237,7 @@
   };
 
   H['c310-ws-graph-shape'] = {
-    asks: 'Sketch binary search’s best, average and worst cases on the same axes as linear search. What shape is each curve?',
+    asks: "Describe the shape of binary search’s average and worst cases when plotted against $n$.",
     idea: 'Ask what happens to each count when $n$ doubles. Linear search doubles; binary worst and average go up by 1; binary best does not change.',
     steps: [
       'Best case: 1 comparison for every $n$, a flat horizontal line at height 1.',
@@ -256,13 +256,13 @@
         { label: 'binary best: 1', f: () => 1, tone: 'c' },
       ],
     },
-    answer: 'Best case: a flat line (1 comparison). Average and worst: logarithmic curves that rise slowly and flatten. Linear search’s worst and average are straight lines rising in proportion to $n$.',
+    answer: "Logarithmic curves that rise slowly and flatten out, far below linear search’s straight lines.",
     mistake: 'Drawing binary search’s worst case as a straight line with a smaller slope. A log curve bends: its slope keeps shrinking as $n$ grows.',
     tryIt: { q: 'At $n = 512$, give linear worst, binary worst and binary best.', a: '512; $\\lfloor \\lg 512 \\rfloor + 1 = 9 + 1 = 10$; 1.' },
   };
 
   H['c310-ws-why-not-linear'] = {
-    asks: 'Explain why binary search’s cost curve is not a straight line like linear search’s.',
+    asks: "Explain why binary search’s comparison count grows like $\\log_2 n$ rather than $n$.",
     idea: 'A comparison in linear search removes one element. A comparison in binary search removes half of what is left. So doubling the array costs linear search $n$ more comparisons, but costs binary search just one: its first comparison cuts the array back to the old size.',
     steps: [
       'Linear: $T(n) = n$, so doubling the input gives $T(2n) = 2n$, twice the work. That is a straight line.',
@@ -271,13 +271,13 @@
       'If $n = 2^k$ then $k = \\log_2 n$, so $T(n) = \\log_2 n + 1$: logarithmic, not linear.',
       { text: 'Doubling $n$:', table: { head: ['$n$', 'linear (worst)', 'binary (worst)'], rows: [['1', '1', '1'], ['2', '2', '2'], ['4', '4', '3'], ['8', '8', '4'], ['16', '16', '5'], ['1024', '1024', '11']] } },
     ],
-    answer: 'Each comparison halves the remaining interval instead of removing one element, so doubling $n$ adds only one comparison: the count grows like $\\log_2 n$, not $n$.',
+    answer: "Each comparison halves the remaining interval instead of removing one element, so doubling $n$ adds only one comparison.",
     mistake: 'Saying "because it is faster": something faster can still be linear, for example $n/2$. The shape comes from halving: doubling $n$ adds a constant, not a multiple.',
     tryIt: { q: '$n$ grows from 1000 to 8000 (8 times). How do the two worst cases change?', a: 'Linear: 1000 → 8000 (8 times). Binary: 8 times is three doublings, so 10 → 13 (+3). Check: $\\lfloor \\lg 8000 \\rfloor + 1 = 12 + 1 = 13$.' },
   };
 
   H['c310-ws-prefer-linear'] = {
-    asks: 'The data is unsorted and will be searched exactly once. Explain why plain linear search beats "sort it, then binary search".',
+    asks: "For an unsorted array searched exactly once, explain why linear search beats sorting and then binary searching.",
     idea: 'Binary search is cheap, but its entry ticket, a sorted array, is expensive. Paying $n \\lg n$ for the ticket to save less than $n$ on one search is a bad deal. It pays off only when the ticket is reused for many searches.',
     steps: [
       'Linear search once: at most $n$ comparisons, $\\Theta(n)$.',
@@ -291,13 +291,13 @@
       x: [2, 64], xLabel: 'n', yLabel: 'steps',
       curves: [{ label: 'sort + binary search: $n \\lg n + \\lg n$', f: n => n * lg(n) + lg(n), tone: 'a' }, { label: 'one linear search: $n$', f: n => n, tone: 'b' }],
     },
-    answer: 'Binary search needs sorted data. Sorting costs at least $\\Theta(n \\log n)$ (e.g. merge sort), which is more than the $\\Theta(n)$ of one linear search; the $\\Theta(\\log n)$ search pays off only over many searches.',
+    answer: "Sorting first costs at least $\\Theta(n \\log n)$, more than one $\\Theta(n)$ linear search; sorting only pays off over many searches.",
     mistake: 'Comparing only the search times ($\\lg n$ against $n$) and forgetting the sort. For a single search, the one-time sort is the dominant cost.',
     tryIt: { q: 'Take $n = 1024$, sorting cost $\\approx n \\lg n$, binary search 11 comparisons, linear search 1024. From how many searches $k$ does sorting first win?', a: 'Need $1024k > 10{,}240 + 11k$, so $1013k > 10{,}240$ and $k > 10.1$: from 11 searches on.' },
   };
 
   H['c310-ws-dynamic'] = {
-    asks: 'With frequent insertions and deletions, which search method is easier to keep using, and why?',
+    asks: "Say which search method is easier on data with frequent insertions and deletions.",
     idea: 'Linear search does not care about order, so a new element can go anywhere, such as the end. Binary search works only while the array stays sorted, and keeping an array sorted means sliding elements over to open or close a gap.',
     steps: [
       'Linear search: insert by appending at the end and delete by moving the last element into the hole, both $\\Theta(1)$. Searching still works.',
@@ -306,13 +306,13 @@
       'That moved 3 elements. Inserting a value smaller than everything moves all $n$: $\\Theta(n)$ per update, far more than the $\\Theta(\\lg n)$ search.',
       'Deleting is the same in reverse: everything after the hole shifts left by one.',
     ],
-    answer: 'Linear search: it works on data in any order. Binary search needs the array kept sorted, and inserting or deleting in a sorted array means shifting elements, $\\Theta(n)$ per update (or re-sorting).',
+    answer: "Linear search: it works on data in any order. Binary search needs the array kept sorted, at $\\Theta(n)$ shifting per update.",
     mistake: 'Answering "binary search, because it is faster". Its search is faster, but every update costs $\\Theta(n)$ to keep the order; when updates are frequent, that cost dominates.',
     tryIt: { q: 'Delete 5 from the sorted [2, 5, 8, 13, 17, 21] and keep it sorted. How many elements move?', a: '8, 13, 17 and 21 each shift one place left: 4 moves, giving [2, 8, 13, 17, 21].' },
   };
 
   H['c310-ws-rec-code'] = {
-    asks: 'Write the worksheet’s recursive binary search on a 0-based sorted A[0..n−1]: the base case and both recursive calls.',
+    asks: "Give the base case of RecursiveBinarySearch(A, low, high, key) and what it returns.",
     idea: 'Same idea as the loop, but instead of moving low or high, the function calls itself on the smaller interval. An empty interval (low > high) is the base case.',
     steps: [
       'Base case: if low > high the interval is empty: return −1.',
@@ -321,7 +321,7 @@
       'The first call covers the whole array: RBS(A, 0, n − 1, key). This version is 0-based, unlike the iterative worksheet code.',
       { text: 'Trace on A = [6, 11, 14, 20, 25, 31] with key 12:', table: { head: ['call', 'low', 'high', 'mid', 'A[mid]', 'next'], rows: [['1', '0', '5', '2', '14', '12 < 14: RBS(A, 0, 1)'], ['2', '0', '1', '0', '6', '12 > 6: RBS(A, 1, 1)'], ['3', '1', '1', '1', '11', '12 > 11: RBS(A, 2, 1)'], ['4', '2', '1', '—', '—', 'low > high: return −1']] } },
     ],
-    answer: 'if low > high return −1. mid = (low + high) // 2. If A[mid] = key return mid; else if key < A[mid] return RBS(A, low, mid − 1, key); else return RBS(A, mid + 1, high, key).',
+    answer: "If low > high, the interval is empty: return $-1$ (key not found).",
     mistake: 'Leaving out "return" before the recursive calls. The inner call finds the index, but without return the outer call throws it away.',
     tryIt: { q: 'Trace RBS(A, 0, 5, 25) on A = [6, 11, 14, 20, 25, 31].', a: 'mid = 2: 25 > 14, call RBS(A, 3, 5). mid = 4: A[4] = 25: return 4, which the first call passes back up.' },
   };
@@ -353,7 +353,7 @@
   };
 
   H['c310-ws-rec-time'] = {
-    asks: 'Both versions are $\\Theta(\\log n)$. Does the recursive version still take more time, and why?',
+    asks: "Say what extra time recursion adds to binary search, given both versions are $\\Theta(\\log n)$.",
     idea: 'Big-Θ hides constant factors. Both versions halve the same number of times, but each recursive halving also pays for a function call: a new stack frame, four arguments copied in, a return. That makes the constant per step bigger; it does not change the growth rate.',
     steps: [
       'Iterative: each halving is one loop iteration, a few comparisons and an assignment. Call its cost $a$.',
@@ -362,13 +362,13 @@
       'The ratio $\\frac{a + b}{a}$ is a constant, so both are $\\Theta(\\lg n)$, but the recursive one is slower by that constant factor.',
       'This is the RAM-model point from Lecture 2: a function call is not one constant-time instruction like the others.',
     ],
-    answer: 'Yes, but only a constant factor per step: each recursive call pays function-call overhead (a stack frame, passing arguments, returning). The asymptotic bound is unchanged.',
+    answer: "A constant per call (stack frame, arguments, return); the asymptotic bound is unchanged.",
     mistake: 'Answering "no, both are $\\log n$". Equal Θ means the same growth rate, not the same running time.',
     tryIt: { q: 'A loop iteration costs 4 units; a recursive call costs $4 + 6 = 10$. Compare the totals for 20 halvings and for 40.', a: '20: 80 against 200. 40: 160 against 400. Both double when the steps double, and the recursive one is always 2.5 times slower: same Θ, different constant.' },
   };
 
   H['c310-ws-rec-space'] = {
-    asks: 'Compare the extra memory used by recursive and iterative binary search, and say what that means for very large arrays.',
+    asks: "Give the extra space used by recursive binary search.",
     idea: 'A recursive call cannot finish until the call it made finishes, so every call along the path waits on the stack at the same time. The path is about $\\lg n$ long, so that is about $\\lg n$ stack frames. The loop reuses the same three variables.',
     steps: [
       'Iterative: low, high and mid, the same number for any $n$: $\\Theta(1)$ extra space.',
@@ -377,7 +377,7 @@
       { text: 'Deepest stack for an absent key:', table: { head: ['$n$', 'frames'], rows: [['1,000', '11'], ['1,000,000', '21'], ['1,000,000,000', '31']] } },
       'So the extra memory stays small, but it is more than the loop needs, and in languages without tail-call optimization (Java, Python) deep recursion risks a stack overflow.',
     ],
-    answer: 'Recursive: $\\Theta(\\log n)$ extra space for the call stack (one frame per level). Iterative: $\\Theta(1)$. For huge arrays the recursive version uses more memory and risks stack overflow without tail-call optimization, although $\\log n$ stays small (about 30 frames for $10^9$ elements).',
+    answer: "$\\Theta(\\log n)$ for the call stack, one frame per level (the iterative version needs $\\Theta(1)$).",
     mistake: 'Calling the recursive version $\\Theta(n)$ space because it "copies the array". Only a reference to A is passed; each frame has constant size.',
     tryIt: { q: 'At most how many frames are on the stack for an absent key with $n = 1024$?', a: '$\\lfloor \\lg 1024 \\rfloor + 1 = 11$ calls that check an element, plus one base-case call: 12. The iterative version still needs $\\Theta(1)$.' },
   };
@@ -443,7 +443,7 @@
   };
 
   H['c310-7-return'] = {
-    asks: 'Say what number PARTITION returns and what that number tells QUICKSORT.',
+    asks: "Say what expression PARTITION returns.",
     idea: 'After the loop, smallerCounter is the last slot of the small zone. The next slot, smallerCounter + 1, is where the final swap drops the pivot. That slot is the pivot’s true sorted position, because exactly the right number of elements sit to its left.',
     steps: [
       'After the loop: A[start..smallerCounter] $\\le$ pivot and A[smallerCounter+1..end−1] > pivot.',
@@ -452,13 +452,13 @@
       { text: 'Example {5, 2, 8, 1, 4} (pivot 4):', table: { head: PHEAD, rows: [['1', '5', 'no', '0', '5, 2, 8, 1, 4'], ['2', '2', 'yes', '1', '2, 5, 8, 1, 4'], ['3', '8', 'no', '1', '2, 5, 8, 1, 4'], ['4', '1', 'yes', '2', '2, 1, 8, 5, 4']] } },
       'smallerCounter = 2; the final swap A[3] ↔ A[5] gives {2, 1, 4, 5, 8}, and PARTITION returns 3. QUICKSORT then sorts A[1..2] and A[4..5].',
     ],
-    answer: 'smallerCounter + 1: the index where the pivot ends up, which is its final position in the sorted array.',
+    answer: "smallerCounter + 1: the index where the pivot ends up, its final position in the sorted array.",
     mistake: 'Returning the pivot’s value (4) instead of its index (3). QUICKSORT needs an index to split the recursion.',
     tryIt: { q: 'PARTITION on {9, 4, 7, 2, 6}: what does it return, and what are the two recursive calls?', a: 'Pivot 6; 4 and 2 are small, so smallerCounter = 2 and the result is {4, 2, 6, 9, 7}. Returns 3; the calls are QUICKSORT(A, 1, 2) and QUICKSORT(A, 4, 5).' },
   };
 
   H['c310-7-final-swap'] = {
-    asks: 'Explain the last line of PARTITION, Swap(A[smallerCounter + 1], A[end]): why that slot, and why it is safe.',
+    asks: "Just before PARTITION’s last line, Swap(A[smallerCounter + 1], A[end]), say which element sits at A[smallerCounter + 1].",
     idea: 'During the loop the pivot waits at the far right while the rest arranges itself as [small | big | pivot]. The pivot belongs between small and big. Swapping it with the FIRST big element puts it there, and that big element simply moves to the end of the big zone, where it still belongs.',
     steps: [
       'After the loop, with i = smallerCounter: A[start..i] $\\le$ pivot, A[i+1..end−1] > pivot, A[end] = pivot.',
@@ -467,7 +467,7 @@
       'If the big zone is empty, i + 1 = end and the pivot swaps with itself: nothing moves.',
       { text: 'Example {3, 9, 1, 5}: after the loop A = {3, 1, 9, 5} and i = 2.', table: { head: ['', 'A[1]', 'A[2]', 'A[3]', 'A[4]'], rows: [['before the final swap', '3', '1', '9', '5'], ['after Swap(A[3], A[4])', '3', '1', '5', '9']] } },
     ],
-    answer: 'A[smallerCounter + 1] is the first element of the "> pivot" region (or the pivot itself if that region is empty). Swapping it with the pivot at A[end] puts the pivot between the two regions, at its final position, and moves that larger element to the end, still on the "> pivot" side.',
+    answer: "The first element of the \"> pivot\" region (or the pivot itself if that region is empty). Swapping it with A[end] puts the pivot between the two regions, at its final position.",
     mistake: 'Swapping the pivot with A[smallerCounter], the last small element. That puts a small element at the far end, on the big side.',
     tryIt: { q: 'After the loop of some PARTITION, A = {2, 4, 1, 8, 9, 6, 5} and smallerCounter = 3. Do the final swap and give the return value.', a: 'Swap A[4] = 8 with A[7] = 5: {2, 4, 1, 5, 9, 6, 8}. Return 4.' },
   };
@@ -531,7 +531,7 @@
   };
 
   H['c310-7-trace-why'] = {
-    asks: 'In the slide trace, at j = 4 the 1 swaps with the 8 at A[2]. Explain why the 8 and not some other element.',
+    asks: "In the slide trace, at j = 4 the 1 swaps with the 8 at A[2]. Explain why the 8 and not some other element.",
     idea: 'The swap always goes to A[smallerCounter] right after the increment: the slot just past the small zone. That slot always holds the leftmost element of the big zone, whatever its value.',
     steps: [
       'Before j = 4: A = {2, 8, 7, 1, ...} and smallerCounter = 1. Small zone A[1..1] = {2}; big zone A[2..3] = {8, 7}.',
@@ -539,7 +539,7 @@
       'Swap A[2] and A[4]: {2, 1, 7, 8, ...}. The small zone grows to A[1..2] = {2, 1}; the big zone becomes A[3..4] = {7, 8}.',
       'The big zone lost nothing: 8 moved from its left end to its right end. Both zones stay contiguous.',
     ],
-    answer: 'Because $1 \\le 4$, smallerCounter advances from 1 to 2, and A[2] = 8 is the first element of the "> pivot" region. Swapping puts 1 at the end of the $\\le$ region and moves 8 to the end of the > region.',
+    answer: "Because $1 \\le 4$, smallerCounter advances from 1 to 2, and A[2] = 8 is the first element of the \"> pivot\" region.",
     mistake: 'Thinking the 1 swaps with "the largest element" or "the element before it". The target is chosen by position (A[smallerCounter]), never by value.',
     tryIt: { q: 'PARTITION on {5, 9, 7, 2, 6}: at j = 4 (the 2), which element does the 2 swap with, and why?', a: 'smallerCounter goes from 1 to 2, and A[2] = 9 is the first element of the big zone {9, 7}. Result {5, 2, 7, 9, 6}.' },
   };
@@ -613,7 +613,7 @@
   };
 
   H['c310-7-worst-recurrence'] = {
-    asks: 'Write quicksort’s worst-case recurrence, including its base case, and give the solution.',
+    asks: "Write quicksort’s worst-case recurrence (for $n > 1$).",
     idea: 'In the worst case each PARTITION strips off only the pivot: one recursive call gets everything else and the other gets nothing. The problem shrinks by just one per call, while each call still pays linear time.',
     steps: [
       'Base case: a piece of 0 or 1 elements fails start < end and does nothing, so $T(n) = 0$ for $n = 0$ or $1$.',
@@ -622,7 +622,7 @@
       'That sum is $\\frac{n(n+1)}{2} - 1$, so $T(n) = c\\left(\\frac{n(n+1)}{2} - 1\\right) = \\Theta(n^2)$.',
       { text: 'Counting comparisons only (a piece of $k$ costs $k - 1$): $T(n) = T(n-1) + (n - 1)$.', table: { head: ['$n$', '2', '3', '4', '5', '6'], rows: [['$T(n)$', '1', '3', '6', '10', '15']] } },
     ],
-    answer: '$T(n) = 0$ for $n = 0$ or $1$; $T(n) = T(n-1) + \\Theta(n)$ for $n > 1$. Solution: $\\Theta(n^2)$.',
+    answer: "$T(n) = T(n-1) + \\Theta(n)$, with $T(n) = 0$ for $n = 0$ or $1$. It solves to $\\Theta(n^2)$.",
     mistake: 'Writing $T(n) = 2T(n-1) + \\Theta(n)$. There are two calls, but one of them is on 0 elements and costs nothing.',
     tryIt: { q: 'With $T(n) = T(n-1) + (n - 1)$ and $T(1) = 0$, find $T(7)$.', a: '$6 + 5 + 4 + 3 + 2 + 1 = 21 = \\frac{7 \\cdot 6}{2}$.' },
   };
@@ -673,7 +673,7 @@
   };
 
   H['c310-7-equal-keys'] = {
-    asks: 'All $n$ elements have the same value. Give the course’s quicksort running time and the reason.',
+    asks: "All $n$ elements have the same value. Give the course’s quicksort running time.",
     idea: 'The test is A[j] $\\le$ pivot, with $\\le$. When every element equals the pivot, every test says "yes", so everything goes to the left side, exactly like sorted input.',
     steps: [
       'PARTITION on $k$ equal elements: all $k - 1$ tests are true, so smallerCounter ends at end − 1.',
@@ -682,7 +682,7 @@
       { text: 'Comparisons for 6 equal elements:', table: { head: ['piece size', '6', '5', '4', '3', '2'], rows: [['comparisons', '5', '4', '3', '2', '1']] } },
       'Total $5 + 4 + 3 + 2 + 1 = 15 = \\frac{6 \\cdot 5}{2}$.',
     ],
-    answer: '$\\Theta(n^2)$. Every test A[j] $\\le$ pivot is true, so smallerCounter advances on every element and the pivot ends in the last position: each partition splits $n - 1$ and $0$, just like sorted input.',
+    answer: "$\\Theta(n^2)$: every test A[j] $\\le$ pivot is true, so each partition splits $n - 1$ and $0$, just like sorted input.",
     mistake: 'Answering $\\Theta(n)$, or "best case, it is already sorted". It is sorted, and sorted is exactly the bad case for this PARTITION.',
     tryIt: { q: 'How many comparisons on {3, 3, 3, 3}?', a: '$3 + 2 + 1 = 6$.' },
   };
@@ -735,7 +735,7 @@
   };
 
   H['c310-7-general-rec'] = {
-    asks: 'Explain each term of the course’s general recurrence $T(n) = T(n-k) + T(k) + \\Theta(n)$.',
+    asks: "In the course’s general recurrence $T(n) = T(n-k) + T(k) + \\Theta(n)$, say what $k$ is.",
     idea: 'Every quicksort call does three things: partition (linear work), sort the left part, sort the right part. The recurrence is that sentence in symbols, and $k$ records how lopsided the split was.',
     steps: [
       '$\\Theta(n)$: PARTITION, with $n - 1$ comparisons plus swaps.',
@@ -743,35 +743,9 @@
       '$T(n - k)$: the recursive call on the other part. (Strictly that part has $n - k - 1$ elements, because the pivot is in neither; the slide rounds this, which changes no bound.)',
       { text: 'Different $k$ give the cases from the lecture:', table: { head: ['$k$', 'split', 'recurrence', 'result'], rows: [['0', '0 and $n - 1$', '$T(n-1) + \\Theta(n)$', 'worst: $\\Theta(n^2)$'], ['$\\approx n/2$', 'halves', '$2T(n/2) + \\Theta(n)$', 'best: $\\Theta(n \\lg n)$'], ['$n/10$', '1-to-9', '$T(\\tfrac{9n}{10}) + T(\\tfrac{n}{10}) + \\Theta(n)$', '$O(n \\lg n)$']] } },
     ],
-    answer: '$T(n-k)$ and $T(k)$: the two recursive calls on the two parts; $\\Theta(n)$: the cost of partitioning; $k$: the number of elements smaller than the pivot.',
+    answer: "$k$ is the number of elements smaller than the pivot. ($T(n-k)$, $T(k)$: the two recursive calls; $\\Theta(n)$: partitioning.)",
     mistake: 'Reading $k$ as the pivot’s value. It is a count: how many elements are smaller than the pivot, which also fixes where the pivot lands.',
     tryIt: { q: 'PARTITION on 10 elements (start = 1) returns index 4. What is $k$, and what sizes are the two recursive calls?', a: '3 elements lie left of the pivot, so $k = 3$; the calls are on 3 and $10 - 3 - 1 = 6$ elements: $T(3) + T(6) + \\Theta(10)$.' },
-  };
-
-  H['c310-7-9to1'] = {
-    asks: 'Suppose PARTITION always splits 9-to-1. Give the recurrence, and use the recursion tree to show quicksort is still $O(n \\lg n)$.',
-    idea: 'The split is lopsided, but each level still removes a fixed FRACTION of the size from the big side. Shrinking by a constant factor per level means logarithmic depth, and each level still costs at most $cn$.',
-    steps: [
-      'Recurrence: $T(n) = T(\\tfrac{9n}{10}) + T(\\tfrac{n}{10}) + \\Theta(n)$.',
-      'Level cost: level 1 is $\\frac{cn}{10} + \\frac{9cn}{10} = cn$. In general the pieces on one level are disjoint parts of the array, so they cost at most $cn$ together.',
-      'Shallowest leaf: always take the $\\frac{1}{10}$ branch. $\\frac{n}{10^d} = 1$ gives $d = \\log_{10} n$.',
-      'Deepest leaf: always take the $\\frac{9}{10}$ branch. $(\\tfrac{9}{10})^d n = 1$ gives $d = \\log_{10/9} n = \\frac{\\lg n}{\\lg(10/9)} \\approx 6.58 \\lg n$.',
-      'Total: at most $cn$ per level × $\\log_{10/9} n$ levels $= O(n \\lg n)$, because changing the log base only changes a constant factor.',
-    ],
-    tree: {
-      sumsLabel: 'level total',
-      levels: [
-        { nodes: ['$cn$'], sum: '$cn$' },
-        { nodes: ['$\\tfrac{cn}{10}$', '$\\tfrac{9cn}{10}$'], sum: '$cn$' },
-        { nodes: ['$\\tfrac{cn}{100}$', '$\\tfrac{9cn}{100}$', '$\\tfrac{9cn}{100}$', '$\\tfrac{81cn}{100}$'], sum: '$cn$' },
-        { gap: true },
-        { nodes: ['$c$', '$\\cdots$', '$c$'], sum: '$\\le cn$' },
-      ],
-      caption: 'The left edge ends at depth $\\log_{10} n$, the right edge at $\\log_{10/9} n$. Every full level adds up to $cn$; below depth $\\log_{10} n$ the levels add up to less.',
-    },
-    answer: '$T(n) = T(9n/10) + T(n/10) + \\Theta(n)$. Each level costs at most $cn$. The shallowest leaf is at depth $\\log_{10} n$ and the deepest at $\\log_{10/9} n = \\Theta(\\lg n)$. So the total is $O(n \\lg n)$.',
-    mistake: 'Calling any unbalanced split $\\Theta(n^2)$. Quadratic time comes from removing a constant NUMBER of elements per level (the pivot only); 9-to-1 removes a constant FRACTION.',
-    tryIt: { q: 'Every split is 4-to-1. Give the recurrence and the depths of the shallowest and deepest leaves.', a: '$T(n) = T(\\tfrac{4n}{5}) + T(\\tfrac{n}{5}) + \\Theta(n)$. Shallowest $\\log_5 n$, deepest $\\log_{5/4} n \\approx 3.1 \\lg n$. Total $O(n \\lg n)$.' },
   };
 
   H['c310-7-9to1-depth'] = {
@@ -800,7 +774,7 @@
   };
 
   H['c310-7-adoption'] = {
-    asks: 'Name the three places the course gives as evidence that quicksort is widely used.',
+    asks: "Name the C standard library function the course cites as evidence that quicksort is widely used.",
     idea: 'All three are standard libraries: the code most programmers call instead of writing their own sort. Remember them as "Unix, C, Java".',
     steps: [
       'Unix: quicksort became the default library sort subroutine.',
@@ -808,7 +782,7 @@
       'Java: the reference implementation used it.',
       'The same slide gives the reasons libraries chose it: it sorts in place, and its expected running time is $O(n \\lg n)$.',
     ],
-    answer: 'The default library sort subroutine in Unix; the C standard library’s qsort; the reference implementation of Java.',
+    answer: "qsort. (The other two pieces of evidence: Unix’s default library sort, and Java’s reference implementation.)",
     mistake: 'Listing any language or tool that sorts, such as Python or merge sort. The slide names exactly Unix, C’s qsort and Java’s reference implementation.',
     tryIt: { q: 'Which of the three is a function name, and what does it abbreviate?', a: 'qsort, in the C standard library: "quick sort".' },
   };
@@ -816,7 +790,7 @@
   // ═══════════════════════ Heaps and heapsort ═══════════════════════
 
   H['c310-heap-insertion-tradeoff'] = {
-    asks: 'Give insertion sort’s two advantages and its main disadvantage, as the heap lecture lists them.',
+    asks: "Say on what kind of input insertion sort performs well.",
     idea: 'Insertion sort slides each new element left until it fits, like sorting cards in your hand. On nearly sorted input each card barely moves; on reverse-sorted input every card travels all the way.',
     steps: [
       'Advantage 1, in place: it shifts elements within the array and needs only one temporary variable.',
@@ -825,26 +799,26 @@
       { text: 'Shifts for $n = 6$:', table: { head: ['input', 'shifts'], rows: [['1, 2, 3, 4, 5, 6 (sorted)', '0'], ['1, 2, 4, 3, 5, 6 (one pair swapped)', '1'], ['6, 5, 4, 3, 2, 1 (reversed)', '15']] } },
       'The lecture then introduces heapsort as merge sort’s $O(n \\lg n)$ time combined with insertion sort’s in-place property.',
     ],
-    answer: 'Advantages: sorts in place, and performs well on nearly sorted input. Disadvantage: $O(n^2)$ worst-case running time.',
+    answer: "Nearly sorted input. (Also: it sorts in place; its disadvantage is $O(n^2)$ worst case.)",
     mistake: 'Listing "$O(n)$ space" as insertion sort’s disadvantage. That is merge sort’s; insertion sort is in place.',
     tryIt: { q: 'How many shifts does insertion sort make on {2, 1, 3, 5, 4, 6}?', a: 'Two: the 1 moves past the 2, and the 4 moves past the 5.' },
   };
 
   H['c310-heap-heapsort-combines'] = {
-    asks: 'Name the merge sort advantage and the insertion sort advantage that heapsort has both of.',
+    asks: "Name the insertion sort advantage that heapsort shares.",
     idea: 'Each older sort has one strength and one weakness. Heapsort keeps both strengths: merge sort’s guaranteed $n \\lg n$ time, and insertion sort’s working inside the array.',
     steps: [
       { text: 'The three sorts side by side:', table: { head: ['', 'worst-case time', 'extra space'], rows: [['merge sort', '$\\Theta(n \\lg n)$ (good)', '$O(n)$ (bad)'], ['insertion sort', '$O(n^2)$ (bad)', 'in place (good)'], ['heapsort', '$O(n \\lg n)$ (good)', 'in place (good)']] } },
       'Time: BuildHeap is $O(n)$, and the loop makes $n - 1$ MAX-HEAPIFY calls of $O(\\lg n)$ each: $O(n \\lg n)$ on every input.',
       'Space: the heap lives in A itself, and the sorted part grows at the right end of the same array. Only swaps, no second array.',
     ],
-    answer: 'Merge sort’s $O(n \\lg n)$ worst-case time and insertion sort’s sorting in place.',
+    answer: "Sorting in place. (From merge sort it takes the $O(n \\lg n)$ worst-case time.)",
     mistake: 'Adding "fast on nearly sorted input" from insertion sort. Heapsort does not get that; it inherits only the in-place property.',
     tryIt: { q: 'Memory is tight and you need a guaranteed $O(n \\lg n)$ worst case. Which of the three sorts?', a: 'Heapsort: merge sort needs an $O(n)$ buffer, and insertion sort can take $O(n^2)$.' },
   };
 
   H['c310-heap-min-property'] = {
-    asks: 'State the min-heap property and say where it puts the smallest element.',
+    asks: "Pick the inequality that is the min-heap property.",
     idea: 'A min-heap is a max-heap with the inequality flipped: every parent is $\\le$ its children, so values only grow as you walk down. The smallest value can only be at the top.',
     steps: [
       'Property: for every node $i$ except the root, $A[\\text{parent}(i)] \\le A[i]$, where $\\text{parent}(i) = \\lfloor i/2 \\rfloor$.',
@@ -853,13 +827,13 @@
       { text: 'Check ⟨2, 5, 3, 9, 6, 4⟩ (drawn below) node by node:', table: { head: ['$i$', 'A[$i$]', 'parent', 'A[parent]', 'A[parent] $\\le$ A[$i$]?'], rows: [['2', '5', '1', '2', 'yes'], ['3', '3', '1', '2', 'yes'], ['4', '9', '2', '5', 'yes'], ['5', '6', '2', '5', 'yes'], ['6', '4', '3', '3', 'yes']] } },
     ],
     heap: [2, 5, 3, 9, 6, 4],
-    answer: 'For every node $i$ other than the root, $A[\\text{parent}(i)] \\le A[i]$ (a node is at least its parent). So the smallest element is at the root.',
+    answer: "$A[\\text{parent}(i)] \\le A[i]$ for every non-root $i$: a node is at least its parent, so the smallest element is at the root.",
     mistake: 'Thinking a min-heap is sorted. ⟨2, 5, 3, 9, 6, 4⟩ is a valid min-heap, yet 5 comes before 3.',
     tryIt: { q: 'Is ⟨2, 5, 3, 4, 6, 1⟩ a min-heap?', a: 'No. A[6] = 1 and its parent A[3] = 3, but $3 \\le 1$ is false.' },
   };
 
   H['c310-heap-height-def'] = {
-    asks: 'Define the height of a node in a heap, and the height of the whole heap.',
+    asks: "Define the height of a node in a heap.",
     idea: 'Height measures how far a node is above the bottom, counted in edges along the longest path down. Leaves are at the bottom, so their height is 0. The heap’s height is its root’s height.',
     steps: [
       'Height of a node: the number of EDGES on the longest downward path from that node to a leaf.',
@@ -868,7 +842,7 @@
       'A heap of $n$ nodes has height $\\lfloor \\lg n \\rfloor$. For $n = 10$: $\\lfloor 3.32 \\rfloor = 3$, the root’s height above.',
     ],
     heap: [16, 14, 10, 8, 7, 9, 3, 2, 4, 1],
-    answer: 'Height of a node: the number of edges on the longest downward path from that node to a leaf. Height of the heap: the height of its root.',
+    answer: "The number of edges on the longest downward path from that node to a leaf. (The heap’s height is its root’s height.)",
     mistake: 'Counting nodes instead of edges (4 for this root). A one-node heap has height 0, not 1.',
     tryIt: { q: 'In a 12-node heap, what are the heights of nodes 1, 3 and 6?', a: 'Node 1: 1 → 2 → 4 → 8, height 3. Node 3: 3 → 6 → 12, height 2. Node 6: 6 → 12, height 1.' },
   };
@@ -923,7 +897,7 @@
   };
 
   H['c310-heap-build-loop'] = {
-    asks: 'Write BuildHeap(A, n) and explain why its loop starts at $\\lfloor n/2 \\rfloor$.',
+    asks: "Explain why BuildHeap’s loop starts at $\\lfloor n/2 \\rfloor$.",
     idea: 'Every leaf is already a heap of one element, so there is nothing to fix there. The last node that has a child is node $\\lfloor n/2 \\rfloor$. Start fixing there and work back to the root.',
     steps: [
       'Code: for $i = \\lfloor n/2 \\rfloor$ down to 1: MAX-HEAPIFY(A, i).',
@@ -932,7 +906,7 @@
       { text: 'Examples:', table: { head: ['$n$', '$\\lfloor n/2 \\rfloor$', 'loop runs i =', 'leaves'], rows: [['7', '3', '3, 2, 1', '4–7'], ['10', '5', '5, 4, 3, 2, 1', '6–10'], ['13', '6', '6, 5, …, 1', '7–13']] } },
       'Starting at $n$ would only waste calls on leaves; starting below $\\lfloor n/2 \\rfloor$ would skip a node that has a child.',
     ],
-    answer: 'for $i = \\lfloor n/2 \\rfloor$ down to 1: MAX-HEAPIFY(A, i). It starts at $\\lfloor n/2 \\rfloor$ because $A[\\lfloor n/2 \\rfloor + 1 .. n]$ are all leaves, and each leaf is already a 1-element heap.',
+    answer: "$A[\\lfloor n/2 \\rfloor + 1 .. n]$ are all leaves, and each leaf is already a 1-element heap. (The loop: for $i = \\lfloor n/2 \\rfloor$ down to 1: MAX-HEAPIFY(A, i).)",
     mistake: 'Dropping the floor. For $n = 7$, $7/2 = 3.5$ is not an index; node 3 (children 6 and 7) is the last parent.',
     tryIt: { q: 'For $n = 11$, where does the loop start, and which indices are leaves?', a: '$\\lfloor 11/2 \\rfloor = 5$ (children 10 and 11). Leaves: 6 to 11. The loop runs $i = 5, 4, 3, 2, 1$.' },
   };
@@ -1049,7 +1023,7 @@
   };
 
   H['c310-heap-heapsort-why-swap'] = {
-    asks: 'Explain the three moves inside Heapsort’s loop: swap A[1] with A[i], shrink heap_size, then MAX-HEAPIFY(A, 1).',
+    asks: "In Heapsort’s loop, explain why A[1] is swapped into A[i].",
     idea: 'The heap is a machine that always keeps the maximum on top. Heapsort keeps taking the top item and stacking it at the right end of the array, which becomes the sorted pile. Each removal breaks the machine slightly at the top, and MAX-HEAPIFY repairs it.',
     steps: [
       'A[1] is the maximum of A[1..i]. In sorted order it belongs in the last slot of that range, A[i], and the swap puts it there.',
@@ -1058,7 +1032,7 @@
       'That is exactly MAX-HEAPIFY’s precondition, so MAX-HEAPIFY(A, 1) restores the heap in $O(\\lg n)$, and the next maximum is at A[1].',
       { text: 'On the heap ⟨5, 3, 4⟩:', table: { head: ['i', 'after Swap(A[1], A[i])', 'heap after shrinking', 'after MAX-HEAPIFY(A, 1)'], rows: [['3', '4, 3, 5', 'A[1..2] = 4, 3', '4, 3, 5 (no change)'], ['2', '3, 4, 5', 'A[1..1] = 3', '3, 4, 5']] } },
     ],
-    answer: 'A[1] is the maximum of the remaining heap, so A[i] is its final sorted place. Shrinking heap_size removes it from the heap. The element swapped into the root may violate the heap property while both its subtrees are still heaps, so MAX-HEAPIFY(A, 1) repairs it.',
+    answer: "A[1] is the maximum of the remaining heap, so A[i] is its final sorted place. (Then heap_size shrinks and MAX-HEAPIFY(A, 1) repairs the root.)",
     mistake: 'Rebuilding the whole heap each iteration. Only the root is out of place, so one MAX-HEAPIFY ($O(\\lg n)$) is enough; a rebuild would cost $O(n)$ every time.',
     tryIt: { q: 'One iteration on the heap ⟨6, 4, 5, 1, 2⟩: give A afterwards.', a: 'Swap 6 ↔ 2: ⟨2, 4, 5, 1 | 6⟩, size 4. Heapify: 2 vs 4 and 5 → 2 ↔ 5; index 3 has no children within size 4. Result ⟨5, 4, 2, 1, 6⟩.' },
   };

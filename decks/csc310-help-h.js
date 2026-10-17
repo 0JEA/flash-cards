@@ -32,7 +32,7 @@
   };
 
   H['c310-heap-increase-key-def'] = {
-    asks: 'Say what INCREASE-KEY(S, x, k) does to element x, and what it assumes about the new value k.',
+    asks: "Say what INCREASE-KEY(S, x, k) assumes about the new value k.",
     idea: 'It is a promotion: x’s key goes up to k. A promotion cannot be to a lower rank, so the operation assumes $k \\ge$ x’s current key; the heap version checks this and reports an error otherwise.',
     steps: [
       'Slide definition: INCREASE-KEY(S, x, k) increases the value of element x’s key to the new value k.',
@@ -46,13 +46,13 @@
       { text: 'Set A[5] = 19. Its parent A[2] = 15 is now smaller.', heap: [20, 15, 18, 6, 19, 12, 4] },
       { text: 'Swap A[5] and A[2]. Parent A[1] = 20 is $\\ge 19$: stop.', heap: [20, 19, 18, 6, 15, 12, 4] },
     ],
-    answer: 'It sets x’s key to the new value k, assuming $k \\ge$ x’s current key. HEAP-INCREASE-KEY reports an error if key < A[i].',
+    answer: "$k \\ge$ x’s current key (it then sets x’s key to k). HEAP-INCREASE-KEY reports an error if key < A[i].",
     mistake: 'Treating INCREASE-KEY as "change the key to anything". It only raises a key; lowering one is a different repair that moves the element down (MAX-HEAPIFY).',
     tryIt: { q: 'Max-heap [40, 25, 30, 12, 20, 18, 7]. What does HEAP-INCREASE-KEY(A, 6, 10) do?', a: 'A[6] = 18 and the new key is 10. Since $10 < 18$ the first line fires: error “new key is smaller than current key”, and A is unchanged.' },
   };
 
   H['c310-heap-maximum'] = {
-    asks: 'Give the body of HEAP-MAXIMUM(A) for a max-heap stored in A[1..heapSize], and its running time.',
+    asks: "Give the body of HEAP-MAXIMUM(A) for a max-heap stored in A[1..heapSize].",
     idea: 'In a max-heap every parent is at least as big as its children. Walk up from any node and the values can only grow, and every such walk ends at the root. So the root, A[1], beats everyone.',
     steps: [
       'Max-heap property (slide): $A[\\text{Parent}(i)] \\ge A[i]$ for every node $i$ other than the root.',
@@ -67,7 +67,7 @@
       x: [1, 64], y: [0, 7], xLabel: 'n (heap size)', yLabel: 'steps',
       curves: [{ label: 'HEAP-MAXIMUM: $1$', f: () => 1, tone: 'a' }, { label: 'tree height: $\\lg n$', f: lg, tone: 'b' }],
     },
-    answer: 'return A[1]; $\\Theta(1)$. The max-heap property puts the largest key at the root.',
+    answer: "return A[1] ($\\Theta(1)$). The max-heap property puts the largest key at the root.",
     mistake: 'Writing a loop that scans the array for the largest value. That is $\\Theta(n)$ and throws away the reason for using a heap.',
     tryIt: { q: 'In the max-heap [42, 37, 40, 12, 30, 25, 33], what does HEAP-MAXIMUM return? With all keys different, which indices can hold the second-largest key in any max-heap?', a: 'It returns A[1] = 42. The second-largest key can have only the root above it, so it must be a child of the root: index 2 or 3 (here 40, at index 3).' },
   };
@@ -138,7 +138,7 @@
   };
 
   H['c310-heap-increase-steps'] = {
-    asks: 'Describe HEAP-INCREASE-KEY(A, i, key) line by line, and give its running time.',
+    asks: "Say under what condition HEAP-INCREASE-KEY(A, i, key)’s loop swaps A[i] with its parent.",
     idea: 'A key that got bigger may now outrank its parent, like an employee promoted past their manager. They swap desks and the check repeats one level up, until the one above is at least as big or the key reaches the root.',
     steps: [
       'Check: if key < A[i], error “new key is smaller than current key”. This procedure only raises keys.',
@@ -159,7 +159,7 @@
       curves: [{ label: '$\\lg n$', f: n => (n < 1 ? 0 : lg(n)), tone: 'a' }],
       bars: { label: 'worst-case swaps $\\lfloor \\lg n \\rfloor$', tone: 'b', values: Array.from({ length: 32 }, (_, k) => [k + 1, Math.floor(lg(k + 1))]) },
     },
-    answer: 'If key < A[i], error. Set A[i] = key. While $i > 1$ and A[Parent(i)] < A[i]: swap A[i] with its parent and set i = Parent(i). $O(\\lg n)$.',
+    answer: "While $i > 1$ and A[Parent(i)] < A[i]: swap and set i = Parent(i). (Before that: error if key < A[i], then A[i] = key. $O(\\lg n)$.)",
     mistake: 'Forgetting the $i > 1$ test. Without it the root looks up Parent(1) = 0, which is not part of the heap.',
     tryIt: { q: 'Max-heap [40, 30, 35, 12, 25, 33, 20]: run HEAP-INCREASE-KEY(A, 7, 45). Give A and the number of swaps.', a: 'A[7] = 45. Parent 3 holds 35 < 45: swap. Parent 1 holds 40 < 45: swap. Now $i = 1$, so the loop ends. Result [45, 30, 40, 12, 25, 33, 35], 2 swaps.' },
   };
@@ -205,7 +205,7 @@
   };
 
   H['c310-heap-insert-steps'] = {
-    asks: 'Explain MAX-HEAP-INSERT(A, key): its three lines, and why the new cell first gets $-\\infty$.',
+    asks: "Explain why MAX-HEAP-INSERT first puts $-\\infty$ in the new cell.",
     idea: 'Insert reuses INCREASE-KEY. Add a new leaf holding the smallest possible value, which cannot break anything, then "promote" it to key. The promotion climbs exactly as far as needed.',
     steps: [
       'A.heapSize = A.heapSize + 1: the heap gets one new cell at the end, the next free spot on the bottom level.',
@@ -220,7 +220,7 @@
       { text: '6 < 17: swap A[8] and A[4].', heap: [20, 15, 18, 17, 9, 12, 4, 6] },
       { text: '15 < 17: swap A[4] and A[2]. Then 20 is not < 17: stop.', heap: [20, 17, 18, 15, 9, 12, 4, 6] },
     ],
-    answer: 'heapSize += 1; A[heapSize] = $-\\infty$; HEAP-INCREASE-KEY(A, heapSize, key). $-\\infty$ keeps the heap valid and guarantees key $\\ge$ the current value, so INCREASE-KEY’s check passes. $O(\\lg n)$.',
+    answer: "$-\\infty$ keeps the heap valid and guarantees key $\\ge$ the current value, so INCREASE-KEY’s check passes. (Lines: heapSize += 1; A[heapSize] = $-\\infty$; HEAP-INCREASE-KEY(A, heapSize, key).)",
     mistake: 'Putting the new key at A[1], or anywhere other than the end. The new element always enters as the last leaf and climbs; only cells on its path move.',
     tryIt: { q: 'Suppose line 2 stored 0 instead of $-\\infty$. Insert $-5$ into the max-heap [$-2$, $-4$, $-3$]. What goes wrong?', a: 'Index 4 gets 0, but its parent A[2] = $-4$ is smaller, so the heap is already broken. Then HEAP-INCREASE-KEY(A, 4, $-5$) sees $-5 < 0$ and errors. $-\\infty$ avoids both problems.' },
   };
@@ -265,7 +265,7 @@
   };
 
   H['c310-heap-decrease-key'] = {
-    asks: 'In a max-heap, the key at index i gets smaller. Which way might it have to move, and which course procedure repairs the heap?',
+    asks: "In a max-heap, the key at index i gets smaller. Which course procedure repairs the heap?",
     idea: 'This is a demotion, the mirror image of INCREASE-KEY. A smaller key is still $\\le$ its parent, but it may now be smaller than a child, so it can only sink, and sinking is exactly what MAX-HEAPIFY does.',
     steps: [
       'Above i: before the change, $A[\\text{Parent}(i)] \\ge$ old A[i] $>$ new A[i]. So the link to the parent is still fine.',
@@ -280,7 +280,7 @@
       { text: 'MAX-HEAPIFY(A, 2): larger child 27 (index 5) beats 7: swap.', heap: [40, 27, 36, 18, 7, 30, 9, 11, 14, 20, 6] },
       { text: 'MAX-HEAPIFY(A, 5): larger child 20 (index 10) beats 7: swap. Leaf: done.', heap: [40, 27, 36, 18, 20, 30, 9, 11, 14, 7, 6] },
     ],
-    answer: 'Downward: it can only become smaller than a child (its parent is still $\\ge$ it). Repair with MAX-HEAPIFY(A, i); both subtrees of i are still heaps, so its precondition holds.',
+    answer: "MAX-HEAPIFY(A, i): the element can only move down (its parent is still $\\ge$ it), and both subtrees of i are still heaps, so the precondition holds.",
     mistake: 'Running the INCREASE-KEY loop (moving up) after a decrease. A smaller key never beats its parent, so that loop does nothing and the heap stays broken below.',
     tryIt: { q: 'Max-heap [50, 45, 40, 30, 35, 38, 22]: A[1] drops to 25. Repair it.', a: 'MAX-HEAPIFY(A, 1): children 45 and 40, swap with 45 (index 2). At index 2: children 30 and 35, swap with 35 (index 5). Leaf. Result [45, 35, 40, 30, 25, 38, 22].' },
   };

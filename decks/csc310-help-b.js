@@ -8,7 +8,7 @@
   const H = FC.help = FC.help || {};
 
   H['c310-3-analogy-all'] = {
-    asks: 'Match each of the five symbols $\\Theta, O, o, \\Omega, \\omega$ to a comparison between two plain numbers $a$ and $b$: $=$, $\\le$, $<$, $\\ge$ or $>$.',
+    asks: "Match $\\Theta$ to a comparison between two plain numbers $a$ and $b$: $=$, $\\le$, $<$, $\\ge$ or $>$.",
     idea: 'Think of each function as having a speed of growth. The five symbols compare the speed of $f$ with the speed of $g$, the way $=, \\le, <, \\ge, >$ compare two numbers. Constant multipliers do not change the speed, so $3n^2$ and $n^2$ count as equal.',
     steps: [
       '$f = \\Theta(g)$: same speed, because $f$ is trapped between two stretched copies of $g$. Like $a = b$.',
@@ -29,7 +29,7 @@
       ],
       marks: [{ x: 8, label: '$n = 8$' }, { x: 10, label: '$n = 10$' }],
     },
-    answer: '$\\Theta$ is like $a = b$; $O$ like $a \\le b$; $o$ like $a < b$; $\\Omega$ like $a \\ge b$; $\\omega$ like $a > b$.',
+    answer: "$\\Theta$ is like $a = b$ (and $O$ like $\\le$, $o$ like $<$, $\\Omega$ like $\\ge$, $\\omega$ like $>$).",
     mistake: 'Reading the analogy as "$f(n) \\le g(n)$ at every $n$". It compares growth speed, not values: $3n^2 = O(n^2)$ is true even though $3n^2 > n^2$ for every $n \\ge 1$.',
     tryIt: { q: 'Which of $\\Theta, O, o, \\Omega, \\omega$ are true for $f(n) = n$, $g(n) = n^3$?', a: '$n$ grows strictly slower than $n^3$ ($n/n^3 = 1/n^2 \\to 0$), like $a < b$. So $O$ and $o$ are true; $\\Theta$, $\\Omega$, $\\omega$ are false.' },
   };
@@ -56,7 +56,7 @@
   };
 
   H['c310-3-theta-def'] = {
-    asks: 'State exactly what has to be true for $f(n) \\in \\Theta(g(n))$: which constants exist and which inequality they satisfy, from which point on.',
+    asks: "State exactly what has to be true for $f(n) \\in \\Theta(g(n))$: which constants exist and which inequality they satisfy, from which point on.",
     idea: 'A sandwich. Squeeze $f$ between a shrunk copy $c_1 g$ (floor) and a stretched copy $c_2 g$ (ceiling). If, from some point on, $f$ never leaves that band, $f$ grows at the same speed as $g$.',
     steps: [
       'The slide 6 definition: $c_1 g(n) \\le f(n) \\le c_2 g(n)$ $\\forall n \\ge n_0$, with $c_1, c_2 > 0$. ($\\forall$ reads "for all".)',
@@ -77,13 +77,13 @@
       marks: [{ x: 3, label: '$n_0 = 3$' }],
       from: 3,
     },
-    answer: 'There exist constants $c_1 > 0$, $c_2 > 0$ and $n_0$ such that $c_1 g(n) \\le f(n) \\le c_2 g(n)$ for all $n \\ge n_0$. Then $g$ is an asymptotically tight bound for $f$.',
+    answer: "There exist constants $c_1 > 0$, $c_2 > 0$ and $n_0$ such that $c_1 g(n) \\le f(n) \\le c_2 g(n)$ for all $n \\ge n_0$.",
     mistake: 'Proving only one side. $\\Theta$ needs the floor AND the ceiling with one shared $n_0$; if the two sides start at different points, take the larger one.',
     tryIt: { q: 'Give $c_1, c_2, n_0$ showing $n^2 + 6n \\in \\Theta(n^2)$.', a: 'Floor: $n^2 \\le n^2 + 6n$ for $n \\ge 1$, so $c_1 = 1$. Ceiling: $6n \\le n^2$ when $n \\ge 6$, so $n^2 + 6n \\le 2n^2$. Take $c_1 = 1$, $c_2 = 2$, $n_0 = 6$.' },
   };
 
   H['c310-3-bigO-def'] = {
-    asks: 'State exactly what has to be true for $f(n) \\in O(g(n))$: which constants exist, the inequality, and from which point on.',
+    asks: "State exactly what has to be true for $f(n) \\in O(g(n))$: which constants exist, the inequality, and from which point on.",
     idea: 'A ceiling. Stretch $g$ by a constant $c$; if from some point on $f$ stays under the stretched copy forever, $f$ grows no faster than $g$. Only the ceiling matters, not a floor.',
     steps: [
       'The slide 13 definition: $0 \\le f(n) \\le c\\,g(n)$ $\\forall n \\ge n_0$, with $c > 0$.',
@@ -103,13 +103,13 @@
       marks: [{ x: 8, label: '$n_0 = 8$' }],
       from: 8,
     },
-    answer: 'There exist constants $c > 0$ and $n_0$ such that $0 \\le f(n) \\le c\\,g(n)$ for all $n \\ge n_0$. $g$ is an asymptotic upper bound for $f$.',
+    answer: "There exist constants $c > 0$ and $n_0$ such that $0 \\le f(n) \\le c\\,g(n)$ for all $n \\ge n_0$.",
     mistake: 'Thinking $f \\le g$ must hold with no constant. $3n + 8 > n$ for every $n$, but $3n + 8 \\in O(n)$ because you may stretch $g$ by $c$ and ignore $n < n_0$.',
     tryIt: { q: 'Find $c$ and $n_0$ showing $5n + 12 \\in O(n)$.', a: '$12 \\le n$ when $n \\ge 12$, so $5n + 12 \\le 6n$ for $n \\ge 12$: $c = 6$, $n_0 = 12$. (Also $c = 17$, $n_0 = 1$, since $12 \\le 12n$ for $n \\ge 1$.)' },
   };
 
   H['c310-3-omega-def'] = {
-    asks: 'State exactly what has to be true for $f(n) \\in \\Omega(g(n))$: which constants exist, the inequality, and from which point on.',
+    asks: "State exactly what has to be true for $f(n) \\in \\Omega(g(n))$: which constants exist, the inequality, and from which point on.",
     idea: 'A floor. Shrink $g$ by a constant $c$; if from some point on $f$ stays on or above the shrunk copy forever, $f$ grows at least as fast as $g$.',
     steps: [
       'The definition: $0 \\le c\\,g(n) \\le f(n)$ for all $n \\ge n_0$, with $c > 0$. (Slide 17 writes it as $f \\ge c\\,g(n)$ $\\forall n \\ge n_0$ and $c > 0$; same thing.)',
@@ -129,13 +129,13 @@
       marks: [{ x: 8, label: '$n_0 = 8$' }],
       from: 8,
     },
-    answer: 'There exist constants $c > 0$ and $n_0$ such that $0 \\le c\\,g(n) \\le f(n)$ for all $n \\ge n_0$. $g$ is an asymptotic lower bound for $f$.',
+    answer: "There exist constants $c > 0$ and $n_0$ such that $0 \\le c\\,g(n) \\le f(n)$ for all $n \\ge n_0$.",
     mistake: 'Copying the $O$ definition and keeping $\\le c\\,g(n)$ on the right. For $\\Omega$ the stretched $g$ goes UNDER $f$: $c\\,g(n) \\le f(n)$.',
     tryIt: { q: 'Find $c$ and $n_0$ showing $n^2 - 6n \\in \\Omega(n^2)$.', a: 'Try $c = \\tfrac12$: $n^2 - 6n \\ge \\tfrac12 n^2 \\iff \\tfrac12 n^2 \\ge 6n \\iff n \\ge 12$. So $c = \\tfrac12$, $n_0 = 12$.' },
   };
 
   H['c310-3-tf-poly'] = {
-    asks: 'Decide whether every polynomial of degree $d$ (leading coefficient positive) is $\\Theta(n^d)$, and back it up with a reason that would work for any such polynomial.',
+    asks: "Give a reason, working for any such polynomial, why every polynomial of degree $d$ (leading coefficient positive) is $\\Theta(n^d)$.",
     idea: 'Divide the polynomial by $n^d$. What is left is the leading coefficient $a_d$ plus leftovers like $a_0/n^d$ that shrink toward 0. Something that settles at $a_d > 0$ can be trapped between two positive constants: that is the $\\Theta$ sandwich.',
     steps: [
       'Write $p(n) = a_d n^d + a_{d-1} n^{d-1} + \\dots + a_0$ with $a_d > 0$. Goal: $c_1 n^d \\le p(n) \\le c_2 n^d$ for all $n \\ge n_0$.',
@@ -156,13 +156,13 @@
       marks: [{ x: 5, label: '$n_0 = 5$' }],
       from: 5,
     },
-    answer: 'True. With $S = |a_{d-1}| + \\dots + |a_0|$: $\\tfrac12 a_d\\, n^d \\le p(n) \\le (a_d + S)\\, n^d$ for all $n \\ge \\max(1, 2S/a_d)$, so $p(n) = \\Theta(n^d)$ (and so also $O(n^d)$).',
+    answer: "The leading term dominates. With $S = |a_{d-1}| + \\dots + |a_0|$: $\\tfrac12 a_d\\, n^d \\le p(n) \\le (a_d + S)\\, n^d$ for all $n \\ge \\max(1, 2S/a_d)$, so $p(n) = \\Theta(n^d)$.",
     mistake: 'Answering "true, drop the lower terms" with no constants. A justification from the definition names $c_1$, $c_2$, $n_0$ and shows why both inequalities hold.',
     tryIt: { q: 'Use the recipe to give $c_1, c_2, n_0$ for $3n^2 - 4n + 1 = \\Theta(n^2)$.', a: '$a_d = 3$, $S = 4 + 1 = 5$. $c_1 = \\tfrac32$, $c_2 = 3 + 4 + 1 = 8$, $n_0 = 2 \\cdot 5/3 = 10/3$, rounded up to 4. Check $n = 4$: $24 \\le 33 \\le 128$.' },
   };
 
   H['c310-3-tf-4n5-theta1'] = {
-    asks: 'Is $4n + 5$ in $\\Theta(1)$, the set of functions that stay between two positive constants forever? Say yes or no and prove it.',
+    asks: "$\\Theta(1)$ is the set of functions that stay between two positive constants forever. Prove that $4n + 5$ is not in it.",
     idea: '$\\Theta(1)$ is a flat band: $c_1 \\le f(n) \\le c_2$. A function that keeps climbing must eventually break through any flat ceiling, no matter how high you put it.',
     steps: [
       'With $g(n) = 1$ the $\\Theta$ definition reads: $c_1 \\cdot 1 \\le 4n + 5 \\le c_2 \\cdot 1$ for all $n \\ge n_0$.',
@@ -182,13 +182,13 @@
       ],
       marks: [{ x: 3.75, label: '$3.75$' }, { x: 8.75, label: '$8.75$' }, { x: 13.75, label: '$13.75$' }],
     },
-    answer: 'False. $4n + 5 \\le c_2$ fails for every $n > (c_2 - 5)/4$, so no constant ceiling holds for all large $n$. In fact $4n + 5 = \\Theta(n)$.',
+    answer: "$4n + 5 \\le c_2$ fails for every $n > (c_2 - 5)/4$, so no constant ceiling holds for all large $n$. In fact $4n + 5 = \\Theta(n)$.",
     mistake: 'Thinking "$+5$ is a constant, so it is $\\Theta(1)$". The term that decides is the one that grows: $4n$.',
     tryIt: { q: 'True or false: $7 + \\tfrac1n = \\Theta(1)$.', a: 'True. For $n \\ge 1$: $0 < \\tfrac1n \\le 1$, so $7 \\le 7 + \\tfrac1n \\le 8$. Take $c_1 = 7$, $c_2 = 8$, $n_0 = 1$.' },
   };
 
   H['c310-3-tf-4n5-On2'] = {
-    asks: 'Is $4n + 5 = O(n^2)$? Answer true or false and back it with an actual pair $c$, $n_0$.',
+    asks: "Back up $4n + 5 = O(n^2)$ with an actual pair $c$, $n_0$.",
     idea: '$O$ is like $\\le$, and $\\le$ does not have to be close: $3 \\le 100$ is true. $4n + 5$ grows slower than $n^2$, so $n^2$ is a loose but valid ceiling.',
     steps: [
       'Goal: find $c > 0$ and $n_0$ with $4n + 5 \\le c\\,n^2$ for all $n \\ge n_0$.',
@@ -208,13 +208,13 @@
       marks: [{ x: 5, label: '$n_0 = 5$ for $c = 1$' }],
       from: 5,
     },
-    answer: 'True. $c = 9$, $n_0 = 1$: for $n \\ge 1$, $4n + 5 \\le 4n^2 + 5n^2 = 9n^2$. (Or $c = 1$, $n_0 = 5$.) $O$ needs an upper bound, not a tight one.',
+    answer: "$c = 9$, $n_0 = 1$: for $n \\ge 1$, $4n + 5 \\le 4n^2 + 5n^2 = 9n^2$. (Or $c = 1$, $n_0 = 5$.)",
     mistake: 'Answering false because "$4n + 5$ is $O(n)$, not $O(n^2)$". Both are true; $O(n)$ is just the tighter statement.',
     tryIt: { q: 'True or false, with constants: $6n + 2 = O(n^3)$.', a: 'True. For $n \\ge 1$: $6n \\le 6n^3$ and $2 \\le 2n^3$, so $6n + 2 \\le 8n^3$. Take $c = 8$, $n_0 = 1$.' },
   };
 
   H['c310-3-tf-theta-implies'] = {
-    asks: 'If $f$ is trapped in a $\\Theta(g)$ sandwich, is $f$ automatically $O(g)$? Automatically $\\Omega(g)$? Answer by pointing at the definitions.',
+    asks: "Explain, by pointing at the definitions, why $f = \\Theta(g)$ makes $f$ automatically $O(g)$ and $\\Omega(g)$.",
     idea: 'The $\\Theta$ sandwich is two inequalities glued together. The top half, by itself, is the $O$ definition. The bottom half, by itself, is the $\\Omega$ definition.',
     steps: [
       '$f(n) = \\Theta(g(n))$ gives $c_1, c_2 > 0$ and $n_0$ with $c_1 g(n) \\le f(n) \\le c_2 g(n)$ for all $n \\ge n_0$.',
@@ -234,13 +234,13 @@
       marks: [{ x: 4, label: '$n_0 = 4$' }],
       from: 4,
     },
-    answer: 'Yes to both. The right half of the sandwich, $f(n) \\le c_2 g(n)$, is the $O$ definition; the left half, $c_1 g(n) \\le f(n)$, is the $\\Omega$ definition; both use the same $n_0$.',
+    answer: "The right half of the sandwich, $f(n) \\le c_2 g(n)$, is the $O$ definition; the left half, $c_1 g(n) \\le f(n)$, is the $\\Omega$ definition; both use the same $n_0$.",
     mistake: 'Running the implication backward: $O$ alone does NOT give $\\Theta$. You need both $O$ and $\\Omega$.',
     tryIt: { q: 'If $f(n) = O(g(n))$, does $f(n) = \\Theta(g(n))$ follow? Test with $f(n) = n$, $g(n) = n^2$.', a: 'No. $n = O(n^2)$ ($n \\le n^2$ for $n \\ge 1$), but $n \\ne \\Omega(n^2)$: $c\\,n^2 \\le n$ means $n \\le 1/c$, which fails for large $n$. No floor, so no $\\Theta$.' },
   };
 
   H['c310-3-which-notation'] = {
-    asks: 'The lecture pairs each notation with a job. Which one bounds the worst case, which bounds the best case, and which gives a tight bound?',
+    asks: "The lecture pairs each notation with a job. Which one bounds the worst-case running time from above?",
     idea: 'For one input size $n$, different inputs take different times: the best case is the fastest, the worst case the slowest. Put a ceiling over the slowest and every input is under it. Put a floor under the fastest and every input is over it.',
     steps: [
       'Fix $n$. Every input of size $n$ has a running time between the best-case time and the worst-case time.',
@@ -259,13 +259,13 @@
         { label: '$\\Omega$ floor: $\\tfrac12 n$', f: n => n / 2, tone: 'c' },
       ],
     },
-    answer: '$O$ bounds the worst case from above; $\\Omega$ bounds the best case from below; $\\Theta$ is a tight bound (upper and lower at once).',
+    answer: "$O$ bounds the worst case from above (and $\\Omega$ bounds the best case from below; $\\Theta$ is tight).",
     mistake: 'Thinking $O$ MEANS worst case: $O$, $\\Omega$, $\\Theta$ bound any function, and the pairing is only how they are used. Insertion sort\'s worst case is $\\Theta(n^2)$, so the worst case is also $\\Omega(n^2)$.',
     tryIt: { q: 'An algorithm does $3n$ steps on its best input and $n^3$ steps on its worst input of size $n$. What do $O$ and $\\Omega$ tell you about its running time?', a: 'Worst case $n^3 \\le 1 \\cdot n^3$, so the running time is $O(n^3)$. Best case $3n \\ge 1 \\cdot n$, so it is $\\Omega(n)$. Every input of size $n$ takes between those.' },
   };
 
   H['c310-3-prove-Omega'] = {
-    asks: 'Show $7n - 3$ grows at least as fast as $n$, using the $\\Omega$ definition: name $c$ and $n_0$ and show the inequality holds from $n_0$ on.',
+    asks: "Name $c$ and $n_0$ that show $7n - 3 = \\Omega(n)$, and why the inequality holds from $n_0$ on.",
     idea: 'You need a floor $c \\cdot n$ under $7n - 3$. The "$-3$" stops $c = 7$ from working, so pick $c$ a bit smaller. The gap $7n - c\\,n$ then grows with $n$ and soon swallows the 3.',
     steps: [
       'Write what you must show: find $c > 0$ and $n_0$ so that $0 \\le c\\,n \\le 7n - 3$ for every $n \\ge n_0$.',
@@ -281,7 +281,7 @@
       marks: [{ x: 3, label: '$n_0 = 3$' }],
       from: 3,
     },
-    answer: '$c = 6$, $n_0 = 3$: for $n \\ge 3$, $7n - 3 \\ge 6n \\ge 0$. (Other pairs work too, e.g. $c = 1$, $n_0 = 1$, since $7n - 3 \\ge n \\iff n \\ge \\tfrac12$.)',
+    answer: "$c = 6$, $n_0 = 3$: $7n - 3 \\ge 6n \\iff n \\ge 3$. (Other pairs work too, e.g. $c = 1$, $n_0 = 1$.)",
     mistake: 'Choosing $c$ equal to the leading coefficient (7), which can never beat the $-3$. For $\\Omega$ with a minus sign, pick $c$ smaller than the leading coefficient.',
     tryIt: { q: 'Prove $5n - 8 = \\Omega(n)$.', a: 'Take $c = 4$: $5n - 8 \\ge 4n \\iff n \\ge 8$. So $c = 4$, $n_0 = 8$ (check $n = 8$: $32 \\ge 32$).' },
   };

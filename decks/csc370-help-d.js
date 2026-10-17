@@ -49,7 +49,7 @@
   };
 
   H['l3-banana-diagram'] = {
-    asks: 'Draw the boxes this code makes in memory and show how their values change, crossing out old ones.',
+    asks: 'Picture RAM while this code runs: which variables get a box, and what values do they hold (old ones crossed out)?',
     idea: 'A memory diagram has one box per declared variable, nothing more. A value that is computed but never assigned to a variable gets no box.',
     steps: [
       'Count the declarations: only `int banana` makes a box. Draw it holding 13.',
@@ -110,7 +110,7 @@
   };
 
   H['l3-why-money'] = {
-    asks: 'Explain why re-pointing p inside money leaves main’s x alone, and say which line would actually change x.',
+    asks: 'Explain why x is still 10 after money() runs p = &q.',
     idea: 'C passes every argument by value: the function gets a copy. When the argument is an address, the copy is a second arrow to the same box. You can write through that arrow (`*p = ...`) or swing it somewhere else (`p = ...`). Only the first one reaches x.',
     steps: [
       '`money(&x)` copies x’s address into money’s own parameter p. p is a separate box that holds that address.',
@@ -119,13 +119,13 @@
       { text: 'The two lines side by side:', code: 'void money(int *p) {\n    int q = 100;\n    p = &q;     /* moves the arrow: x unchanged */\n}\n\nvoid money2(int *p) {\n    *p = 100;   /* writes through the arrow: x becomes 100 */\n}' },
       'gcc with `-Wall -Wextra` even warns "parameter p set but not used" for money: the compiler can see that line has no effect outside.',
     ],
-    answer: 'C passes by value, so p is a local copy of x’s address; `p = &q` changes only the copy. To change x, assign through the pointer: `*p = 100;`',
+    answer: 'p is a local copy of x’s address (pass by value); p = &q only re-points the copy. To change x, assign through the pointer: *p = 100;',
     mistake: 'Writing `p = 100;` (that stores 100 as an address). The star is what means "the box p points at".',
     tryIt: { q: '`void reset(int *p) { int zero = 0; p = &zero; }` Does `reset(&x)` set x to 0? If not, fix it.', a: 'No: it only re-points the copy p, so x keeps its value. Fix: `void reset(int *p) { *p = 0; }`' },
   };
 
   H['l3-malloc-free'] = {
-    asks: 'Name the two C library calls that get memory while the program runs and give it back.',
+    asks: 'Name the C command that grabs memory dynamically.',
     idea: 'Ordinary local variables live on the stack and vanish when their function ends. Memory asked for at run time comes from the heap and stays until YOU release it. One call grabs, one call releases.',
     steps: [
       '`malloc(n)` (from stdlib) reserves n bytes on the heap and returns a pointer to them, or NULL if there is not enough memory.',
@@ -133,7 +133,7 @@
       { text: 'The usual pattern:', code: '#include <stdlib.h>\n\nint *nums = malloc(5 * sizeof(int));  /* room for 5 ints */\nif (nums == NULL) { return 1; }       /* always check */\n*nums = 42;\nfree(nums);                           /* release it */' },
       'Forget `free` and the memory leaks until the program ends. Use the pointer after `free` and it is a dangling pointer: undefined behaviour.',
     ],
-    answer: 'malloc (grabs heap memory) and free (releases it).',
+    answer: 'malloc (it grabs heap memory); free releases it.',
     mistake: 'Answering `new` and `delete`: those are C++ words, not C.',
     tryIt: { q: 'Which stdlib call grabs memory like malloc but also sets it all to zero, and how do its arguments differ?', a: 'calloc. It takes a count and an item size, e.g. `calloc(5, sizeof(int))`, instead of one total size in bytes.' },
   };

@@ -47,7 +47,7 @@
       'The plan for each job was worked out first and written on paper, to tell the operators what to plug and set.',
       'Rewiring for every new problem was slow. That pain is exactly what von Neumann\'s stored-program idea fixed.',
     ],
-    answer: 'By moving cords (plugging cables) and turning knobs; the instructions were often written on paper for the operators.',
+    answer: 'By moving cords (plugging cables) and turning knobs. The instructions were often written on paper for the operators.',
     mistake: 'Answering "with punched cards" or "in machine code". There was no stored program yet, so programming meant rewiring.',
     tryIt: { q: 'After the stored-program idea, what replaced rewiring when you wanted the machine to do a new job?', a: 'Loading a different program into memory, just like loading new data.' },
   };

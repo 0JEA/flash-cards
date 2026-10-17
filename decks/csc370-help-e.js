@@ -142,7 +142,7 @@
 
   // ---- compilers and interpreters ---------------------------------------------------------
   H['l4-compiler-steps-list'] = {
-    asks: 'Name the three main steps a compiler goes through, in the order it does them.',
+    asks: 'Name the first step of a compiler, the one that turns characters into tokens.',
     idea: 'Follow one statement through the pipeline. Characters become tokens, tokens become a parse tree, and the tree becomes machine code. Each step needs the previous step’s output.',
     steps: [
       'Lexical analysis: read the characters left to right and group them into lexemes, each labelled with a token. `x = y + 2 * z;` becomes `x` identifier, `=` assignment operator, `y` identifier, and so on.',
@@ -153,13 +153,13 @@
         ['2. syntax analysis', 'tokens', 'parse tree'],
         ['3. code generation', 'parse tree', 'machine code']] } },
     ],
-    answer: 'Lexical analysis, then syntax analysis, then low-level (machine) code generation.',
+    answer: 'Lexical analysis. Then syntax analysis (parse tree), then low-level code generation.',
     mistake: 'Putting syntax analysis first. The parser builds its tree out of tokens, so the lexical analyzer has to produce them before it can start.',
     tryIt: { q: 'Name the step that produces each: (a) a parse tree, (b) `load`/`add`/`store` instructions, (c) the pair `sum` / identifier.', a: '(c) lexical analysis comes first, then (a) syntax analysis, then (b) code generation.' },
   };
 
   H['l4-hybrid'] = {
-    asks: 'Besides pure compiling and pure interpreting, there is a third way to run a program. What is it, and which language is the classic example?',
+    asks: 'Besides pure compiling and pure interpreting, there is a third way to run a program. Describe it.',
     idea: 'Compile once into a halfway language that is easy to interpret, then let each machine interpret that. You get most of a compiler’s speed and an interpreter’s portability.',
     steps: [
       'A pure compiler turns source into machine code for one kind of processor: fast, but tied to that machine.',
@@ -168,13 +168,13 @@
       { text: 'Java does exactly this:', code: 'javac Hello.java   → Hello.class  (bytecode, not machine code)\njava Hello         → the JVM interprets (or JIT-compiles) the bytecode' },
       'A JIT (just-in-time) system goes further: it compiles each bytecode method to machine code the first time it is called and keeps it for later calls.',
     ],
-    answer: 'Source is compiled to an intermediate language (bytecode), which is then interpreted or JIT-compiled on each machine. Example: Java (source → bytecode → JVM).',
+    answer: 'Compile to an intermediate language (such as bytecode), then interpret that on each machine. Example: Java and its JVM.',
     mistake: 'Calling bytecode machine code. No real processor runs Java bytecode directly; the JVM does.',
     tryIt: { q: 'Python’s usual implementation turns `.py` source into bytecode, then runs that bytecode on a virtual machine. Compiled, interpreted or hybrid?', a: 'Hybrid: compile once to an intermediate language (bytecode), then interpret it.' },
   };
 
   H['l4-lexeme-token'] = {
-    asks: 'Lexeme and token are both "pieces" of a program. What is the difference?',
+    asks: 'Define a lexeme.',
     idea: 'A lexeme is the actual text in the source. A token is the name of its category. Think of a word and its part of speech: "dog" is the word, "noun" is its category.',
     steps: [
       { text: 'The textbook’s example, `index = 2 * count + 17;`:', table: { head: ['lexeme (the text)', 'token (its category)'], rows: [
@@ -183,13 +183,13 @@
       'Many lexemes share one token: `index` and `count` are different lexemes, both identifiers.',
       'Some tokens have only one possible lexeme: the token for `+` is only ever `+`.',
     ],
-    answer: 'A lexeme is a lowest-level syntactic unit (e.g. `if`, `count`). A token is a category of lexemes (e.g. `count` is an identifier; `if` is a reserved word).',
+    answer: 'A lowest-level syntactic unit, like `if` or `count`. A token is the category of a lexeme (count → identifier).',
     mistake: 'Swapping them. The lexeme is what is literally written; the token is the label the compiler gives it.',
     tryIt: { q: 'Give the lexemes and tokens of `total = total - 5;`', a: '`total` identifier, `=` assignment operator, `total` identifier, `-` minus operator, `5` integer literal, `;` semicolon.' },
   };
 
   H['l4-tokenize-while'] = {
-    asks: 'Cut the statement into its lexemes (the smallest pieces of text), then name the category (token) of each.',
+    asks: 'Say whether >= is one lexeme or two, and name its token.',
     idea: 'Read left to right, skip spaces, and take the longest piece that still makes sense as one unit. Then ask "what kind of thing is this?" for each piece.',
     steps: [
       'Spaces separate lexemes but are not lexemes themselves.',
@@ -200,13 +200,13 @@
         ['`sum`', 'identifier'], ['`+`', 'plus (arithmetic) operator'], ['`count`', 'identifier'], ['`;`', 'semicolon']] } },
       'Token names differ between compilers (her slide writes things like `for_resWord`, `int_literal`); what matters is the category.',
     ],
-    answer: 'while reserved word · ( open paren · count identifier · >= relational operator · 10 integer literal · ) close paren · sum identifier · = assignment operator · sum identifier · + plus operator · count identifier · ; semicolon.',
+    answer: 'One lexeme, a relational operator. (Whole statement: while reserved word, ( paren, count identifier, >= relational operator, 10 integer literal, ) paren, sum identifier, = assignment operator, sum identifier, + plus operator, count identifier, ; semicolon.)',
     mistake: 'Splitting `>=` into `>` and `=`, or giving `count` a different token the second time it appears. The same text always gets the same token.',
     tryIt: { q: 'Lexemes and tokens of `if (x != 0) y = y / x;`', a: '`if` reserved word, `(` open paren, `x` identifier, `!=` relational operator, `0` integer literal, `)` close paren, `y` identifier, `=` assignment operator, `y` identifier, `/` division operator, `x` identifier, `;` semicolon: 12 lexemes.' },
   };
 
   H['l4-how-know'] = {
-    asks: 'When the compiler meets `x = y + 2 * z;`, how does it tell the operators, the variables and the plain punctuation apart?',
+    asks: 'Say how the lexical analyzer knows where an identifier such as x stops.',
     idea: 'The compiler does not "know" anything. The language’s rules say what each kind of lexeme looks like, and the lexical analyzer checks the characters against those rules one at a time, left to right.',
     steps: [
       { text: 'The lexical analyzer’s loop, roughly:', code: 'repeat until the end of the file:\n  skip whitespace\n  letter or _ : keep reading while letter, digit or _   → identifier\n  digit       : keep reading while digit                → integer literal\n  otherwise   : match a symbol from the rules (= + * ;) → its operator / punctuation' },
@@ -214,7 +214,7 @@
       'It skips the space and reads `=`. The rules say `=` is the assignment operator, which has its own machine code.',
       'Same for the rest: `y` and `z` are identifiers, `+` and `*` are operators, `2` is a literal, and `;` is punctuation that ends the statement.',
     ],
-    answer: 'The language has rules for what makes an operator, a variable and plain syntax. The lexical analyzer reads left to right, ignoring whitespace; on `x` it keeps adding characters to the identifier until it meets one that is not a letter, digit or underscore. Then it reads `=`, which the rules say is the assignment operator, and so on.',
+    answer: 'It reads left to right, ignoring whitespace, and keeps adding characters to the identifier until one is not a letter, digit or underscore. Each lexeme is then classified by the language’s rules (= is the assignment operator).',
     mistake: 'Saying it relies on the spaces. `x=y+2*z;` with no spaces is read exactly the same way, because each lexeme ends where the rules say it ends.',
     tryIt: { q: 'In `count2=7;` why is `count2` read as one identifier and not `count` followed by `2`?', a: 'Digits may continue an identifier, so reading goes on through the `2` and stops only at `=`, which is not a letter, digit or underscore.' },
   };
@@ -301,7 +301,7 @@
   };
 
   H['l4-diff'] = {
-    asks: 'What is the key difference in how a compiler and an interpreter handle a program?',
+    asks: 'Say how much of the program a compiler processes before it produces lower-level code.',
     idea: 'Think of translating a book. A compiler translates the whole book first, then you read it. An interpreter is a live interpreter: it translates one sentence, you hear it, then it moves to the next.',
     steps: [
       'Compiler: processes the entire file and produces the lower-level code for all of it at once. Only then does the program run.',
@@ -310,7 +310,7 @@
         ['how much at a time', 'whole file', 'one line'], ['when it runs', 'after all of it is translated', 'each line right after it is translated'],
         ['typo on the last line', 'nothing runs', 'earlier lines run first']] } },
     ],
-    answer: 'A compiler processes the whole file and generates its lower-level code at once. An interpreter translates one line, executes it, then moves to the next.',
+    answer: 'The entire file at once. An interpreter instead translates one line, executes it, then moves on.',
     mistake: 'Saying "a compiler makes machine code and an interpreter does not". Both produce lower-level code; the difference is whole file vs line by line.',
     tryIt: { q: 'A 100-line program has a typo on line 90. What happens with a compiler, and with an interpreter?', a: 'Compiler: the whole file must translate first, so nothing runs. Interpreter: lines 1 to 89 run, then it stops at line 90.' },
   };
@@ -329,14 +329,14 @@
   };
 
   H['l4-adv-interp'] = {
-    asks: 'Why would you want a language to be interpreted? What does interpreting buy you?',
+    asks: 'Give the main advantage of running a language with an interpreter.',
     idea: 'An interpreter does not wait to translate the whole file. It starts on line 1 right away, so you see results sooner, even if a later part of the code is still broken.',
     steps: [
       'With a compiler, the whole file must be translated (and be free of errors) before anything runs.',
       'An interpreter translates and runs the first line immediately, so the program gets going faster.',
       'A mistake further down does not stop the start: the earlier lines still run, and it only stops when it reaches the broken line.',
     ],
-    answer: 'Getting the program going is faster, and mistakes in some parts of the code do not stop the program from starting to run.',
+    answer: 'It starts running sooner, and mistakes elsewhere in the code do not stop it from starting.',
     mistake: 'Saying interpreted programs run faster. Overall they run slower; the advantage is starting sooner and not being blocked by errors elsewhere.',
     tryIt: { q: 'You are trying out a short script, changing one line and rerunning it every minute. Which approach suits this better?', a: 'Interpreted: each run starts right away, with no wait to translate the whole file first.' },
   };
@@ -525,7 +525,7 @@
   const ambOp = (x, op, y) => node('<expr>', x, node('<op>', leaf(op)), y);
   const oc = n => node('<expr>', node('<const>', leaf(n)));
   H['l4-ambiguous'] = {
-    asks: 'Define an ambiguous grammar, and explain why a compiler cannot live with one.',
+    asks: 'Say what makes a grammar ambiguous.',
     idea: 'The compiler gets a program’s meaning from its parse tree: deeper parts are done first. If one sentence can have two different trees, it has two possible meanings, and the compiler has no way to know which one you meant.',
     steps: [
       'A grammar is ambiguous if some sentence (program) has two or more distinct parse trees.',
@@ -537,7 +537,7 @@
       { tree: ambOp(ambOp(oc('8'), '-', oc('4')), '-', oc('2')), caption: '(8 - 4) - 2 = 2: the left - is deeper.' },
       { tree: ambOp(oc('8'), '-', ambOp(oc('4'), '-', oc('2'))), caption: '8 - (4 - 2) = 6: the right - is deeper.' },
     ],
-    answer: 'A sentence (program) has two or more distinct parse trees. Compilers determine meaning, such as operator precedence, from the parse tree, so two trees mean two possible meanings.',
+    answer: 'One sentence has two or more distinct parse trees. Since the compiler takes meaning from the tree, the meaning is then not determined.',
     mistake: 'Saying "ambiguous means it has two derivations". Every sentence can have several derivations (leftmost, rightmost); what matters is two distinct parse trees.',
     tryIt: { q: 'Is her sample grammar ambiguous for `c = c + 2 * a`?', a: 'No. At each step only one rule fits (a `<term>` is a single variable or number), so there is exactly one parse tree.' },
   };
@@ -594,7 +594,7 @@
   };
 
   H['l4-ebnf'] = {
-    asks: 'The C grammar she links is written in EBNF. What do the three bracket marks `{ }+`, `{ }*` and `{ }?` mean?',
+    asks: 'Say what { }* means in the C grammar’s EBNF.',
     idea: 'EBNF is BNF with shorthand for repetition, so you do not need a recursive rule every time you want a list. The marks mean the same as in regular expressions.',
     steps: [
       { text: 'The three marks:', table: { head: ['mark', 'how many times', 'example'], rows: [
@@ -604,13 +604,13 @@
       { text: 'Plain BNF says "one or more digits" with recursion; EBNF says it in one rule:', code: 'BNF:   <number> → <digit> | <digit> <number>\nEBNF:  <number> → {<digit>}+' },
       'Heads up: the textbook writes the same ideas with different brackets (`[ ]` for optional, `{ }` for zero or more). For her course, use the `+`, `*`, `?` marks.',
     ],
-    answer: '`{ }+` one or more; `{ }*` zero or more; `{ }?` zero or one (optional).',
+    answer: '{ }* zero or more. (And { }+ one or more; { }? zero or one.)',
     mistake: 'Mixing up `+` and `*`. `*` allows zero (none at all); `+` needs at least one.',
     tryIt: { q: 'Given `<list> → <item> {, <item>}*`, which are lists: `x`, `x, y, z`, an empty string, `x,`?', a: '`x` and `x, y, z` only. Empty fails (at least one `<item>` is required), and `x,` fails (each comma must be followed by an item).' },
   };
 
   H['l4-production'] = {
-    asks: 'What is one BNF rule called, and what is allowed on its left and right sides?',
+    asks: 'Name what a BNF rule is called.',
     idea: 'A rule says "this one abstract thing can be made of these pieces". So the left side is exactly one name, and the right side is the pieces, which can be actual symbols (terminals) or more names (nonterminals).',
     steps: [
       'A rule is called a production, written LHS → RHS.',
@@ -620,13 +620,13 @@
       '`|` separates alternative right-hand sides: `<var> → a | b | c | d` is four choices for one LHS.',
       'Why one nonterminal on the left: each derivation step replaces one nonterminal using a rule whose LHS is that nonterminal.',
     ],
-    answer: 'A production, written LHS → RHS. The LHS is exactly one nonterminal (in < > brackets). The RHS is a string of terminals and/or nonterminals; `|` separates alternatives.',
+    answer: 'A production, LHS → RHS: one nonterminal on the left; terminals and/or nonterminals on the right; | separates alternatives.',
     mistake: 'Putting terminals, or two nonterminals, on the left. Only one nonterminal ever goes there.',
     tryIt: { q: 'Which are legal BNF rules? (a) `<digit> → 0 | 1`, (b) `<a> <b> → x`, (c) `x → <var>`', a: 'Only (a). (b) has two nonterminals on the left, and (c) has a terminal on the left.' },
   };
 
   H['l4-left-assoc'] = {
-    asks: 'Fix `<expr> → <expr> / <expr> | <const>` so that `/` is always grouped left to right, and explain why the fix works.',
+    asks: 'Rewrite the ambiguous rule so that / groups from the left.',
     idea: 'Ambiguity came from both sides of `/` being allowed to grow. Take away the growth on the right: make the right operand a plain `<const>`. Then the tree can only grow down the left, and the leftmost `/` ends up deepest.',
     steps: [
       'Replace the right `<expr>` with `<const>`: `<expr> → <expr> / <const> | <const>`.',
@@ -638,7 +638,7 @@
       { tree: leftDiv(), caption: 'Left recursion, <expr> → <expr> / <const>: (60 / 12) / 4 = 1.25.' },
       { tree: node('<expr>', cst('60'), leaf('/'), node('<expr>', cst('12'), leaf('/'), node('<expr>', cst('4')))), caption: 'If you put the recursion on the right instead, <expr> → <const> / <expr>: 60 / (12 / 4) = 20.' },
     ],
-    answer: '`<expr> → <expr> / <const> | <const>`. The recursion is only on the left, so in `60 / 12 / 4` the leftmost `/` ends up deepest in the parse tree and is done first: (60 / 12) / 4.',
+    answer: '<expr> → <expr> / <const> | <const>. Recursion is only on the left, so the leftmost / is deepest and done first.',
     mistake: 'Writing `<expr> → <const> / <expr> | <const>`. That is unambiguous too, but it groups right to left.',
     tryIt: { q: 'Most languages make power `^` right-associative: 2 ^ 3 ^ 2 = 2 ^ (3 ^ 2). Write an unambiguous rule over `<const>` that does that.', a: '`<expr> → <const> ^ <expr> | <const>`: recursion on the right puts the rightmost `^` deepest.' },
   };

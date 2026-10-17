@@ -54,22 +54,8 @@
     tryIt: { q: 'Linear probing, $m = 7$, $h^{\\prime}(k) = k \\bmod 7$. Which slots do probes $i = 0, 1, 2$ of key 23 examine?', a: '$23 = 3 \\cdot 7 + 2$, so $h^{\\prime}(23) = 2$. Probes: $i = 0$ → 2, $i = 1$ → 3, $i = 2$ → 4.' },
   };
 
-  H['c310-ws-openaddr-del-rule'] = {
-    asks: 'How do you delete a key from an open-addressing table, and why can you not just empty its slot?',
-    idea: 'A search walks along the probe path until it hits an empty slot, and takes ∅ as proof the key is absent. Emptying a slot in the middle of another key’s path cuts that path; a DEL marker says "something was here, keep walking".',
-    steps: [
-      'Her Problem 1.2 table (linear, $m = 10$): key 5 sits in slot 7, not its home slot 5, because slots 5 and 6 were already full when it was inserted. Its path is 5 → 6 → 7.',
-      'Delete 32 the wrong way: slot 5 becomes ∅. A search for 5 starts at slot 5, sees ∅, and stops: NOT FOUND, although 5 is sitting in slot 7.',
-      'Delete 32 the right way: slot 5 becomes DEL. A search for 5 sees DEL at 5 (continue), 6 at slot 6 (continue), and finds 5 in slot 7.',
-      { text: 'The two choices side by side:', table: slots(['before', 'emptied (wrong)', 'DEL (right)'], T12_START, [70, 81, 22, 93, 4, E, 6, 5, 8, 99], [70, 81, 22, 93, 4, D, 6, 5, 8, 99]) },
-    ],
-    answer: 'Mark the slot DEL (a tombstone), never ∅. Keys inserted after the deleted key may have probed past its slot; DEL keeps their path intact, while ∅ would stop their searches early.',
-    mistake: 'Setting the slot back to null because the key is gone. Searches read ∅ as "stop, not here", so every key whose path crossed that slot becomes unfindable.',
-    tryIt: { q: 'Linear probing, $m = 7$, $h^{\\prime}(k) = k \\bmod 7$. Insert 10, then 17, then delete 10. Search for 17 if slot 3 was emptied, and if it was marked DEL.', a: '10 → slot 3. 17: home 3 is full, so slot 4. Emptied: the search stops at slot 3 (∅) and wrongly says NOT FOUND. DEL: slot 3 DEL (continue), slot 4 holds 17: found.' },
-  };
-
   H['c310-ws-openaddr-search-rule'] = {
-    asks: 'A search looks at slots one at a time along the probe path. For each kind of slot (the key, another key, DEL, ∅), what do you do?',
+    asks: "A search along the probe path of a table with tombstones meets a DEL slot. What do you do?",
     idea: 'An empty slot is the only proof of absence: had the key been inserted, it would have stopped at this ∅ (or earlier) and be sitting there. Another key or a DEL only means "not here, it could be further along".',
     steps: [
       'Start at the home slot $h(k, 0)$.',
@@ -83,7 +69,7 @@
         ['28', '0', '6', '∅', 'stop: NOT FOUND'],
       ] } },
     ],
-    answer: 'The key: FOUND. Another key: continue. DEL: continue. ∅: stop, NOT FOUND (also NOT FOUND once all $m$ slots have been probed).',
+    answer: "Continue to the next probe. (The key: FOUND. Another key: continue. ∅: stop, NOT FOUND.)",
     mistake: 'Stopping at a DEL as if it were empty. DEL means keep going; only ∅ ends a search.',
     tryIt: { q: 'Linear probing, $m = 7$, $h^{\\prime}(k) = k \\bmod 7$. Slots 0–6: ∅, 8, DEL, 22, ∅, ∅, ∅. Search for 22, then for 29.', a: '22: home 1 (8, continue), 2 (DEL, continue), 3: FOUND. 29: home 1 (8), 2 (DEL), 3 (22), 4 (∅): NOT FOUND after 4 probes.' },
   };
@@ -109,7 +95,7 @@
   };
 
   H['c310-ws-openaddr-update-rule'] = {
-    asks: 'How do you change the value stored with a key that is already in the table?',
+    asks: "How do you change the value stored with a key that is already in the table?",
     idea: 'An update is a search followed by overwriting the value. The key stays exactly where the search found it.',
     steps: [
       'Search for the key with the normal search rule: continue past other keys and DEL, stop at ∅.',
@@ -320,7 +306,7 @@
   };
 
   H['c310-ws-openaddr-2-2-search28'] = {
-    asks: 'Quadratic probing, $m = 11$, $h^{\\prime}(k) = k \\bmod 11$. Table: 21, 1, DEL, 13, 15, DEL, ∅, 7, 32, 19, 10. Trace the search for 28.',
+    asks: "Quadratic probing, $m = 11$, $h^{\\prime}(k) = k \\bmod 11$. Table: 21, 1, DEL, 13, 15, DEL, ∅, 7, 32, 19, 10. Trace the search for 28.",
     idea: 'Always compute the home slot first. If it is ∅, the search is over at once.',
     steps: [
       '$h^{\\prime}(28) = 28 \\bmod 11 = 28 - 22 = 6$.',
@@ -438,7 +424,7 @@
   };
 
   H['c310-ws-openaddr-java-why'] = {
-    asks: 'In the trace of insert("E") on "A", "DEL", "C", null, "DEL", why is "E" not written into slot 1 the moment the DEL there is found?',
+    asks: "In the trace of insert(\"E\") on \"A\", \"DEL\", \"C\", null, \"DEL\", why is \"E\" not written into slot 1 the moment the DEL there is found?",
     idea: 'At slot 1 the method knows the seat is free, but not whether "E" is already stored further along its probe path. Only reaching null (or finishing the loop) answers that.',
     steps: [
       'How such a table arises: a key whose path starts at slot 0 can be inserted while slot 1 is full, landing at 2 or later. Deleting slot 1’s old key later turns slot 1 into DEL, but the later key stays put.',
@@ -470,7 +456,7 @@
   };
 
   H['c310-ws-openaddr-dup-bug'] = {
-    asks: 'Suppose an insert wrote the key into the FIRST DEL it met, without probing on for a duplicate. What would go wrong?',
+    asks: "Suppose an insert wrote the key into the FIRST DEL it met, without probing on for a duplicate. What would go wrong?",
     idea: 'A key can sit past a DEL on its own path (it was inserted while that slot was full). Dropping a new copy into the DEL gives the table two copies, and the two copies then disagree.',
     steps: [
       'Use her Java table "A", "DEL", "C", null, "DEL" and a buggy insert("C") with initial slot 0. Slot 0 holds "A"; slot 1 is DEL, so the bug writes "C" there at once.',
@@ -478,7 +464,7 @@
       'Search and update: a search for "C" stops at the first copy (slot 1), so an update changes only that copy; slot 2 keeps the old value.',
       'Delete: delete("C") finds slot 1 and marks it DEL. A later search walks past that DEL and finds the stale copy in slot 2, so the deleted key is still "there".',
     ],
-    answer: 'If the key already existed further along the probe sequence, the table would hold two copies. Searches and updates reach only the first copy, and after a delete the stale older copy is found again.',
+    answer: "If the key already existed further along the probe sequence, the table would hold two copies. (Searches and updates reach only the first copy, and after a delete the stale older copy is found again.)",
     mistake: 'Thinking the only cost is a wasted slot. The real damage is wrong answers: updates miss a copy and deleted keys come back.',
     tryIt: { q: 'Linear probing, $m = 7$, $h^{\\prime}(k) = k \\bmod 7$. Insert 10 and 17, delete 10, then run the buggy insert of 17. Now delete 17 and search for 17. What happens?', a: '10 → 3, 17 → 4; deleting 10 leaves DEL at 3. Buggy insert 17: home 3 is DEL, so 17 is written there: copies in 3 and 4. Delete 17 marks slot 3 DEL; the search goes 3 (DEL), 4: found. The deleted key is still found.' },
   };
@@ -529,7 +515,7 @@
   };
 
   H['c310-ws-openaddr-double-fix'] = {
-    asks: 'How does double hashing avoid both primary and secondary clustering?',
+    asks: "How does double hashing avoid both primary and secondary clustering?",
     idea: 'In double hashing the stride $h_2(k)$ comes from the key itself. Two keys with the same home usually get different strides, so after their first collision their paths split.',
     steps: [
       'Linear forms blocks because every key uses stride 1, so keys with nearby homes run into each other (primary).',

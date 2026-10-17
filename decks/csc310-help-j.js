@@ -23,7 +23,7 @@
   // ═══════════════════════ Dictionaries, direct addressing, hash functions ═══════════════════════
 
   H['c310-hash-motivation'] = {
-    asks: 'Say what we want a dictionary data structure to do, according to the start of the hash-table lecture.',
+    asks: "Which operations do we want a dictionary data structure to make fast, according to the start of the hash-table lecture?",
     idea: 'Think of a phone’s contact list: you type a name (the key) and want the number (the value) at once. You add and delete contacts all the time, and you never need the whole list in sorted order to do that.',
     steps: [
       'Data comes as $\\langle$key, value$\\rangle$ pairs. The slides’ example: prices = { GOOG: 513.25, CAT: 87.22, IBM: 93.37, MSFT: 44.12 }.',
@@ -38,7 +38,7 @@
   };
 
   H['c310-hash-adt-names'] = {
-    asks: 'Give the three names the course uses for the abstract data type that maps keys to values.',
+    asks: "Give the three names the course uses for the abstract data type that maps keys to values.",
     idea: 'An abstract data type (ADT) is a promise about operations ("give me the value for this key"), not a way of storing data. The same promise goes by three names, and a hash table is one way to keep it.',
     steps: [
       'Name 1: Dictionary. Like a real dictionary: look up a word (key), read its definition (value).',
@@ -52,7 +52,7 @@
   };
 
   H['c310-hash-direct-def'] = {
-    asks: 'Describe a direct-address table: what it assumes about the keys, what each array cell holds, and how long its operations take.',
+    asks: "Say what each cell T[i] of a direct-address table holds.",
     idea: 'Use the key itself as the array index. If every key is a small whole number, the key is its own address: the item with key 7 lives in T[7], like room 7 being the 7th door in a hallway.',
     steps: [
       'Assumption 1: every key is in the range $0..m-1$, so it is a legal index into T[0..m−1].',
@@ -61,13 +61,13 @@
       'Search key 5: read T[5] and find Ben; insert key 3: write T[3]. Delete key 7: set T[7] = NULL.',
       'Each operation is one array access with no loop and no key comparisons, so each is $O(1)$.',
     ],
-    answer: 'Keys are distinct and in $0..m-1$. T[0..m−1] has T[i] = the item whose key is i, or NULL if there is none. Search, insert and delete each take $O(1)$.',
+    answer: "T[i] = the item whose key is $i$, or NULL if there is none. (Keys are distinct and in $0..m-1$; search, insert and delete each take $O(1)$.)",
     mistake: 'Leaving out the two assumptions. Without "distinct" two items fight over one cell, and without "range $0..m-1$" a key is not even a legal index.',
     tryIt: { q: 'Seats in a lecture hall are numbered 0 to 119 and every student has a different seat. In a direct-address table keyed by seat: how many cells, where does the student in seat 47 go, and what does deleting them cost?', a: '$m = 120$ cells, T[0..119]. The student goes in T[47]. Deleting sets T[47] = NULL: one access, $O(1)$.' },
   };
 
   H['c310-hash-direct-problem'] = {
-    asks: 'Explain what breaks when direct addressing is used for 32-bit integer keys, and what the course does instead.',
+    asks: "Explain what breaks when direct addressing is used for 32-bit integer keys.",
     idea: 'Direct addressing needs a cell for every key that could ever appear, not just for the keys you actually have. With 32-bit keys that is billions of cells to store perhaps a thousand items, like building a hotel with a room for every person on Earth to host one conference.',
     steps: [
       'A 32-bit key can be any of $2^{32} = 4{,}294{,}967{,}296$ values, so T needs over 4 billion cells.',
@@ -91,7 +91,7 @@
   };
 
   H['c310-hash-uniform'] = {
-    asks: 'Define simple uniform hashing.',
+    asks: "Define simple uniform hashing.",
     idea: 'Picture throwing each key blindfolded at a row of $m$ buckets: every bucket is equally likely to catch it. A hash function that behaves like that spreads keys evenly, so no slot gets crowded.',
     steps: [
       'Definition: each key is equally likely to hash to any of the $m$ slots, so each slot has probability $1/m$.',
@@ -141,7 +141,7 @@
   };
 
   H['c310-hash-avoid'] = {
-    asks: 'Say whether collisions can be avoided, for both cases the slides distinguish.',
+    asks: "Say when collisions can be avoided completely, and by what technique.",
     idea: 'A hash function squeezes many possible keys into few slots; with more possible keys than slots, some must share. The only escape is knowing in advance exactly which keys will ever be stored.',
     steps: [
       'General case: SSNs have $10^9$ possible values, and the table has $10^4$ slots.',
@@ -156,7 +156,7 @@
   };
 
   H['c310-hash-applications'] = {
-    asks: 'Name the four uses of hashing listed on the summary slide.',
+    asks: "Name the four uses of hashing listed on the summary slide.",
     idea: 'Hashing pays off wherever a program must find one item among very many, by a key, quickly. Each use below is a key-to-value lookup in disguise.',
     steps: [
       { text: 'The four uses, with the key and what it finds:', table: { head: ['use', 'key', 'finds'], rows: [['database indexing', 'a record’s key (e.g. a student ID)', 'where that record is stored'], ['compilers', 'an identifier’s name', 'its type and location (the symbol table)'], ['caching', 'a request (e.g. a URL)', 'a saved copy of the result'], ['password authentication', 'the hash of the typed password', 'a match with the stored hash']] } },
@@ -171,7 +171,7 @@
   // ═══════════════════════ Open addressing ═══════════════════════
 
   H['c310-hash-oa-basics'] = {
-    asks: 'Describe how insert and search work in an open-addressing hash table.',
+    asks: "In open addressing, a search reaches an empty (NULL) slot. What does that tell you?",
     idea: 'Every key lives in the array itself, one per slot. If your slot is taken, walk to the next slot in a fixed order (the probe sequence) until one is free; a search walks exactly the same route.',
     steps: [
       'Use $m = 9$, $h(k) = k \\bmod 9$ and linear probing (next slot, wrapping around). Keys 14, 23, 32 all hash to 5.',
@@ -180,13 +180,13 @@
       'Search 41 ($41 \\bmod 9 = 5$): probe 5 (14), 6 (23), 7 (32), 8 (empty). Stop: 41 is not in the table.',
       'Why an empty slot means "absent": had 41 ever been inserted, its insert would have walked this same route and stopped at slot 8 or earlier.',
     ],
-    answer: 'Insert: if the slot is full, try another slot, and so on until an open one is found (probing). Search: follow the same probe sequence; reaching the key returns it, reaching an empty (NULL) slot means the key is not in the table.',
+    answer: "The key is not in the table: a search follows the same probe sequence insertion did, and insertion would have stopped at that empty slot.",
     mistake: 'Checking only slot $h(k)$ and giving up if the key is not there. With open addressing the key may sit several probes further along.',
     tryIt: { q: '$m = 8$, $h(k) = k \\bmod 8$, linear probing. Insert 19, 27, 35, then search for 43. Which slots does the search probe?', a: 'All four keys hash to 3. 19 → 3, 27 → 4, 35 → 5. Search 43 probes 3 (19), 4 (27), 5 (35), 6 (empty): not found after 4 probes.' },
   };
 
   H['c310-hash-oa-props'] = {
-    asks: 'List the properties of open addressing given in the course, including the two load-factor limits.',
+    asks: "Give the load-factor limit the course recommends for open addressing to perform reasonably.",
     idea: 'All keys sit inside one fixed array, with no linked lists. So the array can never hold more keys than it has slots, and the fuller it gets, the longer every probe walk becomes.',
     steps: [
       'A colliding item goes into a different cell of the same table, not into a list hanging off the slot.',
@@ -201,13 +201,13 @@
       curves: [{ label: '$\\frac{1}{1-\\alpha}$', f: a => 1 / (1 - a), tone: 'a' }],
       marks: [{ x: 0.5, label: '$\\alpha = 0.5$' }],
     },
-    answer: 'Colliding items go in a different cell of the table; no dynamic memory; fixed table size; load factor $n/m \\le 1$; keep $n/m < 0.5$ for reasonable performance.',
+    answer: "Keep $n/m < 0.5$. (The hard limit is $n/m \\le 1$, since every key lives in the fixed-size table; no dynamic memory is used.)",
     mistake: 'Treating $n/m \\le 1$ and $n/m < 0.5$ as one rule. The first is a hard limit (there is no room otherwise); the second is performance advice.',
     tryIt: { q: 'An open-addressing table has $m = 64$ slots. What is the most keys it can hold, and the most it should hold under the slides’ advice?', a: 'At most 64, since $n \\le m$. For $n/m < 0.5$ you need $n < 32$, so at most 31 keys.' },
   };
 
   H['c310-hash-search-stop'] = {
-    asks: 'In HASH-SEARCH(T, k), name the two conditions that end the loop without finding k, and what it returns then.',
+    asks: "In HASH-SEARCH(T, k), name the two conditions that end the loop without finding k.",
     idea: 'A search can fail in two ways: it reaches an empty slot (proof the key was never placed on this route), or it has used up all $m$ probes (nothing left to check). Either way it returns NIL.',
     steps: [
       'The loop: $i = 0$; repeat { $j = h(k, i)$; if T[$j$] == $k$, return $j$; $i = i + 1$ } until T[$j$] == NIL or $i == m$; return NIL.',
@@ -222,7 +222,7 @@
   };
 
   H['c310-hash-insert-overflow'] = {
-    asks: 'Say when HASH-INSERT(T, k) reports "hash table overflow", and what it returns when it succeeds.',
+    asks: "Say when HASH-INSERT(T, k) reports \"hash table overflow\".",
     idea: 'Insert walks the probe sequence looking for an empty slot. It gets $m$ tries, one per value of $i$; if every one hits a full slot, it gives up with an error.',
     steps: [
       'The loop: $i = 0$; repeat { $j = h(k, i)$; if T[$j$] == NIL { T[$j$] = $k$; return $j$ } else $i = i + 1$ } until $i == m$; error "hash table overflow".',
@@ -278,7 +278,7 @@
   };
 
   H['c310-hash-linear-formula'] = {
-    asks: 'Write the linear-probing function $h(k, i)$ and say which slots it visits, in order.',
+    asks: "Write the linear-probing function $h(k, i)$.",
     idea: 'Start at the key’s own slot $h^{\\prime}(k)$ and step one slot to the right after each failed probe. The $\\bmod m$ bends the array into a circle: one step right from the last slot lands on slot 0.',
     steps: [
       'Formula: $h(k, i) = (h^{\\prime}(k) + i) \\bmod m$ for $i = 0, 1, \\dots, m - 1$. Here $h^{\\prime}$ is the auxiliary (ordinary) hash function and $i$ counts probes from 0.',
@@ -351,7 +351,7 @@
   };
 
   H['c310-hash-linear-search15'] = {
-    asks: 'Trace a search for 15 ($m = 13$, $h(x) = x \\bmod 13$, linear probing) when slot 2 holds 41 and slot 3 is empty, and say why it stops.',
+    asks: "Trace a search for 15 ($m = 13$, $h(x) = x \\bmod 13$, linear probing) when slot 2 holds 41 and slot 3 is empty.",
     idea: 'An empty slot is a wall for a search. If 15 had ever been inserted, its insert would have walked this same path and taken that empty slot (or one before it), so 15 cannot be hiding beyond it.',
     steps: [
       '$15 = 13 + 2$, so $h(15) = 2$.',
@@ -366,7 +366,7 @@
   };
 
   H['c310-hash-linear-cluster'] = {
-    asks: 'Name the problem linear probing suffers from, and explain how it hurts.',
+    asks: "Which probing technique suffers from primary clustering, and how does that hurt?",
     idea: 'A run of full slots is like a traffic jam: any car arriving anywhere along it crawls to the end and joins it, so the jam grows, and a longer jam catches even more cars. The worksheet calls this primary clustering.',
     steps: [
       { text: 'The slide table after its 8 inserts ($m = 13$) has two runs of full slots:', table: { head: ['run (slots)', 'keys', 'length'], rows: [['2', '41', '1'], ['5–11', '18, 44, 59, 32, 22, 31, 73', '7']] } },
@@ -384,7 +384,7 @@
       ],
       marks: [{ x: 0.5, label: '$\\alpha = 0.5$' }],
     },
-    answer: 'Clustering (primary clustering): colliding items pile up into runs of full cells, and those runs make later collisions need longer probe sequences.',
+    answer: "Linear probing. Colliding items pile up into runs of full cells, and those runs make later collisions need longer probe sequences.",
     mistake: 'Saying the problem is "collisions". Every method has collisions; linear probing’s particular problem is that collisions build runs that keep growing.',
     tryIt: { q: '$m = 10$, linear probing; T[1] = 21, T[2] = 12, T[3] = 33, T[5] = 45, T[6] = 56, others empty. Which empty slot is most likely to be filled by the next key, and with what probability?', a: 'Slot 4: keys with home 1, 2, 3 or 4 all end there, so $4/10$ (slot 7 gets homes 5, 6, 7: $3/10$). Filling 4 would merge the two runs into one run, slots 1–6.' },
   };
@@ -421,7 +421,7 @@
   };
 
   H['c310-hash-delete-insert'] = {
-    asks: 'Describe Delete(k) and Insert(k, o) for linear probing when DELETED markers are used.',
+    asks: "In linear probing with DELETED markers, at which kind of cell may Insert(k, o) stop and store the item?",
     idea: 'DELETED is a "seat taken" sign to a search and a "seat free" sign to an insert. A search must walk past it, since later keys may lie beyond; an insert may sit there, since the slot holds no key.',
     steps: [
       'Delete(k): search for k. If the entry (k, o) is found, write DELETED into its cell and return o.',
@@ -431,7 +431,7 @@
       { text: 'How each operation treats each kind of cell:', table: { head: ['cell holds', 'search', 'insert'], rows: [['a key', 'compare; go on if different', 'go on'], ['DELETED', 'go on', 'may store here'], ['empty', 'stop: not found', 'store here']] } },
       'The worksheet adds a safety rule: insert remembers the first DELETED cell but keeps probing to an empty cell, to be sure k is not already stored further on.',
     ],
-    answer: 'Delete(k): search for k; if (k, o) is found, replace it with DELETED and return o. Insert(k, o): throw an exception if the table is full; start at $h(k)$ and probe consecutive cells until one is empty or DELETED (or all were probed), and store (k, o) there.',
+    answer: "At the first cell that is empty OR DELETED, probing consecutive cells from $h(k)$. (Delete(k) searches for k, replaces (k, o) with DELETED and returns o; a full table throws an exception.)",
     mistake: 'Letting search stop at DELETED, or letting insert skip it. Search treats DELETED as occupied; insert treats it as free.',
     tryIt: { q: '$m = 8$, $h(k) = k \\bmod 8$, linear probing; T[5] = 13, T[6] = 21, T[7] = 29. Delete 21, then insert 37. Where does 37 go, and can 29 still be found?', a: 'Slot 6 becomes DELETED. $h(37) = 5$: slot 5 is full, slot 6 is DELETED, so 37 goes in 6. Search 29: 5 (13), 6 (37), 7 (29), found.' },
   };
@@ -439,7 +439,7 @@
   // ═══════════════════════ Quadratic probing ═══════════════════════
 
   H['c310-hash-quadratic'] = {
-    asks: 'Give the quadratic-probing function and explain the kind of clustering it still has.',
+    asks: "Explain the kind of clustering quadratic probing still has.",
     idea: 'Instead of shuffling along one slot at a time, jump further each time: $+0, +1, +4, +9, \\dots$ when $c_1 = 0$, $c_2 = 1$. That leaps out of a crowded run, but the jump pattern depends only on the starting slot, so keys that start in the same place still walk single file.',
     steps: [
       'Formula (slide 25): $h(k, i) = (h^{\\prime}(k) + c_1 i + c_2 i^2) \\bmod m$. The worksheet takes $c_1 = 0$, $c_2 = 1$: $h(k, i) = (k \\bmod m + i^2) \\bmod m$.',

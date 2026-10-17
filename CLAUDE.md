@@ -18,7 +18,9 @@
 
 ## What it is
 
-A static, single-page study app: no build step and no backend. Classes: AUCSC 370 Programming Languages, AUCSC 310 Algorithm Design & Analysis, AUCSC 325 Software Testing, and the Ethics quiz. Each class screen picks cards with three filters that COMBINE: topics, lectures, assignments (a card is studied only if all three let it through; settings.off keys 'Cat', 'Cat/Sub', 'L:<n>', 'A:<id>', 'A:none'). Every tab has All/None; the summary line shows what's left and clears any filter.
+A static, single-page study app: no build step and no backend. Classes: AUCSC 370 Programming Languages, AUCSC 310 Algorithm Design & Analysis, AUCSC 325 Software Testing, and the Ethics quiz. Each class screen picks cards with ONE list of lectures (with Everything) plus an assignment dropdown (settings.off keys 'L:<n>', 'A:<id>', 'A:none'; old topic keys are dropped at load). The owner rejected the three-filter picker on 2026-10-17 ("broken into 3 sections", main list at the bottom in an inner scroller).
+
+**Answer modes (2026-10-17, for December finals, ~1 h sessions):** a `recall` card with ≤1 point (or `mode: 'quick'`) is QUICK: think, Show answer, Missed it / Got it (~10 s; covert retrieval retains as well as typing, Smith, Roediger & Karpicke 2013). Recall with 2+ points (or `mode: 'write'`) is WRITE: typed, graded by ticking points (honest grading of multi-point answers, Dunlosky 2011); kept to the long-answer questions a final would ask (~2-8 per lecture). MC graduates to Quick recall once right on a later day unless `noRecall: true`. Split pieces have ids `<orig>-qN` and no Help. Estimated hours to master everything (6 recalls/card): CSC 370 ~10, CSC 310 ~21, CSC 325 ~13 (was 20/42/38).
 
 The design, and the paper behind each learning rule, are in `docs/superpowers/specs/2026-10-16-csc370-study-app-design.md`. The research notes it cites are in `research/`.
 
@@ -40,7 +42,7 @@ The design, and the paper behind each learning rule, are in `docs/superpowers/sp
 | `decks/softtest-{a,b,c}.js` + `decks/softtest.js` | CSC 325 cards + assembler |
 | `decks/csc310-{a,b}.js` + `decks/csc310.js` | CSC 310 cards + assembler (lectures, assignments, topic order) |
 | `decks/ethics.js` | Ethics quiz (MC) |
-| `decks/csc310-help*.js`, `decks/csc370-help*.js` | Help walkthroughs (`FC.help[cardId]`: asks, idea, steps (text, table or code), graph, tree, heap/heapSteps, ptree (parse trees), answer, mistake, tryIt with optional code). Formats: `decks/csc310-help.js` (math on) and `decks/csc370-help.js` (math off: text as written, `backticks` = inline code; lecture blanks keyed `blank:<id>`). Every CSC 310 card (484/484) and every CSC 370 card (294/294, generators excluded) has an entry, verified 2026-10-16 with `tools/help-check.js`; CSC 325 and Ethics have none. Cards without an entry show no Help button. Opening Help before answering counts the card as not known |
+| `decks/csc310-help*.js`, `decks/csc370-help*.js` | Help walkthroughs (`FC.help[cardId]`: asks, idea, steps (text, table or code), graph, tree, heap/heapSteps, ptree (parse trees), answer, mistake, tryIt with optional code). Formats: `decks/csc310-help.js` (math on) and `decks/csc370-help.js` (math off: text as written, `backticks` = inline code; lecture blanks keyed `blank:<id>`). Every CSC 310 and CSC 370 card that existed on 2026-10-16 has an entry (482 and 294 after two duplicate merges; generators excluded; verified 2026-10-17 with `tools/help-check.js`). Quick cards split off on 2026-10-17 (ids `<orig>-q2`, `-q3` …) have none by design, and `decks/csc370-topics.js` files them under their original's topic; CSC 325 and Ethics have none. Cards without an entry show no Help button. Opening Help before answering counts the card as not known |
 | `js/tree.js` | Trees: auto-oriented drawing, node diff, and the tree answer types `tree` (build), `swaps` (heap repair, checked per swap), `fill` (type blank nodes), `path` (tap in order). Formats in its header. `heap`/`tree` on any other card is drawn under the question |
 | `vendor/pretext-0.0.9.min.js`, `vendor/katex/` | Text fitting; math rendering |
 | `tools/fit-sweep.js` | Headless fit check of every card at a given viewport |
@@ -56,7 +58,7 @@ Then update the `<script>` tag in `index.html`.
 
 ## Commands
 
-- Tests (1109 as of 2026-10-16, about 60 s; needs python3, gcc, node, bash, guile, ecl, javac/java; python3 with mpmath for the CSC 310 growth checks): `node --test tests/`
+- Tests (1107 as of 2026-10-17, about 60 s; needs python3, gcc, node, bash, guile, ecl, javac/java; python3 with mpmath for the CSC 310 growth checks): `node --test tests/`
 - Run locally: `python3 -m http.server 8765 --bind 127.0.0.1`, then open http://127.0.0.1:8765/. Opening `index.html` directly from disk also works.
 
 ## Deployed vs repo-only

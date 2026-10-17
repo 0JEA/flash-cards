@@ -17,7 +17,7 @@
   // ---------------------------------------------------------------- Lower bound and the three sorts
 
   H['c310-linsort-tree-def'] = {
-    asks: 'Give her definition of a decision tree: what kind of tree it is, what it represents, and for which algorithm and input size.',
+    asks: "Say what a decision tree represents in the comparison-sort lower bound: whose comparisons, and on what input size.",
     idea: 'Think of a sort as a game of yes/no questions. Each question is a comparison like "is A[1] < A[2]?", and the answer decides which question comes next. Draw every way the game can go for inputs of size $n$ and you have the decision tree.',
     steps: [
       'Fix one algorithm (say insertion sort) and one input size $n$. The tree describes that algorithm on that size only; another algorithm or another $n$ gives another tree.',
@@ -30,13 +30,13 @@
       'A comparison has exactly two outcomes, so every internal node has exactly two children. That is what "full binary tree" means.',
       'Why the course wants it: the tree must have a leaf for every possible output order, and its height is the worst-case number of comparisons. Bounding the height of every such tree bounds every comparison sort at once.',
     ],
-    answer: 'A full binary tree that represents the comparisons between elements performed by a particular sorting algorithm on inputs of size $n$. Internal node = a comparison, branch = its result, leaf = a sorted order.',
+    answer: "The comparisons between elements performed by one particular sorting algorithm on inputs of size $n$, drawn as a full binary tree. Internal node = a comparison, branch = its result, leaf = a sorted order.",
     mistake: 'Leaving out "a particular algorithm, input size $n$". The tree is not a data structure the sort builds; it is the map of every comparison one algorithm can make for one $n$.',
     tryIt: { q: 'For $n = 3$ elements, how many leaves must a correct decision tree have, and why can its height not be 2?', a: 'There are $3! = 6$ input orders, so at least 6 leaves. A binary tree of height 2 has at most $2^2 = 4$ leaves, fewer than 6, so the height is at least 3: some input needs 3 comparisons.' },
   };
 
   H['c310-linsort-stirling'] = {
-    asks: 'State Stirling’s approximation of $n!$, then use it to find how fast $\\lg(n!)$ grows.',
+    asks: "Use Stirling’s approximation of $n!$ to find how fast $\\lg(n!)$ grows.",
     idea: '$n! = 1 \\cdot 2 \\cdots n$ is a product of $n$ numbers. Taking $\\lg$ turns it into a sum of $n$ terms, each at most $\\lg n$, and the top half of them close to $\\lg n$. So $\\lg(n!)$ should behave like $n \\lg n$; Stirling’s formula makes that exact enough to prove.',
     steps: [
       'Stirling: $n! \\approx \\sqrt{2\\pi n}\\,(n/e)^n$. Her slide writes the same thing as $n^n e^{-n} \\sqrt{2\\pi n}$.',
@@ -125,7 +125,7 @@
       x: [2, 64], y: [0, 400], xLabel: 'n', yLabel: 'steps',
       curves: [{ label: 'comparison-sort bound: $n \\lg n$', f: n => n * lg(n), tone: 'b' }, { label: 'counting sort, $k = n$: $n + k = 2n$', f: n => 2 * n, tone: 'a' }],
     },
-    answer: 'By not basing the sort on comparisons: use the key values themselves, e.g. as array indices. That requires assumptions about the keys (range $0..k$, $d$ digits, or uniform spread). The $\\Omega(n \\lg n)$ bound is proved only for comparison sorts.',
+    answer: "By not basing the sort on comparisons: use the key values themselves, e.g. as array indices (which needs assumptions about the keys). The $\\Omega(n \\lg n)$ bound is proved only for comparison sorts.",
     mistake: 'Thinking the bound is "broken". It still holds for every comparison sort; the linear sorts sit outside the model it was proved for, and pay with assumptions about the input.',
     tryIt: { q: 'Can a sort that only compares keys sort any $n$ reals in $O(n)$ worst-case time? Can some sort handle $n$ integers known to lie in $0..50$ in $O(n)$?', a: 'Comparisons only: no, every comparison sort needs $\\Omega(n \\lg n)$ comparisons in the worst case. Integers in $0..50$: yes, counting sort with $k = 50$ takes $O(n + 50) = O(n)$.' },
   };
@@ -133,7 +133,7 @@
   // ---------------------------------------------------------------- Counting sort
 
   H['c310-linsort-counting-idea'] = {
-    asks: 'Explain how counting sort puts each element into its place without ever comparing two elements.',
+    asks: "Counting sort never compares two elements. Explain how the number of elements $\\le x$ tells it where $x$ goes.",
     idea: 'Picture a lineup by height. If you know exactly 7 people are no taller than you, you stand in spot 7, without comparing yourself to anyone. Counting sort finds "how many elements are $\\le x$" by counting, then drops $x$ straight into that spot.',
     steps: [
       'Assumption: keys are integers in $0..k$. So a key can be used as an index into an array C[0..k].',
@@ -142,7 +142,7 @@
       'Place: a 3 goes to position 7 of the output B, the last spot for 3s. Then C[3] drops to 6, so the next 3 goes to position 6.',
       'One pass over A from right to left fills B = 0, 0, 2, 2, 3, 3, 3, 5. No two keys were ever compared.',
     ],
-    answer: 'Keys are integers in $0..k$. Use array indexing to count how many times each value occurs; turn the counts into "number of elements $\\le x$"; that number is the output position for $x$, so place $x$ there directly.',
+    answer: "That number is $x$’s output position: if 7 elements are $\\le x$, $x$ goes at position 7. Counting sort gets it by counting each value with array indexing (keys are integers in $0..k$) and turning the counts into running totals.",
     mistake: 'Saying it counts the elements "smaller than $x$". The slide says smaller than or equal to $x$, and that count is $x$’s position in B (the last position for its value), counting from 1.',
     tryIt: { q: 'A = {3, 1, 0, 3, 1, 2}, k = 3. How many elements are $\\le 1$, and so which output position does the last 1 in A take?', a: 'One 0 and two 1s: $1 + 2 = 3$ elements are $\\le 1$. The last 1 (A[5]) goes to B[3]; the other 1 (A[2]) then goes to B[2].' },
   };
@@ -165,7 +165,7 @@
   };
 
   H['c310-linsort-counting-c-meaning'] = {
-    asks: 'Say what C[i] means at two moments: right after the counting loop, and right after the prefix-sum loop.',
+    asks: "Say what C[i] means right after counting sort’s prefix-sum loop.",
     idea: 'C starts as a tally sheet (how many of each value) and becomes a set of fence posts (where each value’s block of the output ends).',
     steps: [
       'The counting loop adds 1 to C[A[j]] once per element. So afterwards C[i] = the number of elements equal to $i$.',
@@ -177,7 +177,7 @@
       'Read C[3] = 7: seven elements are $\\le 3$, so the 3s fill B up to position 7. There are three 3s, so they sit at positions 5, 6, 7.',
       'So after the prefix sums, C[i] is the LAST output position for value $i$. The placement loop puts an $i$ there and decrements C[i], so the next $i$ goes one slot to the left.',
     ],
-    answer: 'After counting: C[i] = the number of elements equal to $i$. After prefix sums: C[i] = the number of elements $\\le i$, which is the last position in B for value $i$.',
+    answer: "After prefix sums: C[i] = the number of elements $\\le i$, which is the last position in B for value $i$. (Right after the counting loop, before that, C[i] = the number of elements equal to $i$.)",
     mistake: 'Reading C[i] after the prefix sums as the FIRST position of value $i$. It is the last; the first is C[i − 1] + 1 (the 3s start at C[2] + 1 = 5).',
     tryIt: { q: 'A = {1, 3, 0, 1, 3, 3}, k = 3. Give C after counting and after prefix sums, and say which positions of B hold the 3s.', a: 'Counting: 1, 2, 0, 3. Prefix sums: 1, 3, 3, 6. The 3s fill positions C[2] + 1 = 4 through C[3] = 6.' },
   };
@@ -306,7 +306,7 @@
   };
 
   H['c310-linsort-stable-def'] = {
-    asks: 'Define what it means for a sorting algorithm to be stable.',
+    asks: "Define what it means for a sorting algorithm to be stable.",
     idea: 'Sort a class list by grade. Ana and Ben both got an A, and Ana was listed above Ben. A stable sort keeps Ana above Ben: ties keep the order they came in.',
     steps: [
       'Stability is only about equal keys. Elements with different keys are ordered by key, as in any sort.',
@@ -397,7 +397,7 @@
   };
 
   H['c310-linsort-counting-proscons'] = {
-    asks: 'List the three cons of counting sort from her slide.',
+    asks: "Say how much extra storage counting sort needs (one of its cons).",
     idea: 'Each con comes from how it works. It writes into new arrays (so it is not in place and needs extra storage), and it uses keys as array indices (so keys must be countable: integers in a known range).',
     steps: [
       'Doesn’t sort in place: the sorted result goes into a second array B, not back into A.',
@@ -406,7 +406,7 @@
       { text: 'Her slide in one table:', table: { head: ['pros', 'cons'], rows: [
         ['fast', 'doesn’t sort in place'], ['asymptotically fast: $O(n + k)$', 'elements must be countable'], ['simple to code', 'requires $O(n + k)$ extra storage']] } },
     ],
-    answer: 'It doesn’t sort in place; elements must be countable; it requires $O(n + k)$ extra storage.',
+    answer: "$O(n + k)$ extra storage: the output array B and the count array C. Its other cons: it does not sort in place, and the elements must be countable.",
     mistake: 'Listing "not stable" as a con. Counting sort IS stable, which is exactly why radix sort uses it.',
     tryIt: { q: 'Which con stops counting sort on {2.5, 0.75, 1.25}? How could you rescue it if every value is a multiple of 0.25 in $[0, 3]$?', a: 'Elements must be countable (integer keys). Multiply each by 4: the keys become 10, 3, 5, integers in $0..12$, so counting sort with $k = 12$ works.' },
   };
@@ -414,7 +414,7 @@
   // ---------------------------------------------------------------- Radix sort
 
   H['c310-linsort-radix-idea'] = {
-    asks: 'Describe her RadixSort(A, d) for keys that have $d$ digits.',
+    asks: "Radix sort makes $d$ passes over $d$-digit keys. Which digit does the first pass sort on?",
     idea: 'Sort a pile of numbered cards by the ones digit, then by the tens, then by the hundreds, keeping ties in their current order every time. It feels backwards, but the most important digit goes last so it gets the final say; the earlier passes only settle ties.',
     steps: [
       'Pseudocode: for i = 1 to d: StableSort(A) on digit i. Digit 1 is the least significant one (the ones digit).',
@@ -424,7 +424,7 @@
         ['436', '657', '355', '657'], ['720', '329', '457', '720'], ['355', '839', '657', '839']] } },
       'After pass $i$ the list is sorted by its last $i$ digits. After pass $d$ it is sorted by all $d$ digits, i.e. fully sorted.',
     ],
-    answer: 'RadixSort(A, d): for i = 1 to d, stably sort A on digit $i$, starting with the least significant digit. That is $d$ passes, each a stable sort such as counting sort.',
+    answer: "The least significant digit. RadixSort(A, d): for i = 1 to d, stably sort A on digit $i$, least significant first: $d$ passes, each a stable sort such as counting sort.",
     mistake: 'Starting with the most significant digit. The hundreds pass must come last so that it decides the final order; the earlier passes only break its ties.',
     tryIt: { q: 'Radix sort {81, 24, 57, 13, 92, 45}: give the list after each pass.', a: 'Ones pass: 81, 92, 13, 24, 45, 57. Tens pass: 13, 24, 45, 57, 81, 92 (sorted).' },
   };
@@ -515,7 +515,7 @@
   };
 
   H['c310-linsort-radix-which-sort'] = {
-    asks: 'Which stable sort does the course use for each pass of radix sort, and how long does one pass take?',
+    asks: "Which stable sort does the course use for each pass of radix sort?",
     idea: 'One pass sorts $n$ numbers by one digit, and a digit has only a few possible values (10 for decimal). Small integer keys are exactly what counting sort is built for, and counting sort is stable.',
     steps: [
       'A pass needs a sort that is stable (so earlier passes are not undone) and fast on small integer keys.',
@@ -554,7 +554,7 @@
   };
 
   H['c310-linsort-radix-cons'] = {
-    asks: 'List the two cons of radix sort from her slide.',
+    asks: "Name the kinds of keys for which radix sort is not a good choice.",
     idea: 'Radix sort needs keys that break into a small, fixed number of digits, each from a small set, and it builds its output in a second array. Anything that breaks those needs is a con.',
     steps: [
       'Doesn’t sort in place: each pass is a counting sort, which writes into a separate array B.',
@@ -563,7 +563,7 @@
       { text: 'Her slide in one table:', table: { head: ['pros', 'cons'], rows: [
         ['fast; simple to code; a good choice', 'doesn’t sort in place'], ['$O(n)$ when $d$ is constant and $k = O(n)$', 'not a good choice for floating point numbers or arbitrary strings']] } },
     ],
-    answer: 'It doesn’t sort in place, and it is not a good choice for floating-point numbers or arbitrary strings.',
+    answer: "Floating-point numbers and arbitrary strings: they have no small fixed number of digits in a small range. (Its other con: it does not sort in place.)",
     mistake: 'Listing "not stable" as a con. Radix sort with counting-sort passes is stable.',
     tryIt: { q: 'You must sort 1,000 product names of 3 to 40 characters. Which radix-sort con applies, and how many passes would plain radix sort need?', a: 'Arbitrary strings: the lengths differ, so every name must be padded to 40 characters and radix sort does $d = 40$ passes, even though most names are much shorter.' },
   };
@@ -632,7 +632,7 @@
   };
 
   H['c310-linsort-bucket-time'] = {
-    asks: 'Say when bucket sort runs in $O(n)$, and what happens to its time if the keys are far from uniform, for example all in one bucket.',
+    asks: "Say when bucket sort runs in $O(n)$.",
     idea: 'Bucket sort is fast only if the keys land about one per bucket. Uniform input makes that the expected case. If they all pile into one bucket, "sort each bucket" becomes insertion sort on all $n$ keys.',
     steps: [
       'Distributing and concatenating are $O(n)$ each: one pass over A, one pass over the $n$ buckets.',
@@ -647,7 +647,7 @@
       x: [1, 30], y: [0, 450], xLabel: 'n', yLabel: 'comparisons',
       curves: [{ label: 'uniform: about $n$', f: n => n, tone: 'a' }, { label: 'one bucket: $n(n-1)/2$', f: n => n * (n - 1) / 2, tone: 'c' }],
     },
-    answer: '$O(n)$ on average when the input is uniformly distributed, so buckets stay small. If all keys fall into one bucket, insertion-sorting that bucket dominates: $O(n^2)$.',
+    answer: "$O(n)$ on average when the input is uniformly distributed, so buckets stay small. (If all keys fall into one bucket, insertion-sorting that bucket dominates: $O(n^2)$.)",
     mistake: 'Calling bucket sort $O(n)$ in the worst case. Her summary table gives only an average-case $O(n)$; skewed input drives it to $O(n^2)$.',
     tryIt: { q: 'Bucket sort with $n = 6$ on {.01, .15, .03, .12, .07, .10}. Where do the keys go, and at most how many comparisons can sorting the fullest bucket take?', a: 'Every key is below $1/6 \\approx 0.167$, so all six go to bucket 0. Insertion sort on 6 keys takes at most $6 \\cdot 5 / 2 = 15$ comparisons.' },
   };
@@ -655,7 +655,7 @@
   // ---------------------------------------------------------------- Summary
 
   H['c310-linsort-summary'] = {
-    asks: 'From her summary table, give the running times of counting, radix and bucket sort, and whether each sorts in place.',
+    asks: "From her summary table: which of counting, radix and bucket sort sorts in place?",
     idea: 'Each time comes from the sort’s own structure: counting touches $n$ elements and $k$ counters; radix does $d$ counting sorts; bucket is linear only on average, because it relies on uniform input. All three build their output outside A.',
     steps: [
       { text: 'Her table:', table: { head: ['sort', 'worst', 'average', 'best', 'in place'], rows: [
@@ -666,7 +666,7 @@
       'Bucket: only an average is listed, because it depends on uniform input. (If all keys land in one bucket it degrades to $O(n^2)$.)',
       'None is in place: counting and radix write into B; bucket sort builds $n$ separate lists.',
     ],
-    answer: 'Counting sort $O(n + k)$; radix sort $O(d(n + k^{\\prime}))$; bucket sort $O(n)$ average. None of the three sorts in place.',
+    answer: "None of the three. (Times: counting $O(n + k)$; radix $O(d(n + k^{\\prime}))$; bucket $O(n)$ average.)",
     mistake: 'Writing radix as $O(n + k)$, dropping the factor $d$, or calling any of the three in place.',
     tryIt: { q: 'Which entries of the table become $O(n)$ when $d$ is a constant and $k, k^{\\prime} = O(n)$?', a: 'All three. Counting: $O(n + k) = O(n)$. Radix: $O(d(n + k^{\\prime})) = O(n)$. Bucket: already $O(n)$ on average, for uniform input.' },
   };

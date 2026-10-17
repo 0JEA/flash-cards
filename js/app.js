@@ -25,6 +25,9 @@
     settings.off[deckId] = [...off];
   }
   delete settings.focus;
+  // 2026-10-17: the topic filter is gone (one lecture list + an assignment dropdown); drop its
+  // old keys so they can't hide cards invisibly.
+  for (const id of Object.keys(settings.off || {})) settings.off[id] = (settings.off[id] || []).filter(k => /^[LA]:/.test(k));
   // v2 (2026-10-16): sessions draw from every card (repeats go to the end of the session)
   // and are bounded by time instead; the old 20-new-cards default made the same 20 cycle.
   if (!settings.v || settings.v < 2) { settings.newLimit = 'all'; settings.v = 2; store.setItem(SETTINGS_KEY, JSON.stringify(settings)); }
@@ -34,7 +37,6 @@
   let session = null;   // sched.Session plus bookkeeping
   let current = null;   // { card, pending } for the card on screen
   let openDeck = DECKS[0] ? DECKS[0].id : null;
-  const expanded = new Map(); // class id -> set of topic groups showing their subgroups
 
   function readJSON(key) { try { return JSON.parse(store.getItem(key)) || {}; } catch (e) { return {}; } }
   function saveSettings() { store.setItem(SETTINGS_KEY, JSON.stringify(settings)); }
@@ -309,166 +311,85 @@
   }
 
   // ── Class screen: topic toggles, then Study ────────────────────────────
+  // ── Class screen: one list of what to study, then the session options ─────────
+  // Owner, 2026-10-17: simple and direct. The main choice (which lectures) is at the top as
+  // one list in the page (no inner scroller, no tabs); an assignment is one dropdown; the
+  // Study button stays in view at the bottom of the window.
+  // settings.off[deck] keys: 'L:<lecture>' and 'A:<id>' / 'A:none' (old topic keys are dropped at load).
   function renderClass() {
     const d = deckById.get(openDeck);
+    const off = offSet(d.id);
+    const all = cardsFor(d.id);
     $('classTitle').textContent = d.title;
-    const all = cardsFor(d.id), off = offSet(d.id);
     const k = counts(activeCards(d.id));
-    $('dueCount').textContent = k.review;
-    $('newCount').textContent = k.learn;
-    $('studyBtn').disabled = k.review + k.learn === 0;
-    $('studyNote').textContent = k.review + k.learn ? ''
-      : k.total === 0 ? 'No cards selected: your filters below leave nothing. Use “Turn everything on” or pick some.' : 'Nothing left to study today with this selection.';
+    const n = k.review + k.learn;
+    $('studyBtn').disabled = n === 0;
+    $('studyBtn').textContent = n ? `Study ${n} card${n === 1 ? '' : 's'}` : 'Nothing to study';
+    $('studyCounts').textContent = n ? `${k.review} to review · ${k.learn} new` : '';
+    $('studyNote').textContent = n ? ''
+      : k.total === 0 ? 'Nothing is ticked below. Tick a lecture (or Everything) to study it.' : 'Nothing left for today in this choice. Come back tomorrow, or tick more lectures.';
     $('examDate').value = settings.exams[d.id] || '';
     $('newLimit').value = String(settings.newLimit);
     $('sessionMinutes').value = String(settings.minutes);
     const ed = examDay(d.id);
-    $('examBanner').textContent = examMode(d.id)
-      ? `Exam in ${ed - today()} day${ed - today() === 1 ? '' : 's'}: exam mode. Review gaps are capped to fit, and History is left out (switch it on to include it).`
-      : ed != null && ed > today() ? `Exam in ${ed - today()} days: review gaps are capped so everything comes back before it.` : '';
+    const histOut = examMode(d.id) && !(settings.examHistory || {})[d.id];
+    $('examBanner').replaceChildren(...(examMode(d.id)
+      ? [`Exam in ${ed - today()} day${ed - today() === 1 ? '' : 's'}: reviews are packed so everything comes back before it.`,
+        histOut ? [' History cards are left out this week. ', h('button', { class: 'linkbtn', type: 'button', onclick: () => { settings.examHistory = Object.assign({}, settings.examHistory, { [d.id]: true }); saveSettings(); renderClass(); } }, 'Include them')] : '']
+      : ed != null && ed > today() ? [`Exam in ${ed - today()} days: reviews are spaced so everything comes back before it.`] : []).flat());
     $('examBanner').hidden = !$('examBanner').textContent;
-
     renderPicker(d, all, off);
   }
 
-  // ── Card picker: three filters (topic, lecture, assignment) that combine ─────────
-  // Every tab is one filter with All / None; the summary line says what the combination
-  // leaves, names each filter that is restricting, and clears any of them in one tap.
-  // Row counts are what that row would add given the OTHER two filters, so turning
-  // something on never silently gives nothing.
-  function groupsFor(d, all, dim) {
-    if (dim === 'lecture') return d.lectures.filter(l => all.some(c => c.lecture === l.n))
-      .map(l => ({ key: 'L:' + l.n, title: l.title, lec: l.n, has: c => c.lecture === l.n }));
-    if (dim === 'assignment') return (d.assignments || []).map(a => ({ key: 'A:' + a.id, title: a.title, has: c => assignIds(d, c).includes(a.id) }))
-      .concat([{ key: 'A:none', title: 'Not part of any assignment', has: c => !assignIds(d, c).length }])
-      .filter(g => all.some(g.has));
-    const order = (FC.topics && FC.topics[d.id + 'Order']) || d.catOrder || [];
-    return [...new Set(order.concat(all.map(c => c.cat)))].filter(cat => all.some(c => c.cat === cat))
-      .map(cat => ({ key: cat, title: cat, has: c => c.cat === cat }));
+  function renderPicker(d, all, off) {
+    // Assignment: one dropdown (only for classes whose cards are tagged by assignment).
+    const assigns = (d.assignments || []).filter(a => all.some(c => assignIds(d, c).includes(a.id)));
+    const aOn = assigns.filter(a => !off.has('A:' + a.id));
+    const assignVal = !assigns.length || (aOn.length === assigns.length && !off.has('A:none')) ? 'any' : aOn.length === 1 && off.has('A:none') ? aOn[0].id : 'mixed';
+    $('assignRow').hidden = !assigns.length;
+    if (assigns.length) {
+      $('assignPick').replaceChildren(h('option', { value: 'any' }, 'Any (all cards)'),
+        ...assigns.map(a => h('option', { value: a.id }, a.title)),
+        assignVal === 'mixed' ? h('option', { value: 'mixed' }, 'Custom') : null);
+      $('assignPick').value = assignVal;
+    }
+    // Lectures: one list. Each count is what that lecture adds under the assignment choice.
+    const lectures = d.lectures.filter(l => all.some(c => c.lecture === l.n));
+    const aPass = c => passes.assignment(off, c, d);
+    const lecOn = l => !off.has('L:' + l.n);
+    const onCount = lectures.filter(lecOn).length;
+    const check = (checked, mixed, onchange) => { const b = h('input', { type: 'checkbox', checked, onchange: e => onchange(e.target.checked) }); b.indeterminate = mixed; return b; };
+    const label = l => /^\d+(\.\d+)?$/.test(l.n) ? [h('span', { class: 'lec-n' }, `${l.n}`), l.title] : [h('span', { class: 'lec-n' }, '·'), l.title];
+    $('topicTree').replaceChildren(
+      h('label', { class: 'crow all' }, check(onCount === lectures.length, onCount > 0 && onCount < lectures.length, v => setAll(d.id, 'lecture', v)),
+        h('span', { class: 'pick-title' }, 'Everything'), h('span', { class: 'pick-n' }, String(all.filter(aPass).length))),
+      ...lectures.map(l => { const n = all.filter(c => c.lecture === l.n && aPass(c)).length;
+        return h('label', { class: 'crow' + (lecOn(l) ? '' : ' is-off') + (n ? '' : ' is-empty') }, check(lecOn(l), false, v => toggle(d.id, 'L:' + l.n, v)),
+          h('span', { class: 'pick-title' }, ...label(l)), h('span', { class: 'pick-n' }, String(n))); }));
   }
   const keysOf = (off, dim) => [...off].filter(k => dimOf(k) === dim);
-
-  // The browser: iTunes' column browser (2005). One column per filter, side by side; each
-  // starts with "All (n)" like iTunes' "All (12 Artists)". Narrow windows show one column at a
-  // time behind a segmented control. Topics open (▸) to list their parts.
-  function renderPicker(d, all, off) {
-    const hasAssignments = (d.assignments || []).some(a => all.some(c => (c.assignment || []).includes(a.id)));
-    let view = settings.view[d.id] || 'topic';
-    if (view === 'assignment' && !hasAssignments) view = 'topic';
-    const dims = hasAssignments ? DIMS : DIMS.filter(x => x !== 'assignment');
-    const names = { topic: 'Topics', lecture: 'Lectures', assignment: 'Assignments' };
-    const restricted = dim => keysOf(off, dim).length > 0;
-    const offGroups = dim => groupsFor(d, all, dim).filter(g => dim === 'topic'
-      ? off.has(g.key) || all.some(c => g.has(c) && off.has(c.cat + '/' + c.sub)) : off.has(g.key)).length;
-
-    // Summary: what the filters leave, and each one that is restricting (with a clear button).
-    const chosen = all.filter(c => isOn(off, c, d)).length;
-    const chips = dims.filter(restricted).map(dim => {
-      const gs = groupsFor(d, all, dim), n = gs.length - offGroups(dim);
-      return h('span', { class: 'sel-chip' }, `${names[dim]}: ${n} of ${gs.length}`,
-        h('button', { class: 'sel-x', type: 'button', 'aria-label': `Turn all ${names[dim].toLowerCase()} back on`, title: `Turn all ${names[dim].toLowerCase()} back on`,
-          onclick: () => setAll(d.id, dim, true) }, '×'));
-    });
-    $('selSummary').replaceChildren(...[
-      h('div', { class: 'sel-line' }, h('span', null, 'Studying ', h('b', null, String(chosen)), ` of ${all.length} cards`),
-        chips.length ? h('button', { class: 'linkbtn', type: 'button', onclick: () => resetAll(d.id) }, 'Turn everything on') : null),
-      chips.length ? h('div', { class: 'sel-chips' }, chips) : null].filter(Boolean));
-
-    // Segmented control (narrow windows): which column is shown; a restricting filter says how many are off.
-    document.querySelectorAll('#viewSwitch button').forEach(b => {
-      const dim = b.dataset.view;
-      b.hidden = !dims.includes(dim);
-      b.setAttribute('aria-pressed', String(dim === view));
-      const k = dims.includes(dim) ? offGroups(dim) : 0;
-      b.replaceChildren(document.createTextNode(names[dim]), k ? h('span', { class: 'tab-badge' }, `${k} off`) : '');
-    });
-
-    // Row counts = cards in the row that the OTHER filters let through.
-    const countText = (inRow, through) => through === inRow.length ? `${inRow.length}` : `${through} of ${inRow.length}`;
-    const row = (cls, checked, indeterminate, onchange, title, n, extra) => {
-      const box = h('input', { type: 'checkbox', checked, onchange: e => onchange(e.target.checked) });
-      box.indeterminate = !!indeterminate;
-      return h('label', { class: 'crow ' + cls + (checked && !indeterminate ? '' : indeterminate ? '' : ' is-off') }, box,
-        h('span', { class: 'pick-title' }, ...[].concat(title)), h('span', { class: 'pick-n' }, n), extra || null);
-    };
-    const column = dim => {
-      const groups = groupsFor(d, all, dim), others = c => isOn(off, c, d, dim);
-      const offN = offGroups(dim), rows = [];
-      // "All (n)": on when nothing in this column is off; ticking it turns them all on, unticking all off.
-      rows.push(row('all', offN === 0, offN > 0 && offN < groups.length, on => setAll(d.id, dim, on), `All ${groups.length} ${names[dim].toLowerCase()}`, String(all.filter(others).length)));
-      if (dim !== 'topic') {
-        for (const g of groups) {
-          const inRow = all.filter(g.has), on = !off.has(g.key);
-          const title = dim === 'lecture' && /^\d+(\.\d+)?$/.test(g.lec) ? [h('span', { class: 'lec-n' }, `L${g.lec}`), g.title] : [g.title];
-          rows.push(row('', on, false, v => toggle(d.id, g.key, v), title, countText(inRow, inRow.filter(others).length)));
-        }
-      } else {
-        const totalSubs = new Set(all.map(c => c.cat + '/' + c.sub)).size;
-        if (!expanded.has(d.id)) expanded.set(d.id, new Set(totalSubs <= 12 ? groups.map(g => g.key) : []));
-        const open = expanded.get(d.id);
-        const subOrder = (FC.topics && FC.topics[d.id + 'SubOrder']) || d.subOrder || [];
-        const rankOf = sub => { const i = subOrder.indexOf(sub); return i < 0 ? 999 : i; };
-        for (const g of groups) {
-          const cat = g.key, inCat = all.filter(c => c.cat === cat);
-          const subs = [...new Set(inCat.map(c => c.sub))].sort((a, b) => rankOf(a) - rankOf(b));
-          const catOn = !off.has(cat), subsOff = subs.filter(sub => off.has(cat + '/' + sub)).length;
-          const through = inCat.filter(c => !off.has(c.cat + '/' + c.sub) && others(c)).length;
-          const isOpen = open.has(cat);
-          const disclose = subs.length > 1 ? h('button', { class: 'disclose', type: 'button', 'aria-expanded': String(isOpen), 'aria-label': `${isOpen ? 'Hide' : 'Show'} the parts of ${cat}`,
-            onclick: e => { e.preventDefault(); if (isOpen) open.delete(cat); else open.add(cat); renderClass(); } }, '▸') : null;
-          rows.push(row('', catOn && subsOff < subs.length, catOn && subsOff > 0 && subsOff < subs.length, v => setTopic(d.id, cat, subs, v), cat,
-            countText(inCat, catOn ? through : inCat.filter(others).length), disclose));
-          if (isOpen && subs.length > 1) for (const sub of subs) {
-            const on = catOn && !off.has(cat + '/' + sub), inSub = inCat.filter(c => c.sub === sub);
-            rows.push(row('part', on, false, v => setPart(d.id, cat, subs, sub, v), sub, countText(inSub, inSub.filter(others).length)));
-          }
-        }
-      }
-      return h('div', { class: 'col' + (dim === view ? ' shown' : '') },
-        h('div', { class: 'col-head' }, h('span', null, names[dim]), offN ? h('span', { class: 'tab-badge' }, `${offN} off`) : null),
-        h('div', { class: 'col-list', role: 'group', 'aria-label': names[dim] }, rows));
-    };
-    $('topicTree').dataset.cols = dims.length;
-    $('topicTree').replaceChildren(...dims.map(column));
-    $('viewTools').replaceChildren(...(hasAssignments
-      ? [h('p', { class: 'group-foot' }, 'Assignments: these cards teach what each assignment needs, never its answers.')] : []));
+  function groupsFor(d, all, dim) {
+    if (dim === 'lecture') return d.lectures.filter(l => all.some(c => c.lecture === l.n)).map(l => ({ key: 'L:' + l.n }));
+    return (d.assignments || []).map(a => ({ key: 'A:' + a.id })).concat([{ key: 'A:none' }]);
   }
 
-  // Writes. Every change re-renders, so counts and the summary are always current.
+  // Writes. Every change re-renders, so counts are always current.
   function saveOff(deckId, off) { settings.off[deckId] = [...off]; saveSettings(); renderClass(); }
-  function toggle(deckId, key, on) {
-    if (examMode(deckId) && /^History/.test(key)) { settings.examHistory = Object.assign({}, settings.examHistory, { [deckId]: on }); }
-    const off = offSet(deckId);
-    if (on) off.delete(key); else off.add(key);
-    saveOff(deckId, off);
-  }
-  // A topic's checkbox: on = the topic and all its parts; off = the whole topic.
-  function setTopic(deckId, cat, subs, on) {
-    if (examMode(deckId) && /^History/.test(cat)) { settings.examHistory = Object.assign({}, settings.examHistory, { [deckId]: on }); }
-    const off = offSet(deckId);
-    subs.forEach(sub => off.delete(cat + '/' + sub));
-    if (on) off.delete(cat); else off.add(cat);
-    saveOff(deckId, off);
-  }
-  // A part's chip. Tapping a part of a switched-off topic turns on just that part.
-  function setPart(deckId, cat, subs, sub, on) {
-    const off = offSet(deckId);
-    if (on && off.has(cat)) { off.delete(cat); subs.forEach(s2 => off.add(cat + '/' + s2)); }
-    if (on) off.delete(cat + '/' + sub); else off.add(cat + '/' + sub);
-    // Every part off = the topic off (one key, so "All" and the summary read it simply).
-    if (subs.every(s2 => off.has(cat + '/' + s2))) { subs.forEach(s2 => off.delete(cat + '/' + s2)); off.add(cat); }
-    saveOff(deckId, off);
-  }
+  function toggle(deckId, key, on) { const off = offSet(deckId); if (on) off.delete(key); else off.add(key); saveOff(deckId, off); }
   function setAll(deckId, dim, on) {
     const d = deckById.get(deckId), all = cardsFor(deckId), off = offSet(deckId);
     for (const k of keysOf(off, dim)) off.delete(k);
     if (!on) for (const g of groupsFor(d, all, dim)) off.add(g.key);
-    if (dim === 'topic' && examMode(deckId)) settings.examHistory = Object.assign({}, settings.examHistory, { [deckId]: on });
     saveOff(deckId, off);
   }
-  function resetAll(deckId) { saveOff(deckId, new Set()); }
+  $('assignPick').addEventListener('change', e => {
+    const d = deckById.get(openDeck), off = offSet(openDeck), v = e.target.value;
+    if (v === 'mixed') return;
+    for (const k of keysOf(off, 'assignment')) off.delete(k);
+    if (v !== 'any') { for (const a of d.assignments || []) if (a.id !== v) off.add('A:' + a.id); off.add('A:none'); }
+    saveOff(openDeck, off);
+  });
   $('examDate').addEventListener('change', e => { settings.exams[openDeck] = e.target.value; saveSettings(); renderClass(); });
-  document.querySelectorAll('#viewSwitch button').forEach(b => b.addEventListener('click', () => { settings.view[openDeck] = b.dataset.view; saveSettings(); renderClass(); }));
   $('newLimit').addEventListener('change', e => { settings.newLimit = e.target.value === 'all' ? 'all' : +e.target.value; saveSettings(); renderClass(); });
   $('sessionMinutes').addEventListener('change', e => { settings.minutes = e.target.value === 'none' ? 'none' : +e.target.value; saveSettings(); });
   $('studyBtn').addEventListener('click', () => withSync($('studyBtn'), () => startSession(activeCards(openDeck))));
@@ -810,7 +731,13 @@
   $('doneBack').addEventListener('click', () => show(returnTo));
   $('doneMore').addEventListener('click', () => { if (lastStart) startSession(lastStart.opts.from === 'classes' ? activeCards(openDeck) : lastStart.cards, lastStart.opts); });
 
-  const TYPE_LABEL = { recall: 'Explain', typed: 'Short answer', mc: 'Choose', order: 'Put in order', cloze: 'From your notes', set: 'List them' };
+  // How a card is answered (owner + research, 2026-10-17): thinking the answer retains as well
+  // as typing it (Smith, Roediger & Karpicke 2013), but multi-point answers are only graded
+  // honestly when written out (Dunlosky 2011). So one-idea recall cards are Quick (think,
+  // show the answer, mark it); recall with several points is Write (type, tick the points).
+  // A card can force either with `mode: 'quick' | 'write'`.
+  const isQuick = c => c.type === 'recall' && (c.mode === 'quick' || (c.mode !== 'write' && (!c.points || c.points.length <= 1)));
+  const TYPE_LABEL = { recall: 'Write', typed: 'Short answer', mc: 'Choose', order: 'Put in order', cloze: 'From your notes', set: 'List them' };
 
   // New-card progress toward today's 3 correct (and Sure) answers, shown on the card.
   function learnProgress(card) {
@@ -827,7 +754,7 @@
     const lecInfo = deck.lectures.find(l => String(l.n) === String(card.lecture));
     const where = card.lecture === 'paper' ? 'Reading' : deck.lectures.length <= 1 ? ''
       : /^\d+(\.\d+)?$/.test(card.lecture) ? `Lecture ${card.lecture}` : lecInfo ? lecInfo.title : '';
-    const kind = card.generated ? 'Practice' : card.blank ? 'Fill the blank' : card.type === 'typed' && card.code ? 'Trace' : TYPE_LABEL[card.type];
+    const kind = card.generated ? 'Practice' : isQuick(card) ? (card.graduated ? 'Recall' : 'Quick') : card.blank ? 'Fill the blank' : card.type === 'typed' && card.code ? 'Trace' : TYPE_LABEL[card.type];
     // Fields across the top of the ticket, boarding-pass style: label above, value below.
     const status = current && current.progress && current.progress.learning ? `New ${current.progress.done}/${sched.LEARN_CRITERION}` : current && current.progress ? 'Review' : '';
     const field = (label, value, full) => value ? h('span', { class: 'qfield', title: full || null }, h('small', null, label), h('span', null, value)) : null;
@@ -950,7 +877,14 @@
   function showCard(id, first) {
     const base = session.byId.get(id);
     // A generated skill card becomes a fresh problem each time it is shown.
-    const card = base.type === 'gen' && FC.gen ? Object.assign(FC.gen.instance(base.generator), { deck: base.deck, cat: base.cat, sub: base.sub }) : base;
+    let card = base.type === 'gen' && FC.gen ? Object.assign(FC.gen.instance(base.generator), { deck: base.deck, cat: base.cat, sub: base.sub }) : base;
+    // Multiple choice graduates: once a card has been right on a later day, it is asked
+    // without the options (recall beats recognition once you can usually succeed:
+    // Smith & Karpicke 2014). Cards whose question needs the options say noRecall.
+    if (card.type === 'mc' && !card.noRecall) {
+      const st = sched.states(events, [base], { examDay: examDay(base.deck) })[base.id];
+      if (st.phase === 'review' && st.step >= 1) card = Object.assign({}, card, { type: 'recall', mode: 'quick', points: [card.answer], graduated: true });
+    }
     current = { card, pending: null, progress: learnProgress(base) };
     $('screen-study').classList.remove('answered');
     $('helpBtn').hidden = !(FC.help && FC.help[card.id]);
@@ -999,7 +933,10 @@
   function buildAnswer(card) {
     const wrap = h('div', { class: 'answer-area-inner' });
     let read; // () => { given, ready }
-    if (card.type === 'recall') {
+    if (isQuick(card)) {
+      wrap.append(h('p', { class: 'quick-cue' }, 'Say or think the answer, then show it.'));
+      read = () => ({ given: '', ready: true });
+    } else if (card.type === 'recall') {
       const ta = h('textarea', { id: 'ans', 'aria-label': 'Your answer', placeholder: 'Write your answer, even a rough one…', spellcheck: 'false' });
       wrap.append(ta);
       read = () => ({ given: ta.value, ready: ta.value.trim().length > 0 });
@@ -1078,6 +1015,12 @@
     const idkBtn = h('button', { class: 'btn idk', type: 'button', onclick: () => giveUp() }, 'I don’t know');
     // First sessions only: what Guess and Sure mean (a guessed right answer isn't counted as learned).
     const newcomer = events.filter(e => e.k === 'r').length < 15;
+    if (isQuick(card)) {
+      const show = h('button', { class: 'btn primary big', type: 'button', id: 'showBtn', onclick: () => submit(true) }, 'Show answer', h('span', { class: 'kbd' }, 'Space'));
+      $('actions').replaceChildren(show);
+      wrap.read = read; current && (current.ui = wrap);
+      return wrap;
+    }
     $('actions').replaceChildren(h('div', { class: 'commit' }, idkBtn, h('div', { class: 'pair' }, guessBtn, sureBtn)),
       newcomer ? h('p', { class: 'commit-hint' }, 'Sure: you know it. Guess: you’re not certain (it comes back sooner).') : null);
     function updateReady() { const r = read().ready; sureBtn.disabled = !r; guessBtn.disabled = !r; }
@@ -1108,7 +1051,7 @@
     const { given, ready } = current.ui.read();
     if (!ready) return;
     const card = current.card;
-    current.pending = { ok: isCorrect(card, given), sure, given, override: false };
+    current.pending = { ok: isCorrect(card, given), sure, given, override: false, quick: isQuick(card) };
     showFeedback();
   }
 
@@ -1124,7 +1067,7 @@
     $('screen-study').classList.add('answered');
 
     const fb = h('div', { class: 'feedback', role: 'status', 'aria-live': 'polite' });
-    const selfGrade = card.type === 'recall' && !p.gaveUp;
+    const selfGrade = card.type === 'recall' && !p.gaveUp && !p.quick;
     const verdict = h('div', { class: 'verdict' });
     const alert = h('div', { class: 'alert', 'data-fit': '' });
     // A teacher's pen mark, drawn stroke by stroke: a tick for right, a cross for wrong. The
@@ -1138,11 +1081,11 @@
     function paintVerdict() {
       fb.classList.toggle('good', p.ok === true);
       fb.classList.toggle('bad', p.ok === false && !p.gaveUp);
-      const word = p.ok === null ? 'How did you do?' : p.ok ? (p.sure ? 'Right' : 'Right (a guess)') : p.gaveUp ? 'Here’s the answer' : 'Not quite';
+      const word = p.ok === null ? (p.quick ? 'Did you have it?' : 'How did you do?') : p.ok ? (p.sure ? 'Right' : 'Right (a guess)') : p.gaveUp ? 'Here’s the answer' : 'Not quite';
       verdict.replaceChildren(...(p.ok === true ? [pen('tick')] : p.ok === false && !p.gaveUp ? [pen('cross')] : []), h('span', { 'data-fit': '' }, word));
       alert.hidden = true;
     }
-    if (selfGrade) p.ok = null;
+    if (selfGrade || p.quick) p.ok = null;
     paintVerdict();
     fb.append(verdict, alert);
 
@@ -1150,7 +1093,7 @@
     const numbered = list => math(list.map((t, i) => `${i + 1}. ${t}`).join('\n'));
     const hasMath = [].concat(card.answer).some(t => /\$/.test(String(t)));
     const mono = card.verify || (card.type === 'order' && !hasMath) ? ' mono' : '';
-    if (p.given && p.given.length) {
+    if (!p.quick && p.given && p.given.length) {
       const yours = card.type === 'order' ? 'Your order' : card.type === 'mc' ? 'You chose' : 'You wrote';
       fb.append(h('div', { class: 'fb-block' }, h('div', { class: 'label' }, yours),
         h('div', { class: 'val' + mono, 'data-fit': 'pre' }, Array.isArray(p.given) ? numbered(p.given) : card.type === 'mc' ? math(p.given) : p.given)));
@@ -1185,7 +1128,7 @@
       fb.append(h('div', { class: 'fb-block fb-tree' }, p.gaveUp ? null : h('div', { class: 'label' }, label),
         FC.tree.draw(card.answer, { render: math, wrong: m ? m.marks : null, fill: true })));
     } else if (!(card.type === 'mc' && p.ok) && !answerIsChecklist) {
-      fb.append(h('div', { class: 'fb-block' }, p.gaveUp ? null : h('div', { class: 'label' }, card.type === 'recall' && !card.blank ? 'Model answer' : 'Answer'),
+      fb.append(h('div', { class: 'fb-block' }, p.gaveUp ? null : h('div', { class: 'label' }, card.type === 'recall' && !card.blank && !p.quick ? 'Model answer' : 'Answer'),
         h('div', { class: 'val' + mono, 'data-fit': 'pre' }, card.type === 'order' ? numbered(card.answer) : mono ? card.answer : math(Array.isArray(card.answer) ? card.answer.join(', ') : card.answer))));
     }
     // Generated problems can carry a graph drawn from this instance's own numbers.
@@ -1211,7 +1154,12 @@
 
     const row = h('div', { class: 'btn-row' });
     const cont = () => commit();
-    if (selfGrade) {
+    if (p.quick) {
+      // Quick: you thought of an answer; say honestly whether it matched.
+      const missed = h('button', { class: 'btn', type: 'button', id: 'missBtn', onclick: () => { p.ok = false; cont(); } }, 'Missed it', h('span', { class: 'kbd' }, '1'));
+      const got = h('button', { class: 'btn primary', type: 'button', id: 'contBtn', onclick: () => { p.ok = true; cont(); } }, 'Got it', h('span', { class: 'kbd' }, '2'));
+      row.className = 'commit'; row.append(h('div', { class: 'pair', style: 'flex:1' }, missed, got));
+    } else if (selfGrade) {
       // Got it only if every point is ticked.
       const done = h('button', { class: 'btn primary', id: 'contBtn', onclick: () => {
         p.ok = checks.every(c => c.box.checked);
@@ -1261,6 +1209,11 @@
     if (e.defaultPrevented || $('screen-study').hidden || !$('screen-help').hidden || !current || animating) return;
     const typing = /^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName) && !document.activeElement.disabled;
     if (current.pending) {
+      if (current.pending.quick && current.pending.ok === null) {
+        if (e.key === '1') { e.preventDefault(); $('missBtn')?.click(); }
+        if (e.key === '2') { e.preventDefault(); $('contBtn')?.click(); }
+        return;
+      }
       if (current.card.type === 'recall' && current.pending.ok === null && !current.pending.gaveUp) {
         if (e.key === 'Enter' && !e.repeat && document.activeElement?.tagName !== 'INPUT') { e.preventDefault(); $('contBtn')?.click(); }
         return;
@@ -1270,6 +1223,7 @@
     }
     if (typing) return;
     const ui = current.ui;
+    if (isQuick(current.card) && (e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); submit(true); return; }
     if (current.card.type === 'mc' && /^[1-9]$/.test(e.key) && +e.key <= ui.optCount) ui.pick(+e.key - 1);
     if (e.key === 'Enter' && ['mc', 'order', 'swaps', 'path'].includes(current.card.type)) { e.preventDefault(); submit(!e.shiftKey); }
   });

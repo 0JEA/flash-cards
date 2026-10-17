@@ -116,7 +116,7 @@
   };
 
   H['l1-simplicity'] = {
-    asks: 'Give the three things that make a language simple.',
+    asks: 'A language has several ways to add one to a variable. Name the property of simplicity this breaks.',
     idea: 'Every extra thing in a language is one more thing a reader must know. Simplicity is about keeping that list short in three ways: few features, few ways to do each thing, and few symbols with more than one meaning.',
     steps: [
       'A manageable (small) set of features and constructs. In a huge language, each programmer learns a different subset, and then reads code written in a subset they never learned.',
@@ -124,13 +124,13 @@
       'Minimal operator overloading: one symbol should not mean many things. Using `+` for both int and float addition is fine, but if a programmer makes `+` on two arrays mean "sum of all elements", readers are misled.',
       'Hook: small, single, steady. A small set of features, a single way to do each thing, and symbols that mean a steady single thing.',
     ],
-    answer: 'A manageable (small) set of features and constructs; minimal feature multiplicity (few ways to do the same thing, e.g. count++ vs count = count + 1); minimal operator overloading.',
+    answer: 'Minimal feature multiplicity: there should be few ways to do the same thing (count++ vs count = count + 1).',
     mistake: 'Thinking simpler is always better. Assembly language is very simple, yet hard to read, because you need so many statements. Simplicity is one criterion among several.',
     tryIt: { q: 'Python lets you build a list with a loop, with a list comprehension, or with `map`. Which part of simplicity does that hurt?', a: 'Minimal feature multiplicity: there are several ways to do the same thing.' },
   };
 
   H['l1-orthogonality'] = {
-    asks: 'Give the three parts of the definition of orthogonality.',
+    asks: 'Orthogonality starts from a small set of primitive constructs. Say how they are used to build the control and data structures.',
     idea: 'Think of a LEGO set: a few brick types, every brick snaps to every other brick, and there is no "except this one". Orthogonal features are independent, so knowing the parts tells you every combination.',
     steps: [
       'A small set of primitive constructs, combined in a relatively small number of ways, builds all the control and data structures. Example: a few base types (int, float, char) plus two ways to build on them (array, pointer).',
@@ -138,7 +138,7 @@
       'Few or no exceptions to the rules. Every exception is something extra to memorize. In C, functions may return structs but not arrays; that is an exception.',
       { text: 'Sebesta\'s machine example: adding two numbers, where each operand can be a register or memory.', table: { head: ['machine', 'combinations allowed', 'orthogonal?'], rows: [['VAX (one ADDL instruction)', 'all 4', 'yes'], ['IBM (A and AR instructions)', '2 of 4', 'no']] } },
     ],
-    answer: 'A small set of primitive constructs can be combined in a relatively small number of ways to build the control and data structures; every possible combination is legal; there are few or no exceptions to the rules.',
+    answer: 'They are combined in a relatively small number of ways to build the control and data structures. (The other two parts: every combination is legal; few or no exceptions.)',
     mistake: 'Defining it as "simple". Simplicity is about how many features there are; orthogonality is about whether they combine freely. Also, too much orthogonality can hurt: ALGOL 68 allowed nearly every combination and became very complex.',
     tryIt: { q: 'A language lets a pointer point to any type except arrays. Which part of orthogonality fails?', a: 'Every possible combination is legal: pointer + array is an illegal combination, an exception to the rule.' },
   };
@@ -171,14 +171,14 @@
   };
 
   H['l1-syntax-design'] = {
-    asks: 'Name three aspects of syntax (the written form) that affect how readable a language is.',
+    asks: 'Ada closes an if with end if, C with a brace. Name the aspect of syntax design that differs.',
     idea: 'Readers find their way through code by its words and shapes. The words should be reserved and clear, groups of statements should show where they end, and the look of a construct should hint at what it does.',
     steps: [
       'Special (reserved) words, such as `while`, `class`, `for`. They are signposts. If they can also be used as variable names (Fortran 95 allows a variable named `Do`), the signposts lie.',
       { text: 'How compound statements are formed. A brace closes everything the same way; Ada says what is closing:', code: '/* C */            -- Ada\n}                   end if;\n}                   end loop;' },
       'Meaningful keywords, so that form shows meaning. `while` reads as what it does. Sebesta\'s counter-example is the Unix command `grep`, whose name tells a beginner nothing.',
     ],
-    answer: 'Special (reserved) words such as while, class and for; the way compound statements are formed (end if / end loop vs braces); meaningful keywords, so that a construct\'s form shows what it does.',
+    answer: 'How compound statements are formed: end if / end loop says what ended; a brace only says something ended.',
     mistake: 'Answering with semantics ("what the statement does"). Syntax design is about how it is written: the words and the shapes on the page.',
     tryIt: { q: 'In one language `static` means different things inside and outside a function. Which syntax design aspect does that hurt?', a: 'Meaningful keywords (form shows meaning): one word has two meanings depending on where it sits.' },
   };
@@ -297,7 +297,7 @@
   const kiwi = 'Pascal:  if kiwi > orange then\nJava:    if (kiwi > orange)';
 
   H['l1-readwrite'] = {
-    asks: 'Look only at how the condition is written in Pascal and Java and say which is easier to read, and for whom.',
+    asks: 'Compare only how the two conditions are written, and say which reads more easily and for whom.',
     idea: 'Readability depends on who is reading. Something close to English helps a beginner a lot; an experienced programmer reads both shapes without effort.',
     steps: [
       { text: 'Put the two conditions next to each other:', code: kiwi },
@@ -305,13 +305,13 @@
       'Java wraps the condition in brackets, which looks more like math. Beginners often find that odd.',
       'Verdict: Pascal is more readable for beginners; experienced programmers find the two about equally readable.',
     ],
-    answer: 'Pascal reads more like English (the word “then”, no brackets around the condition), which helps beginners. Experienced programmers find the two about equally readable.',
+    answer: 'Pascal, for beginners: “then” and no brackets read like English. Experienced programmers find the two about equally readable.',
     mistake: 'Talking about typing effort (that is writeability) or about `WriteLn` versus `println` (the question says condition only).',
     tryIt: { q: 'Ada ends an if with `end if;` while C ends it with `}`. Which is more readable, and why?', a: 'Ada for most readers: `end if` says what is ending, while `}` closes every kind of block the same way.' },
   };
 
   H['l1-readwrite-w'] = {
-    asks: 'Same two conditionals, now judged on writeability: which takes less effort to type?',
+    asks: 'Compare only the effort of typing the two conditions, and say which is more writeable and why.',
     idea: 'Writeability is about the effort of producing the code. Count what you type, think about how often you type it, and think about what happens when you forget something.',
     steps: [
       { text: 'Compare what each adds around the condition:', code: kiwi },
@@ -319,7 +319,7 @@
       'Programmers write a great many conditionals, so a small saving each time adds up. That argues for Java.',
       'The counterpoint: if you forget the opening bracket in Java you must go back and insert it. In Pascal you just type `then` at the end, in the order you think.',
     ],
-    answer: 'Java needs two fewer characters per condition, and we write a great many conditionals, so it may be more writeable. Against that: forgetting a bracket means going back to insert it, while in Pascal you just type “then” at the end.',
+    answer: 'Java may be: two fewer characters on every condition, and conditionals are frequent. Against that, a forgotten bracket costs a fix, while “then” is just typed at the end.',
     mistake: 'Arguing that Pascal is easier to read. That is readability. Writeability is about the work of writing.',
     tryIt: { q: 'Python writes `if x > 0:` with no brackets and no `then`. Compared with Java\'s `if (x > 0)`, which is more writeable on character count?', a: 'Python: it adds only `:` (1 character) where Java adds `(` and `)` (2), and nothing has to be gone back for.' },
   };
@@ -342,7 +342,7 @@
   // ---------- Language categories ----------
 
   H['l1-categories'] = {
-    asks: 'Name the four categories of programming languages used in the course.',
+    asks: 'Give the language category whose other name is imperative.',
     idea: 'Each category is a different answer to "how do you tell a computer what to do?": give it steps, give it functions, give it rules, or give it objects. The four course languages are one of each.',
     steps: [
       'Procedural (also called imperative): give steps that change variables. Course language: C.',
@@ -351,13 +351,13 @@
       'Object-oriented: organize the program into objects (classes) that hold data and methods. Course language: Java.',
       { text: 'Hook: steps, functions, rules, objects.', table: { head: ['category', 'you give the computer', 'course language'], rows: [['procedural', 'steps', 'C'], ['functional', 'functions', 'Scheme'], ['logic', 'rules', 'Prolog'], ['object-oriented', 'objects', 'Java']] } },
     ],
-    answer: 'Procedural (imperative), functional, logic, object-oriented.',
+    answer: 'Procedural (imperative), the category of C. The other three are functional, logic and object-oriented.',
     mistake: 'Listing "imperative" and "procedural" as two categories. They are two names for the same one.',
     tryIt: { q: 'Which category is a language whose programs are lists of facts and rules that you query?', a: 'Logic.' },
   };
 
   H['l1-classify'] = {
-    asks: 'Put each course language in its category.',
+    asks: 'Name the category (procedural, functional, logic or object-oriented) that Prolog is in.',
     idea: 'Ask what you write most in each one: C is statements that change variables, Scheme is function calls, Prolog is facts and rules, Java is classes.',
     steps: [
       'C: you write step-by-step statements that assign to variables (`x = x + 1;`). Procedural (imperative).',
@@ -366,7 +366,7 @@
       'Java: all code must live inside a class. Object-oriented.',
       { text: 'Summary:', table: { head: ['language', 'what you write most', 'category'], rows: [['C', 'statements that change variables', 'procedural'], ['Scheme', 'function calls', 'functional'], ['Prolog', 'facts and rules', 'logic'], ['Java', 'classes', 'object-oriented']] } },
     ],
-    answer: 'C: procedural (imperative). Scheme: functional. Prolog: logic. Java: object-oriented.',
+    answer: 'Logic: a Prolog program states facts and rules, and you query it.',
     mistake: 'Calling Java procedural because its method bodies are made of statements. What puts Java in the OO category is that the program is forced to be organized into classes.',
     tryIt: { q: 'Lisp (with `mapcar`) is Scheme\'s ancestor. Which category is it in?', a: 'Functional: computation is done by applying functions to parameters.' },
   };

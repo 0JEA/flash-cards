@@ -30,7 +30,7 @@
   // ---------------------------------------------------------------- Lecture 3
 
   H['c310-3-rate-def'] = {
-    asks: 'Two things: what "rate of growth" means for a running time $T(n)$, and the recipe for getting it from an exact formula such as $0.3n^2 + 10n + 20$.',
+    asks: "Say what \"rate of growth\" means for a running time $T(n)$.",
     idea: 'Ask what happens to $T(n)$ when $n$ gets big. One term ends up doing almost all the work and the others become rounding error. The rate of growth is that one term with its constant multiplier removed.',
     steps: [
       'Rate of growth means how fast $T(n)$ grows as $n$ grows. Only large $n$ matters, because small inputs are fast anyway.',
@@ -44,13 +44,13 @@
       curves: [{ label: '$\\dfrac{0.3n^2}{0.3n^2 + 10n + 20}$', f: n => 0.3 * n * n / (0.3 * n * n + 10 * n + 20), tone: 'a' }],
       marks: [{ x: 36, label: '$n = 36$' }],
     },
-    answer: 'Rate of growth is how fast $T(n)$ grows with respect to $n$. To get it, keep the most significant term and cast aside the rest: lower-order terms and constant coefficients. $0.3n^2 + 10n + 20$ grows as $n^2$.',
+    answer: "How fast $T(n)$ grows with respect to $n$.",
     mistake: 'Dropping only one of the two things: writing "$n^2 + n$" (kept a lower-order term) or "$0.3n^2$" (kept the constant). Both go.',
     tryIt: { q: 'What is the rate of growth of $T(n) = 5n^3 + 2n^2 + 100$?', a: '$n^3$ (cubic). At $n = 100$, $5n^3 = 5{,}000{,}000$ while $2n^2 + 100 = 20{,}100$, so $5n^3$ is over 99% of the total. Drop the rest and the 5.' },
   };
 
   H['c310-3-drop-terms'] = {
-    asks: 'For small $n$ the "small" part $10n + 20$ is actually bigger than $0.3n^2$. Why do we still say $T(n)$ grows like $n^2$?',
+    asks: "For small $n$ the \"small\" part $10n + 20$ is actually bigger than $0.3n^2$. Why do we still say $T(n)$ grows like $n^2$?",
     idea: 'A race between a slow starter that keeps accelerating ($0.3n^2$) and a fast starter that never speeds up ($10n + 20$). The fast starter leads early, but once it is passed it falls further behind at every step. Asymptotic analysis only looks at the race far down the track.',
     steps: [
       { text: 'Compare the two parts at a few values:', table: { head: ['$n$', '$0.3n^2$', '$10n + 20$', 'bigger'], rows: [['10', '30', '120', '$10n + 20$'], ['35', '367.5', '370', '$10n + 20$'], ['36', '388.8', '380', '$0.3n^2$'], ['100', '3000', '1020', '$0.3n^2$']] } },
@@ -65,7 +65,7 @@
       marks: [{ x: 36, label: '$n = 36$' }],
       from: 36,
     },
-    answer: 'Because $0.3n^2$ passes $10n + 20$ at $n = 36$ and its lead keeps growing. Only large $n$ counts, so $n^2$ is the most significant factor: drop the lower-order terms and the constant, and the growth is quadratic, $\\Theta(n^2)$.',
+    answer: "Because $0.3n^2$ passes $10n + 20$ at $n = 36$ and its lead keeps growing. Only large $n$ counts, so $n^2$ is the most significant term: $\\Theta(n^2)$.",
     mistake: 'Deciding growth by which term is bigger at small $n$. Any $an^2$ with $a > 0$ eventually beats any linear $bn + d$, however big $b$ and $d$ are.',
     tryIt: { q: 'For $T(n) = 0.5n^2 + 20n + 50$, from which $n$ on is $0.5n^2$ the bigger part? What is the growth?', a: 'First at $n = 43$: $924.5 > 910$ (at $n = 42$, $882 < 890$). Growth $\\Theta(n^2)$.' },
   };
@@ -93,7 +93,7 @@
   };
 
   H['c310-3-ins-omega-O'] = {
-    asks: 'Decide whether both statements hold for insertion sort over every possible input: "at least about $n$" ($\\Omega(n)$) and "at most about $n^2$" ($O(n^2)$).',
+    asks: "Explain why insertion sort takes \"at least about $n$\" ($\\Omega(n)$) steps on every possible input.",
     idea: 'Every input’s running time lands somewhere between the best case (sorted input) and the worst case (reversed input). A floor under the best case is a floor under everything, and a ceiling over the worst case is a ceiling over everything.',
     steps: [
       'Count the comparisons $A[i] > key$ on line 4. Sorted input: each $j$ compares once and stops, so $n - 1$ comparisons in total, the best case, $\\Theta(n)$.',
@@ -107,13 +107,13 @@
       x: [2, 20], xLabel: 'n', yLabel: 'comparisons',
       curves: [{ label: 'worst $\\frac{n(n-1)}{2}$', f: n => n * (n - 1) / 2, tone: 'b' }, { label: 'best $n - 1$', f: n => n - 1, tone: 'a' }],
     },
-    answer: 'True. The best case (sorted input) is $\\Theta(n)$, so every input takes at least linear time: $\\Omega(n)$. The worst case (reversed input) is $\\Theta(n^2)$, so every input takes at most quadratic time: $O(n^2)$.',
+    answer: "The best case (sorted input) is $\\Theta(n)$, so every input takes at least linear time: $\\Omega(n)$.",
     mistake: 'Writing "insertion sort is $\\Theta(n^2)$" with no case attached: that is only the worst case, and sorted input runs in $\\Theta(n)$. Over all inputs, only the pair $\\Omega(n)$ and $O(n^2)$ is correct.',
     tryIt: { q: 'The loop version of FindMax always makes exactly $n - 1$ comparisons. Over all inputs, is its time in $\\Omega(n)$? In $O(n^2)$? Is there one $\\Theta$ for every input?', a: 'Yes and yes ($n - 1 \\ge \\tfrac12 n$ for $n \\ge 2$, and $n - 1 \\le n^2$). Its best and worst cases are the same, $n - 1$, so $\\Theta(n)$ holds for every input, unlike insertion sort.' },
   };
 
   H['c310-3-binsearch-omega'] = {
-    asks: '"Binary search is $\\Omega(\\log n)$" says binary search needs at least about $\\log n$ steps. Say which case makes that true, and show an input where it fails.',
+    asks: "\"Binary search is $\\Omega(\\log n)$\" says binary search needs at least about $\\log n$ steps. Say which case makes that true.",
     idea: 'A lower bound for "every input" has to hold even for the luckiest input. Binary search’s luckiest input has the key exactly in the middle, found on the first look. One step is not "at least $c \\log n$" once $n$ is large.',
     steps: [
       { text: 'Worst case (key absent): each round halves the search range until it has size 1. For $n = 16$:', table: { head: ['round', 'range size'], rows: [['1', '16'], ['2', '8'], ['3', '4'], ['4', '2'], ['5', '1']] } },
@@ -127,7 +127,7 @@
       curves: [{ label: 'worst $\\lg n + 1$', f: n => lg(n) + 1, tone: 'b' }, { label: '$0.5 \\lg n$', f: n => 0.5 * lg(n), tone: 'c' }, { label: 'best $1$', f: () => 1, tone: 'a' }],
       marks: [{ x: 4, label: '$n = 4$' }],
     },
-    answer: 'True for the worst-case running time, which is $\\Theta(\\log n)$ and hence $\\Omega(\\log n)$. False as a bound on every input: the best case finds the key in one comparison, $\\Theta(1)$, which is not $\\ge c \\log n$.',
+    answer: "The worst case, which is $\\Theta(\\log n)$ and hence $\\Omega(\\log n)$.",
     mistake: 'Reading $\\Omega$ as "best case" automatically. $\\Omega$ is a lower bound on whatever function you name, so name it: "worst-case time is $\\Omega(\\log n)$" is true, "time on every input is $\\Omega(\\log n)$" is false.',
     tryIt: { q: 'Slide 19 also says linear search is $\\Omega(n)$. True for the worst case? For every input?', a: 'Worst case (key absent): all $n$ elements are checked, so yes. Every input: no. If the key is in $A[1]$ the loop returns after one check, $\\Theta(1)$.' },
   };
@@ -156,7 +156,7 @@
   };
 
   H['c310-3-theta-intuition'] = {
-    asks: 'Say in plain words what "the worst-case time of linear search is $\\Theta(n)$" promises.',
+    asks: "Say in plain words what \"the worst-case time of linear search is $\\Theta(n)$\" promises.",
     idea: 'A sandwich between two straight lines through the origin. Past some point, the time is never below a gentle line $c_1 n$ and never above a steeper line $c_2 n$. So it grows exactly like $n$: double $n$ and the time roughly doubles.',
     steps: [
       'Worst case: the key is absent, so all $n$ elements are checked. Slide 8 writes this as $c_1 n + c_2$; take concrete costs, 3 units per check and 5 for setup and return: $T(n) = 3n + 5$.',
@@ -172,7 +172,7 @@
       marks: [{ x: 5, label: '$n_0 = 5$' }],
       from: 5,
     },
-    answer: 'Once $n$ is large enough, the worst-case time is at least $c_1 n$ and at most $c_2 n$ for some positive constants $c_1, c_2$. It is sandwiched between two lines: an asymptotically tight bound, so it grows linearly.',
+    answer: "Once $n$ is large enough, the worst-case time is at least $c_1 n$ and at most $c_2 n$ for some positive constants $c_1, c_2$: sandwiched between two lines, a tight bound.",
     mistake: 'Reading $\\Theta(n)$ as "exactly $n$ steps". It allows any constant multiplier and any lower-order extra, as long as both lines hold from some $n_0$ on.',
     tryIt: { q: 'A worst case is $T(n) = 2n + 9$. Give $c_1$, $c_2$ and $n_0$ that show $T(n) = \\Theta(n)$.', a: '$c_1 = 2$, since $2n \\le 2n + 9$ always. $2n + 9 \\le 3n \\iff n \\ge 9$, so $c_2 = 3$ and $n_0 = 9$.' },
   };
@@ -202,7 +202,7 @@
   };
 
   H['c310-4-dc-divide'] = {
-    asks: 'Say what the Divide step produces and the two conditions its subproblems must meet.',
+    asks: "Say what the Divide step of divide and conquer produces.",
     idea: 'Cut the job into pieces that are the same kind of job, only smaller, and that share no work. If two pieces overlap, the same work is done twice; that situation belongs to a different technique (dynamic programming).',
     steps: [
       '"Smaller instances of the same problem": sorting A[1..8] becomes sorting A[1..4] and sorting A[5..8]. Still sorting, just shorter arrays, so the same algorithm handles them.',
@@ -210,13 +210,13 @@
       { text: 'Merge sort’s pieces for $n = 8$ cover the array exactly once at every level:', table: { head: ['level', 'subarrays'], rows: [['0', 'A[1..8]'], ['1', 'A[1..4], A[5..8]'], ['2', 'A[1..2], A[3..4], A[5..6], A[7..8]'], ['3', 'A[1], A[2], …, A[8]']] } },
       'Contrast: Fib($n$) calls Fib($n-1$) and Fib($n-2$), and Fib($n-1$) calls Fib($n-2$) again. Those subproblems overlap, so naive recursion repeats work.',
     ],
-    answer: 'It splits the problem into a number of subproblems that are smaller instances of the same problem, and the subproblems do not overlap.',
+    answer: "Subproblems that are smaller instances of the same problem (and do not overlap).",
     mistake: 'Thinking the pieces must be exactly equal halves. They must be smaller and non-overlapping; merge sort on 9 elements splits them 5 and 4.',
     tryIt: { q: 'Is splitting A[1..10] into A[1..6] and A[5..10] a valid Divide for merge sort?', a: 'No. A[5] and A[6] are in both pieces: they would be sorted twice and appear twice after merging (12 elements out of 10).' },
   };
 
   H['c310-4-dc-conquer'] = {
-    asks: 'What happens in the Conquer step, and what happens when a subproblem is tiny?',
+    asks: "Say what the Conquer step of divide and conquer does.",
     idea: 'Conquer means "trust the recursion": hand each piece to the same algorithm. The recursion has to stop somewhere, so a piece that is small enough is answered directly. That direct answer is the base case.',
     steps: [
       'Conquer solves each subproblem by calling the algorithm on it recursively.',
@@ -225,13 +225,13 @@
       { text: 'FindMax on A[1..4] = 3, 9, 2, 6:', table: { head: ['call', 'size', 'what happens'], rows: [['FindMax(A, 1, 4)', '4', 'divide, two calls'], ['FindMax(A, 1, 2)', '2', 'divide, two calls'], ['FindMax(A, 3, 4)', '2', 'divide, two calls'], ['FindMax(A, i, i), i = 1..4', '1', 'base case: return A[i]']] } },
       'On the way back up: the larger of 3 and 9 is 9, the larger of 2 and 6 is 6, and the larger of 9 and 6 is 9.',
     ],
-    answer: 'It solves the subproblems recursively. When a subproblem is small enough, it is solved directly (the base case).',
+    answer: "Solves the subproblems recursively (a small enough one is solved directly: the base case).",
     mistake: 'Leaving out the base case. Without it the recursion never stops, and the recurrence has no $T(1)$ to end on.',
     tryIt: { q: 'Recursive FindMax on 8 elements: how many calls in total, and how many are base cases?', a: 'One base case per element: 8. Calls: $1 + 2 + 4 + 8 = 15$.' },
   };
 
   H['c310-4-dc-combine'] = {
-    asks: 'What does the Combine step do in general, and what exactly is it in merge sort and in recursive FindMax?',
+    asks: "Say what the Combine step of divide and conquer does.",
     idea: 'Combine is the glue work done after the recursive calls come back. Its cost per call is the added term $f(n)$ in the recurrence, so it shapes the running time: merge sort glues with a linear pass, FindMax with one comparison.',
     steps: [
       'Combine turns the subproblems’ answers into the answer for the whole problem.',
@@ -239,13 +239,13 @@
       'FindMax: the halves come back as two numbers, for example 9 and 6. One comparison picks 9, which is $\\Theta(1)$.',
       { text: 'The combine cost becomes the added term of the recurrence:', table: { head: ['algorithm', 'combine', 'cost', 'recurrence'], rows: [['merge sort', 'Merge', '$\\Theta(n)$', '$2T(n/2) + \\Theta(n)$'], ['FindMax', 'larger of two', '$\\Theta(1)$', '$2T(n/2) + \\Theta(1)$']] } },
     ],
-    answer: 'It combines the subproblem solutions into the solution of the original problem. Merge sort: Merge the two sorted halves, $\\Theta(n)$. FindMax: return the larger of the two halves’ maxima, $\\Theta(1)$.',
+    answer: "Combines the subproblem solutions into the solution of the original problem (merge sort: Merge, $\\Theta(n)$; FindMax: compare two maxima, $\\Theta(1)$).",
     mistake: 'Charging the linear cost to the Divide step. In merge sort, Divide (computing mid) is $\\Theta(1)$; the $\\Theta(n)$ is all in Merge.',
     tryIt: { q: 'A recursive Sum(A, left, right) adds up an array by summing each half. What is its combine step, and what does it cost?', a: 'Add the two halves’ sums: one addition, $\\Theta(1)$. Recurrence $2T(n/2) + \\Theta(1)$, the same shape as FindMax.' },
   };
 
   H['c310-4-recursive-parts'] = {
-    asks: 'List the four parts that slide 5 says a recursive algorithm consists of.',
+    asks: "Name the four parts of a recursive algorithm, in the lecture’s order.",
     idea: 'Read any recursive function from top to bottom and you meet them in order: "am I small enough to answer now?", "cut the input", "call myself on the pieces", "put the answers together".',
     steps: [
       'Base case: the input is small enough to answer without recursing.',
@@ -254,13 +254,13 @@
       'End work to combine the solutions of the recursive calls.',
       { text: 'All four in FindMax (slide 8):', table: { head: ['part', 'FindMax line', 'D&C step'], rows: [['base case', 'if (left ≥ right) return A[right]', 'stop'], ['divide work', 'mid = (left + right)/2', 'Divide'], ['recursive calls', 'FindMax(A, left, mid), FindMax(A, mid+1, right)', 'Conquer'], ['end work', 'return the larger of first, second', 'Combine']] } },
     ],
-    answer: 'A base case; work to divide the input into smaller subproblems; the recursive calls; end work to combine the solutions of the recursive calls.',
+    answer: "Base case; work to divide the input; the recursive calls; end work to combine the results.",
     mistake: 'Listing only "base case and recursive call". The course’s list also has the divide work and the end (combine) work, which is where the non-recursive cost comes from.',
     tryIt: { q: 'Find the four parts in Factorial(n): if n == 0 return 1, else return n * Factorial(n − 1).', a: 'Base case: n == 0 returns 1. Divide work: form n − 1. Recursive call: Factorial(n − 1). End work: multiply its result by n.' },
   };
 
   H['c310-4-factorial'] = {
-    asks: 'Write Factorial recursively, then turn the code into a running-time recurrence and solve it.',
+    asks: "Give the running-time recurrence of recursive Factorial(n) and its solution.",
     idea: 'Each call does a fixed amount of work (one test, one multiply) and hands off to a problem one smaller. So the time is one unit per call times the number of calls, and there are about $n$ calls.',
     steps: [
       'Code (slide 6): Factorial(n): if (n == 0) return 1; else return n * Factorial(n − 1).',
@@ -269,13 +269,13 @@
       'Stop at the base case. The slides use $n - k = 1$, so $k = n - 1$ and $T(n) = (n - 1) + T(1) = \\Theta(n)$.',
       { text: 'Factorial(4) makes 5 calls, one per value from 4 down to 0:', table: { head: ['call', 'returns'], rows: [['Factorial(4)', '4 · 6 = 24'], ['Factorial(3)', '3 · 2 = 6'], ['Factorial(2)', '2 · 1 = 2'], ['Factorial(1)', '1 · 1 = 1'], ['Factorial(0)', '1 (base case)']] } },
     ],
-    answer: 'if $n = 0$ return 1, else return $n \\cdot$ Factorial($n - 1$). $T(n) = T(n-1) + 1$, which solves to $T(n) = k + T(n-k)$; with $k = n - 1$, $T(n) = n - 1 + T(1) = \\Theta(n)$.',
+    answer: "$T(n) = T(n-1) + \\Theta(1)$, which solves to $\\Theta(n)$.",
     mistake: 'Mixing up the value and the time. The value $n!$ grows enormously, but the time is one multiplication per call: $\\Theta(n)$.',
     tryIt: { q: 'Sum(n) returns $1 + 2 + \\dots + n$: if n == 0 return 0, else return n + Sum(n − 1). Recurrence and solution?', a: '$T(n) = T(n-1) + 1$, the same shape as Factorial. So $T(n) = k + T(n-k)$ and $T(n) = \\Theta(n)$.' },
   };
 
   H['c310-4-fib-code'] = {
-    asks: 'Turn the definition $F_0 = 1$, $F_1 = 1$, $F_n = F_{n-1} + F_{n-2}$ into a recursive algorithm.',
+    asks: "Write a recursive algorithm for $F_n$ with $F_0 = F_1 = 1$ and $F_n = F_{n-1} + F_{n-2}$.",
     idea: 'The definition already is the algorithm: the given values become base cases, the formula becomes the recursive case. Because the formula reaches back two steps, you need two base cases.',
     steps: [
       'Base cases from $F_0 = 1$ and $F_1 = 1$: if $n = 0$ or $n = 1$, return 1.',
@@ -289,7 +289,7 @@
       x: [-0.5, 10.5], y: [0.5, 300], logY: true, xLabel: 'n', yLabel: 'calls (log scale)',
       bars: { label: 'calls made by Fib($n$)', tone: 'b', values: [[0, 1], [1, 1], [2, 3], [3, 5], [4, 9], [5, 15], [6, 25], [7, 41], [8, 67], [9, 109], [10, 177]] },
     },
-    answer: 'Fib($n$): if $n = 0$ or $n = 1$ return 1; else return Fib($n - 1$) + Fib($n - 2$).',
+    answer: "Fib($n$): if $n = 0$ or $n = 1$ return 1; else return Fib($n - 1$) + Fib($n - 2$).",
     mistake: 'Writing one base case, or returning 0 for $n = 0$. This course defines $F_0 = 1$, so both base cases return 1.',
     tryIt: { q: 'Write a recursive G($n$) for $G_0 = 2$, $G_1 = 1$, $G_n = G_{n-1} + G_{n-2}$, and find $G_4$.', a: 'If $n = 0$ return 2; if $n = 1$ return 1; else return G($n - 1$) + G($n - 2$). $G_2 = 3$, $G_3 = 4$, $G_4 = 7$.' },
   };
@@ -309,7 +309,7 @@
   };
 
   H['c310-4-findmax-recurrence'] = {
-    asks: 'Read the FindMax code and write $T(n)$, its time on $n$ elements, as a recurrence. Say where each term comes from.',
+    asks: "Write the running-time recurrence of recursive FindMax.",
     idea: 'Go through the code line by line and charge each line its cost. A line that calls FindMax on half the array costs "$T$ of half", $T(n/2)$. Everything else is a fixed number of operations.',
     steps: [
       { text: 'Charge each line:', table: { head: ['line', 'cost'], rows: [['if (left ≥ right)', '$\\Theta(1)$'], ['return A[right] (only when $n = 1$)', '$\\Theta(1)$'], ['mid = (left + right)/2', '$\\Theta(1)$'], ['first = FindMax(A, left, mid)', '$T(n/2)$'], ['second = FindMax(A, mid+1, right)', '$T(n/2)$'], ['if first > second … return', '$\\Theta(1)$']] } },
@@ -318,7 +318,7 @@
       'The rest (test, mid, one comparison) is a constant number of steps, and constants added together stay constant: $\\Theta(1)$.',
       'So $T(n) = 2T(n/2) + \\Theta(1)$ for $n > 1$. It solves to $\\Theta(n)$; with every $\\Theta(1)$ counted as 1, $T(n) = 2n - 1$.',
     ],
-    answer: '$T(n) = \\Theta(1)$ if $n = 1$, and $T(n) = 2T(n/2) + \\Theta(1)$ if $n > 1$. The two half-size calls give $2T(n/2)$; computing mid and comparing first with second is constant work.',
+    answer: "$T(1) = \\Theta(1)$; $T(n) = 2T(n/2) + \\Theta(1)$ for $n > 1$.",
     mistake: 'Writing $T(n/2) + \\Theta(1)$, as if there were one call. There are two recursive calls, one per half, so the term is $2T(n/2)$.',
     tryIt: { q: 'CountNeg(A, left, right) counts negative entries: one element, return 1 or 0; otherwise return CountNeg(left half) + CountNeg(right half). Recurrence?', a: '$T(1) = \\Theta(1)$ and $T(n) = 2T(n/2) + \\Theta(1)$: two half-size calls, then one addition.' },
   };
@@ -341,7 +341,7 @@
   };
 
   H['c310-4-merge-precondition'] = {
-    asks: 'Merge(A, left, mid, right) is a helper. What must already be true when it is called, and what does it guarantee when it returns?',
+    asks: "Say what must be true of the two subarrays before Merge(A, left, mid, right) is called.",
     idea: 'Merge is a zipper: it only works if both rows of teeth are already in order. It never looks back, so it relies on both halves being sorted, and the recursive calls make sure they are.',
     steps: [
       'Input: A[left..mid] is sorted and A[mid+1..right] is sorted. Those are exactly the halves the two recursive calls just sorted.',
@@ -350,7 +350,7 @@
       { text: 'Break the precondition: left half 5 2 (not sorted), right half 1 4:', table: { head: ['compare fronts', 'output'], rows: [['5 vs 1', '1'], ['5 vs 4', '4'], ['right half empty', 'copy 5, 2']] } },
       'The result is 1 4 5 2, which is not sorted. Merge did its job; the input broke the contract.',
     ],
-    answer: 'It assumes A[left..mid] and A[mid+1..right] are each already sorted, and it produces A[left..right] as a single sorted subarray.',
+    answer: "A[left..mid] and A[mid+1..right] must each already be sorted.",
     mistake: 'Saying Merge sorts its input. It only merges: on unsorted halves it returns an unsorted result, as the example shows.',
     tryIt: { q: 'A = [2, 6, 9, 1, 7]. May you call Merge(A, 1, 3, 5), and what does it produce?', a: 'Yes: A[1..3] = 2 6 9 and A[4..5] = 1 7 are each sorted. The result is A[1..5] = 1 2 6 7 9.' },
   };
@@ -385,7 +385,7 @@
   };
 
   H['c310-4-merge-time'] = {
-    asks: 'Merging two sorted halves with $n$ elements in total: how does the time grow with $n$, and why?',
+    asks: "Say how long merging two sorted subarrays with $n$ elements in total takes.",
     idea: 'Each step of Merge outputs one element and does a constant amount of work for it (one comparison, one copy). $n$ elements out means $n$ steps: linear.',
     steps: [
       'One step: compare the two fronts, copy the smaller to the output, advance one finger. That is a fixed number of operations, $\\Theta(1)$.',
@@ -398,13 +398,13 @@
       x: [2, 64], xLabel: 'n (total elements)', yLabel: 'comparisons',
       curves: [{ label: 'most $n - 1$', f: n => n - 1, tone: 'b' }, { label: 'fewest $n/2$', f: n => n / 2, tone: 'a' }],
     },
-    answer: '$\\Theta(n)$: each step does constant work and outputs one element, so $n$ elements take $n$ steps.',
+    answer: "$\\Theta(n)$: each step does one comparison and outputs one element, so at most $n$ steps.",
     mistake: 'Thinking every element of L is compared with every element of R, giving $n^2$. Because both halves are sorted, each element is compared only with the current front of the other half.',
     tryIt: { q: 'Two sorted halves of 500 elements each. What are the most and the fewest comparisons Merge can make?', a: 'Most: $n - 1 = 999$ (interleaved to the end). Fewest: 500 (all of one half smaller than all of the other).' },
   };
 
   H['c310-4-ms-example'] = {
-    asks: 'Trace merge sort on 8, 7, 5, 1, 6, 2, 4, 3: give the sorted pairs after the first merges and the two sorted halves just before the last merge.',
+    asks: "Merge sort on 8, 7, 5, 1, 6, 2, 4, 3: give the two sorted halves just before the final merge.",
     idea: 'Two passes. Going down, halve until every piece has one element (one element is sorted for free). Going up, merge neighbours: pairs, then fours, then all eight.',
     steps: [
       'Divide (tree above): 8 elements become two 4s, four 2s, then eight single elements, the recursion base.',
@@ -422,13 +422,13 @@
       ],
       caption: 'The divide pass. The merges retrace this tree from the bottom: each pair, then each four, then all eight.',
     },
-    answer: 'Pairs: (7, 8), (1, 5), (2, 6), (3, 4). Halves before the final merge: 1, 5, 7, 8 and 2, 3, 4, 6. Final: 1 2 3 4 5 6 7 8.',
+    answer: "1, 5, 7, 8 and 2, 3, 4, 6.",
     mistake: 'Pairing elements that are not siblings in the tree, for example 7 with 5. The pairs come from the halving: positions 1–2, 3–4, 5–6, 7–8.',
     tryIt: { q: 'Merge sort on 4, 9, 2, 7, 5, 1, 8, 3: the pairs after the first merges and the halves before the final merge?', a: 'Pairs: 4 9 | 2 7 | 1 5 | 3 8. Halves: 2 4 7 9 and 1 3 5 8. Final: 1 2 3 4 5 7 8 9.' },
   };
 
   H['c310-4-ms-9'] = {
-    asks: 'With 9 elements the halves cannot be equal. Find where MergeSort splits A = {10, 5, 7, 6, 1, 4, 8, 3, 2} at the top, and the two sorted halves just before the last merge.',
+    asks: "MergeSort with mid $= \\lfloor (\\text{left} + \\text{right})/2 \\rfloor$ on {10, 5, 7, 6, 1, 4, 8, 3, 2}: give the two sorted halves just before the final merge.",
     idea: 'mid is rounded down, so with an odd count the LEFT half gets the extra element. After that nothing changes: each half is sorted completely by its own recursive call before the final merge.',
     steps: [
       'Top call MergeSort(A, 1, 9): mid $= \\lfloor (1 + 9)/2 \\rfloor = 5$. Left is A[1..5] = 10 5 7 6 1, right is A[6..9] = 4 8 3 2.',
@@ -445,7 +445,7 @@
       ],
       caption: 'Odd sizes put the extra element on the left: 9 splits 5 + 4, 5 splits 3 + 2, 3 splits 2 + 1. The piece 10 5 splits once more (not drawn), so the first merge is 10 with 5.',
     },
-    answer: 'Split: indices 1..5 = {10, 5, 7, 6, 1} and 6..9 = {4, 8, 3, 2}. Sorted halves before the final merge: 1, 5, 6, 7, 10 and 2, 3, 4, 8.',
+    answer: "1, 5, 6, 7, 10 and 2, 3, 4, 8.",
     mistake: 'Splitting 4 + 5, with the extra element on the right. $\\lfloor (1 + 9)/2 \\rfloor = 5$ puts indices 1 to 5 on the left.',
     tryIt: { q: 'MergeSort on A = {9, 2, 6, 4, 8, 1, 7} (indices 1..7): the top split and the halves before the final merge?', a: 'mid $= \\lfloor (1 + 7)/2 \\rfloor = 4$: 9 2 6 4 | 8 1 7. Sorted halves: 2 4 6 9 and 1 7 8. Final: 1 2 4 6 7 8 9.' },
   };
@@ -468,7 +468,7 @@
   // ---------------------------------------------------------------- Lecture 4: recurrences
 
   H['c310-4-recurrence-def'] = {
-    asks: 'Define a recurrence, and say what it means to solve one.',
+    asks: "Say what a recurrence is.",
     idea: 'A recurrence defines $T(n)$ by pointing at $T$ of smaller inputs, plus a starting value. Solving it gets rid of the pointing: you end with a formula or bound that you can evaluate for any $n$ directly.',
     steps: [
       'A recurrence describes a function in terms of its value on smaller inputs. Example: $T(1) = 1$, $T(n) = 2T(n/2) + n$ (merge sort with every cost set to 1).',
@@ -476,7 +476,7 @@
       'Solving eliminates the recursion. Here $T(n) = n \\lg n + n$, which gives $T(16) = 16 \\cdot 4 + 16 = 80$ in one line.',
       'In this course "solve" usually means an asymptotic bound, here $T(n) = \\Theta(n \\lg n)$. The tools are iteration, recursion trees, substitution and the master theorem.',
     ],
-    answer: 'An equation that describes a function in terms of its value on smaller inputs. Solving it eliminates the recursion by obtaining an asymptotic bound ($\\Theta$ or $O$) on the solution.',
+    answer: "An equation that describes a function in terms of its value on smaller inputs.",
     mistake: 'Forgetting the base case. Without $T(1)$ the values never get started; the table above begins at $T(1) = 1$.',
     tryIt: { q: 'Which is a recurrence? (a) $T(1) = 1$, $T(n) = T(n-1) + 2n$. (b) $T(n) = 3n^2 + 4$.', a: '(a) is: $T(n)$ is defined through $T(n-1)$. (b) is not; it is already a closed form, with nothing to solve.' },
   };
@@ -510,7 +510,7 @@
   };
 
   H['c310-4-methods'] = {
-    asks: 'Name the three general techniques the course uses to solve recurrences (the master method is a separate shortcut).',
+    asks: "Name the three general methods the course uses to solve recurrences.",
     idea: 'Two ways to unroll and one way to verify. Unroll with algebra (iteration), unroll with a picture (recursion tree), or guess the answer and prove it (substitution).',
     steps: [
       'Iteration method: substitute the recurrence into itself again and again until a pattern appears, write it as a sum, evaluate the sum.',
@@ -518,7 +518,7 @@
       'Substitution method: guess a bound, then prove it by induction, finding the constants on the way.',
       { text: 'All three on $T(n) = 2T(n/2) + n$:', table: { head: ['method', 'what you see'], rows: [['iteration', '$2^k T(n/2^k) + kn$, then set $k = \\lg n$'], ['recursion tree', '$\\lg n + 1$ levels, each costing $n$'], ['substitution', 'proves $T(n) \\le c\\,n \\lg n$ by induction']] } },
     ],
-    answer: 'The iteration method, recursion trees, and the substitution method.',
+    answer: "Iteration, recursion trees, substitution.",
     mistake: 'Listing the master method as one of the three. It is a "cookbook" for recurrences of the form $aT(n/b) + f(n)$, presented separately.',
     tryIt: { q: 'You already believe $T(n) = O(n \\lg n)$ and need a rigorous proof. Which method?', a: 'Substitution: the guess is in hand, and induction proves it and finds $c$ and $n_0$.' },
   };
@@ -541,7 +541,7 @@
   };
 
   H['c310-4-iter-factorial'] = {
-    asks: 'Unroll $T(n) = 1 + T(n-1)$, $T(1) = 1$ step by step, spot the pattern, and use the base case to finish.',
+    asks: "Solve $T(1) = 1$, $T(n) = 1 + T(n-1)$ by iteration.",
     idea: 'Each unrolling peels off one call and adds 1. After $k$ peels you have collected $k$ ones. Keep peeling until you reach $T(1)$.',
     steps: [
       { text: 'Substitute $T(n-1) = 1 + T(n-2)$, then $T(n-2) = 1 + T(n-3)$, and so on:', table: { head: ['$k$', '$T(n)$ after $k$ substitutions'], rows: [['1', '$1 + T(n-1)$'], ['2', '$2 + T(n-2)$'], ['3', '$3 + T(n-3)$'], ['$k$', '$k + T(n-k)$']] } },
@@ -550,13 +550,13 @@
       'Plug in: $T(n) = (n - 1) + T(1) = (n - 1) + 1 = n$, which is $\\Theta(n)$.',
       { text: 'Check:', table: { head: ['$n$', 'by the recurrence', '$n$'], rows: [['1', '1', '1'], ['2', '2', '2'], ['3', '3', '3'], ['5', '5', '5']] } },
     ],
-    answer: '$T(n) = 1 + T(n-1) = 2 + T(n-2) = \\dots = k + T(n-k)$. With $n - k = 1$, $k = n - 1$, so $T(n) = (n - 1) + T(1) = n = \\Theta(n)$.',
+    answer: "$T(n) = k + T(n-k)$; $k = n - 1$ gives $T(n) = n - 1 + T(1) = n = \\Theta(n)$.",
     mistake: 'Setting $n - k = 0$ when the base case you are given is $T(1)$. Stop at the base case you have: $n - k = 1$.',
     tryIt: { q: 'Solve $T(1) = 3$, $T(n) = 1 + T(n-1)$.', a: 'The same pattern $k + T(n-k)$; $k = n - 1$ gives $T(n) = n - 1 + 3 = n + 2 = \\Theta(n)$.' },
   };
 
   H['c310-4-iter-n-plus'] = {
-    asks: 'Unroll $T(n) = n + T(n-1)$, $T(1) = 1$, write the result as a sum, and evaluate the sum.',
+    asks: "Solve $T(1) = 1$, $T(n) = n + T(n-1)$ by iteration.",
     idea: 'Each step adds the current size: $n$, then $n - 1$, then $n - 2$, down to the base. That is the staircase $1 + 2 + \\dots + n$, the same sum as insertion sort’s worst case, about $n^2/2$.',
     steps: [
       { text: 'Expand:', table: { head: ['$k$', '$T(n)$ after $k$ substitutions'], rows: [['1', '$n + T(n-1)$'], ['2', '$n + (n-1) + T(n-2)$'], ['3', '$n + (n-1) + (n-2) + T(n-3)$'], ['$k$', '$n + (n-1) + \\dots + (n-k+1) + T(n-k)$']] } },
@@ -571,7 +571,7 @@
       bars: { label: '$T(n)$ from the recurrence', tone: 'b', values: [[1, 1], [2, 3], [3, 6], [4, 10], [5, 15], [6, 21], [7, 28], [8, 36], [9, 45], [10, 55]] },
       curves: [{ label: '$\\frac{n(n+1)}{2}$', f: n => n * (n + 1) / 2, tone: 'a' }],
     },
-    answer: '$T(n) = \\sum_{i=n-k+1}^{n} i + T(n-k)$; with $k = n - 1$, $T(n) = \\sum_{i=2}^{n} i + T(1) = \\frac{n(n+1)}{2} - 1 + 1 = \\frac{n(n+1)}{2} = \\Theta(n^2)$.',
+    answer: "$\\sum_{i=2}^{n} i + 1 = \\frac{n(n+1)}{2} = \\Theta(n^2)$.",
     mistake: 'Concluding $\\Theta(n)$ because each step "adds one term". The terms are not constants; most of them are close to $n$ in size.',
     tryIt: { q: 'Solve $T(1) = 1$, $T(n) = 2n + T(n-1)$.', a: '$T(n) = \\sum_{i=2}^{n} 2i + T(1) = 2\\left(\\frac{n(n+1)}{2} - 1\\right) + 1 = n^2 + n - 1 = \\Theta(n^2)$. Check: $T(2) = 4 + 1 = 5$.' },
   };
@@ -644,7 +644,7 @@
   };
 
   H['c310-5-iter-half-n'] = {
-    asks: 'Unroll $T(n) = T(n/2) + n$, $T(1) = 1$ ($n$ a power of 2) to an exact formula and a $\\Theta$ bound.',
+    asks: "Solve $T(1) = 1$, $T(n) = T(n/2) + n$ exactly.",
     idea: 'One call on half the input, plus work equal to the size. The work goes $n, n/2, n/4, \\dots$, like walking half the remaining distance to a wall each time: you never cover more than twice the first step.',
     steps: [
       { text: 'Expand:', table: { head: ['$k$', '$T(n)$ after $k$ substitutions'], rows: [['1', '$n + T(n/2)$'], ['2', '$n + n/2 + T(n/4)$'], ['3', '$n + n/2 + n/4 + T(n/8)$'], ['$k$', '$n + n/2 + \\dots + n/2^{k-1} + T(n/2^k)$']] } },
@@ -658,13 +658,13 @@
       x: [-0.5, 4.5], y: [0, 17], xLabel: 'depth', yLabel: 'work',
       bars: { label: 'work at that depth', tone: 'b', values: [[0, 16], [1, 8], [2, 4], [3, 2], [4, 1]] },
     },
-    answer: '$T(n) = n + n/2 + n/4 + \\dots + 2 + T(1) = (2n - 2) + 1 = 2n - 1 = \\Theta(n)$.',
+    answer: "$n + n/2 + \\dots + 2 + 1 = 2n - 1 = \\Theta(n)$.",
     mistake: 'Counting $\\lg n$ terms of size $n$ and getting $n \\lg n$. The terms halve each time, so the first one dominates the total.',
     tryIt: { q: 'Solve $T(1) = 1$, $T(n) = T(n/2) + 2n$ exactly.', a: '$T(n) = 2(n + n/2 + \\dots + 2) + 1 = 2(2n - 2) + 1 = 4n - 3$. Check: $T(2) = 4 + 1 = 5$, $T(4) = 8 + 5 = 13$.' },
   };
 
   H['c310-5-iter-2Tm1'] = {
-    asks: 'Unroll $T(n) = 2T(n-1) + 1$, $T(1) = 1$ to an exact formula and a $\\Theta$ bound.',
+    asks: "Solve $T(1) = 1$, $T(n) = 2T(n-1) + 1$ exactly.",
     idea: 'Two calls, and each one is only ONE smaller. The number of calls doubles at every level and there are $n$ levels: $1, 2, 4, \\dots, 2^{n-1}$ calls. That is exponential; the Towers of Hanoi move count follows exactly this recurrence.',
     steps: [
       { text: 'Expand:', table: { head: ['$k$', '$T(n)$ after $k$ substitutions'], rows: [['1', '$2T(n-1) + 1$'], ['2', '$2(2T(n-2) + 1) + 1 = 4T(n-2) + 2 + 1$'], ['3', '$8T(n-3) + 4 + 2 + 1$'], ['$k$', '$2^k T(n-k) + (2^{k-1} + \\dots + 2 + 1)$']] } },
@@ -677,7 +677,7 @@
       x: [1, 20], logY: true, xLabel: 'n', yLabel: 'value (log scale)',
       curves: [{ label: '$T(n) = 2^n - 1$', f: n => 2 ** n - 1, tone: 'b' }, { label: '$n^2$', f: n => n * n, tone: 'a' }],
     },
-    answer: '$T(n) = 2^k T(n-k) + 2^k - 1$. With $k = n - 1$: $2^{n-1} + 2^{n-1} - 1 = 2^n - 1 = \\Theta(2^n)$.',
+    answer: "$2^k T(n-k) + 2^k - 1$ with $k = n - 1$ gives $2^n - 1 = \\Theta(2^n)$.",
     mistake: 'Seeing $T(n-1)$ and expecting linear growth, as for $T(n-1) + 1$. The factor 2 in front doubles the work at every level, and that makes it exponential.',
     tryIt: { q: 'Solve $T(1) = 1$, $T(n) = 3T(n-1) + 1$ exactly.', a: '$T(n) = 3^k T(n-k) + \\frac{3^k - 1}{2}$. With $k = n - 1$: $3^{n-1} + \\frac{3^{n-1} - 1}{2} = \\frac{3^n - 1}{2} = \\Theta(3^n)$. Check: $T(3) = 13$.' },
   };
@@ -702,7 +702,7 @@
   };
 
   H['c310-5-iter-mergesort'] = {
-    asks: 'Unroll merge sort’s recurrence $T(n) = 2T(n/2) + cn$, $T(1) = c$ all the way down and find the exact $T(n)$.',
+    asks: "Solve $T(1) = c$, $T(n) = 2T(n/2) + cn$ exactly by iteration.",
     idea: 'Every unrolling adds one more full $cn$: at each level there are more pieces, but each is smaller by the same factor, so the level costs $cn$ in total. There are $\\lg n$ levels of this, plus the $n$ base calls.',
     steps: [
       { text: 'Expand:', table: { head: ['$k$', '$T(n)$ after $k$ substitutions'], rows: [['1', '$2T(n/2) + cn$'], ['2', '$2\\left(2T(n/4) + c\\tfrac{n}{2}\\right) + cn = 4T(n/4) + 2cn$'], ['3', '$8T(n/8) + 3cn$'], ['$k$', '$2^k T(n/2^k) + k\\,cn$']] } },
@@ -713,7 +713,7 @@
       '$cn \\lg n$ outgrows $cn$, so $T(n) = \\Theta(n \\lg n)$.',
     ],
     tree: { ...MS_TREE, caption: 'Each row of the tree is one unrolling: $\\lg n$ rows of $cn$ from the merges, plus the bottom row of $n$ base calls at $c$ each.' },
-    answer: '$T(n) = 2^k T(n/2^k) + k\\,cn$. With $k = \\lg n$: $T(n) = n \\cdot c + cn \\lg n = cn \\lg n + cn = \\Theta(n \\lg n)$.',
+    answer: "$2^k T(n/2^k) + k\\,cn$ with $k = \\lg n$: $T(n) = cn \\lg n + cn = \\Theta(n \\lg n)$.",
     mistake: 'Leaving out the base row: the $n$ calls of size 1 cost $c$ each and add $cn$. The exact answer is $cn \\lg n + cn$, not $cn \\lg n$.',
     tryIt: { q: 'Solve $T(1) = 3$, $T(n) = 2T(n/2) + 5n$ exactly.', a: '$T(n) = 2^k T(n/2^k) + 5kn$; $k = \\lg n$ gives $T(n) = 5n \\lg n + 3n$. Check: $T(2) = 6 + 10 = 16 = 5 \\cdot 2 \\cdot 1 + 3 \\cdot 2$.' },
   };
@@ -738,7 +738,7 @@
   const T_MS = n => n * lg(n) + n;
 
   H['c310-6-subst-steps'] = {
-    asks: 'Name the two steps of the substitution method.',
+    asks: "Give the first step of the substitution method.",
     idea: 'Guess, then check the guess with induction (dominoes): show the bound holds at the start, and that if it holds for smaller inputs it holds for $n$. The check also tells you which constant $c$ makes it work.',
     steps: [
       'Step 1, guess the form of the answer, e.g. "$T(n) = O(n \\lg n)$", which means $T(n) \\le c\\,n \\lg n$ for some $c$. Guesses come from a recursion tree or from a similar recurrence you know.',
@@ -746,13 +746,13 @@
       'Substitute the assumption into the recurrence and simplify until it reads $T(n) \\le c\\,n \\lg n$ with the same $c$. The algebra tells you the condition on $c$ (here $c \\ge 1$).',
       'Check the base case and pick $n_0$ and $c$ so that both the base case and the step work (here $n_0 = 2$, $c = 2$).',
     ],
-    answer: '1) Guess the form of the solution (a bound). 2) Use mathematical induction to find the constants and show that the solution works.',
+    answer: "Guess the form of the solution; the second step proves it by induction and finds the constants.",
     mistake: 'Expecting the method to produce the answer by itself. It only verifies a bound you already have, so a bad guess just makes the proof fail.',
     tryIt: { q: 'Use both steps on $T(1) = 1$, $T(n) = T(n-1) + 1$.', a: 'Guess $T(n) \\le cn$. Assume $T(n-1) \\le c(n-1)$; then $T(n) \\le c(n-1) + 1 = cn - c + 1 \\le cn$ when $c \\ge 1$. Base: $T(1) = 1 \\le c$. So $c = 1$ works and $T(n) = O(n)$.' },
   };
 
   H['c310-6-subst-goal'] = {
-    asks: 'Before any algebra: to prove $T(n) = 2T(n/2) + n$ is $O(n \\lg n)$ by substitution, what exactly is the target inequality, and what are you allowed to assume?',
+    asks: "Say what inequality you must show to prove $T(n) = 2T(n/2) + n$ is $O(n \\lg n)$ by substitution.",
     idea: 'Induction climbs a ladder. The target is the rung at $n$; the assumption is that every lower rung is already in place. The recurrence only reaches down to $n/2$, so that is the one lower rung you use.',
     steps: [
       'Turn the guess into an inequality: $T(n) = O(n \\lg n)$ means there are $c > 0$ and $n_0$ with $T(n) \\le c\\,n \\lg n$ for all $n \\ge n_0$. That is what you must show.',
@@ -761,7 +761,7 @@
       { text: 'With numbers:', table: { head: ['$n$', 'hypothesis (at $n/2$)', 'goal (at $n$)'], rows: [['8', '$T(4) \\le c \\cdot 4 \\lg 4 = 8c$', '$T(8) \\le c \\cdot 8 \\lg 8 = 24c$'], ['16', '$T(8) \\le 24c$', '$T(16) \\le c \\cdot 16 \\lg 16 = 64c$']] } },
       'Next, substitute the hypothesis into $T(n) = 2T(n/2) + n$ and simplify until it reads $\\le c\\,n \\lg n$.',
     ],
-    answer: 'Show there are constants $c > 0$ and $n_0$ with $T(n) \\le c\\,n \\lg n$ for all $n \\ge n_0$. Assume (inductive hypothesis) the bound holds for all values smaller than $n$, in particular $T(n/2) \\le c\\,(n/2) \\lg(n/2)$.',
+    answer: "$T(n) \\le c\\, n \\lg n$ for all $n \\ge n_0$, for some constants $c > 0$ and $n_0$.",
     mistake: 'Assuming the bound at $n$ itself, the thing you are trying to prove. You may only assume it for smaller values such as $n/2$.',
     tryIt: { q: 'To prove $T(n) = T(n/2) + n$ is $O(n)$ by substitution, what is the goal and what is the hypothesis?', a: 'Goal: $T(n) \\le cn$ for all $n \\ge n_0$. Hypothesis: $T(n/2) \\le c\\,\\frac{n}{2}$. (Then $T(n) \\le \\frac{cn}{2} + n \\le cn$ when $c \\ge 2$.)' },
   };
@@ -791,7 +791,7 @@
   };
 
   H['c310-6-subst-exact-form'] = {
-    asks: 'In a substitution proof of $T(n) \\le c\\,n \\lg n$, why must the last line be exactly "$\\le c\\,n \\lg n$" with the same $c$ as the hypothesis?',
+    asks: "Explain why a substitution proof of $T(n) \\le c\\, n \\lg n$ must end with exactly “$\\le c\\, n \\lg n$”, the same $c$.",
     idea: 'Induction is a relay: each step must hand on exactly the baton it received. If one step hands on "$c + 1$" instead of "$c$", the next step starts with a weaker promise, and after $\\lg n$ hand-offs the "constant" has grown with $n$.',
     steps: [
       'The statement being proved is one fixed sentence: "$T(m) \\le c\\,m \\lg m$", with one $c$ for every $m$. The step must show: if it holds at $n/2$, it holds at $n$.',
@@ -801,13 +801,13 @@
       { text: 'Exact $T(n) = n \\lg n + n$ against $n \\lg n$:', table: { head: ['$n$', '$T(n)$', '$n \\lg n$', '$T(n) \\le n \\lg n$?'], rows: [['2', '4', '2', 'no'], ['4', '12', '8', 'no'], ['16', '80', '64', 'no']] } },
       'So read the slides’ last line as $\\le c\\,n \\lg n$ for the $c$ you fixed ($c \\ge 1$ for the step; $c = 2$ once the base case is included).',
     ],
-    answer: 'Induction proves exactly the statement it assumes. Ending with $(c + 1)\\,n \\lg n$, or with "$\\le n \\lg n$" for a different constant, does not establish the hypothesis for the next $n$, and the constant could grow at every level of the recursion.',
+    answer: "Induction must re-establish the exact hypothesis; ending with $c + 1$ or another constant lets the constant grow at every level.",
     mistake: 'Accepting "$\\le (c+1)\\,n \\lg n = O(n \\lg n)$" as a finished step. Saying it is still $O(\\dots)$ hides the growing constant; the last line must match the hypothesis exactly.',
     tryIt: { q: 'A proof for $T(n) = T(n/2) + 2$ reaches $T(n) \\le c \\lg n - c + 2$ and then writes "$\\le c \\lg n$". For which $c$ is that last step legitimate?', a: 'It needs $-c + 2 \\le 0$, that is $c \\ge 2$. For $c < 2$ the leftover is positive and the step fails.' },
   };
 
   H['c310-6-subst-pitfall'] = {
-    asks: 'Someone "proves" $T(n) = 2T(n/2) + n$ is $O(n)$: assume $T(n/2) \\le c\\,\\frac{n}{2}$, so $T(n) \\le cn + n = O(n)$. Find the flaw.',
+    asks: "Find the error in the “proof” that $T(n) = 2T(n/2) + n$ is $O(n)$ via $T(n) \\le cn + n$.",
     idea: 'Each step of their argument loses a little: the constant creeps from $c$ to $c + 1$. One step looks harmless, but the recursion has $\\lg n$ levels, so the creep adds up to $\\lg n$, exactly the factor that separates $n$ from $n \\lg n$.',
     steps: [
       'The goal for $O(n)$ is $T(n) \\le cn$ with the same $c$ as the hypothesis.',
@@ -822,13 +822,13 @@
       curves: [{ label: '$T(n)/n = \\lg n + 1$', f: n => lg(n) + 1, tone: 'a' }, { label: '$c = 3$', f: () => 3, tone: 'c' }, { label: '$c = 6$', f: () => 6, tone: 'b' }],
       marks: [{ x: 4, label: '$n = 4$' }, { x: 32, label: '$n = 32$' }],
     },
-    answer: 'They had to show $T(n) \\le cn$ with the same $c$, but they got $(c + 1)n$, which is larger than $cn$. The inductive step fails; the true bound is $\\Theta(n \\lg n)$.',
+    answer: "It needed $T(n) \\le cn$ but got $(c + 1)n > cn$, so the inductive step fails; the true bound is $\\Theta(n \\lg n)$.",
     mistake: 'Ending a substitution step with "$= O(n)$". The last line must be $\\le cn$ with the exact $c$ you assumed, not a different constant hidden inside $O$.',
     tryIt: { q: 'Someone "proves" $T(n) = 2T(n/2) + 1$ is $O(1)$: assume $T(n/2) \\le c$, so $T(n) \\le 2c + 1 = O(1)$. What is wrong?', a: 'They needed $T(n) \\le c$ but got $2c + 1 > c$, so the step fails. The true answer is $\\Theta(n)$: with $T(1) = 1$, $T(n) = 2n - 1$.' },
   };
 
   H['c310-6-boundary'] = {
-    asks: 'For $T(1) = 1$, $T(n) = 2T(n/2) + n$, the claim $T(n) \\le c\\,n \\lg n$ is false at $n = 1$. Show why, and how the proof gets around it.',
+    asks: "Proving $T(n) \\le c\\, n \\lg n$ for $T(1) = 1$, $T(n) = 2T(n/2) + n$: say why the base case $n = 1$ fails.",
     idea: '$\\lg 1 = 0$, so at $n = 1$ the bound says $T(1) \\le 0$, and no constant can fix a zero. But $O$ only promises the bound from some $n_0$ on, so you start the induction at $n_0 = 2$ instead.',
     steps: [
       'Test $n = 1$: $c \\cdot 1 \\cdot \\lg 1 = c \\cdot 0 = 0$, but $T(1) = 1 > 0$. No choice of $c$ helps, because the right side is 0.',
@@ -844,7 +844,7 @@
       marks: [{ x: 2, label: '$n_0 = 2$' }],
       from: 2,
     },
-    answer: 'At $n = 1$, $c \\cdot 1 \\cdot \\lg 1 = 0 < T(1) = 1$, so the bound fails for every $c$. The bound is only needed for $n \\ge n_0$, so start the induction at $n_0 = 2$: $T(2) = 4 \\le c \\cdot 2 \\lg 2 = 2c$ holds for any $c \\ge 2$.',
+    answer: "$c \\cdot 1 \\cdot \\lg 1 = 0 < T(1) = 1$. (Fix: start at $n_0 = 2$, where $T(2) = 4 \\le 2c$ for $c \\ge 2$.)",
     mistake: 'Trying to rescue $n = 1$ with a bigger $c$. $c \\cdot 1 \\cdot \\lg 1 = 0$ for every $c$; the only fix is moving $n_0$.',
     tryIt: { q: 'For $T(1) = 3$, $T(n) = 2T(n/2) + n$, with $n_0 = 2$: which $c$ makes the base case $T(2) \\le c \\cdot 2 \\lg 2$ true?', a: '$T(2) = 2 \\cdot 3 + 2 = 8 \\le 2c \\iff c \\ge 4$.' },
   };
@@ -886,7 +886,7 @@
   };
 
   H['c310-6-subst-practice-n2'] = {
-    asks: 'Prove by substitution that $T(n) = T(n-1) + n$ is $O(n^2)$: hypothesis, algebra, and a constant that works.',
+    asks: "In a substitution proof that $T(n) = T(n-1) + n$ is $O(n^2)$, simplify $T(n)$ using $T(n-1) \\le c(n-1)^2$.",
     idea: 'This recurrence steps from $n - 1$ to $n$, so the hypothesis is about $n - 1$. Expanding $(n-1)^2$ produces a $-2cn$, which has room to absorb the added $n$ as long as $c$ is not tiny.',
     steps: [
       'Goal: $T(n) \\le cn^2$. Hypothesis, at the value just below: $T(n-1) \\le c(n-1)^2$.',
@@ -896,7 +896,7 @@
       'Base case with $T(1) = 1$: $T(1) = 1 \\le 1 \\cdot 1^2$. So $c = 1$, $n_0 = 1$.',
       { text: 'Check against the exact value $T(n) = \\frac{n(n+1)}{2}$:', table: { head: ['$n$', '$T(n)$', '$n^2$'], rows: [['1', '1', '1'], ['2', '3', '4'], ['3', '6', '9'], ['10', '55', '100']] } },
     ],
-    answer: 'Hypothesis $T(n-1) \\le c(n-1)^2$. Then $T(n) \\le c(n^2 - 2n + 1) + n = cn^2 - (2c - 1)n + c \\le cn^2$ when $(2c - 1)n \\ge c$; with $c = 1$ that is $n \\ge 1$. So $T(n) \\le n^2$ for $n \\ge 1$, given a base case like $T(1) \\le 1$.',
+    answer: "$T(n) \\le cn^2 - (2c - 1)n + c$, which is $\\le cn^2$ with $c = 1$ for $n \\ge 1$.",
     mistake: 'Expanding $(n-1)^2$ as $n^2 - 1$. The middle term $-2n$ is the one that makes this proof work.',
     tryIt: { q: 'Prove $T(n) = T(n-1) + 2n$, $T(1) = 1$, is $O(n^2)$.', a: '$T(n) \\le c(n-1)^2 + 2n = cn^2 - (2c - 2)n + c$. Need $c \\le (2c - 2)n$; with $c = 2$ that is $2 \\le 2n$, true for $n \\ge 1$. Base: $T(1) = 1 \\le 2$. So $c = 2$.' },
   };
@@ -917,7 +917,7 @@
   };
 
   H['c310-6-guess-heuristics'] = {
-    asks: 'The substitution method needs a guess. Give the three ways slide 6 suggests for making a good one.',
+    asks: "Name the three heuristics the lecture gives for guessing a solution for the substitution method.",
     idea: 'Three sources for a guess: draw it (recursion tree), recognise it (a recurrence you have seen), or corner it (prove an easy floor and an easy ceiling, then squeeze them together).',
     steps: [
       'Recursion tree: draw a few levels and add each level. For $T(n) = 2T(n/2) + n$ every level costs $n$ and there are about $\\lg n$ levels, so guess $n \\lg n$.',
@@ -930,13 +930,13 @@
       x: [2, 64], logY: true, xLabel: 'n', yLabel: 'value (log scale)',
       curves: [{ label: 'floor $n$', f: n => n, tone: 'c' }, { label: '$T(n)$', f: T_MS, tone: 'a' }, { label: 'ceiling $n^2$', f: n => n * n, tone: 'b' }],
     },
-    answer: 'Use a recursion tree; notice the recurrence is similar to one you have seen before; prove loose upper and lower bounds, then narrow the range until they converge.',
+    answer: "Use a recursion tree; compare with a similar known recurrence; prove loose upper and lower bounds, then narrow them.",
     mistake: 'Guessing from the number of recursive calls alone ("two calls, so $2^n$"). How fast the size shrinks and what each level costs decide the answer.',
     tryIt: { q: 'Use a recursion tree to guess a bound for $T(n) = 4T(n/2) + n^2$.', a: 'Depth $i$ has $4^i$ nodes of size $n/2^i$, each costing $(n/2^i)^2 = n^2/4^i$, so every level costs $n^2$. About $\\lg n + 1$ levels: guess $\\Theta(n^2 \\lg n)$.' },
   };
 
   H['c310-6-guess-17'] = {
-    asks: 'Make a good guess for $T(n) = 2T(n/2 + 17) + n$ and justify it.',
+    asks: "Give a good guess for $T(n) = 2T(n/2 + 17) + n$.",
     idea: 'Squint: this is merge sort’s recurrence with "+17" tacked onto the size. When $n$ is a million, half of it plus 17 is basically half of it. A constant shift barely changes the tree, so guess what merge sort gives.',
     steps: [
       'Compare with $2T(n/2) + n$: the same number of calls (2) and the same added work ($n$). Only the size changes, $n/2 + 17$ instead of $n/2$.',
@@ -945,7 +945,7 @@
       'The size only shrinks while $n/2 + 17 < n$, that is $n > 34$. Below that a base case has to take over, which is constant work per leaf and does not change the growth rate.',
       'Guess $T(n) = O(n \\lg n)$, in fact $\\Theta(n \\lg n)$, then prove it with substitution.',
     ],
-    answer: '$O(n \\lg n)$, and in fact $\\Theta(n \\lg n)$. It looks like merge sort’s $2T(n/2) + n$, and for large $n$, $n/2 + 17$ and $n/2$ are almost the same size, so the $+17$ does not change the growth rate.',
+    answer: "$\\Theta(n \\lg n)$: it looks like merge sort’s $2T(n/2) + n$, and the $+17$ is negligible for large $n$.",
     mistake: 'Expecting the $+17$ to change the growth rate. Adding a constant to the subproblem size only adds lower-order work; the growth stays $n \\lg n$.',
     tryIt: { q: 'What is a good guess for $T(n) = T(n/2 + 5) + 1$?', a: 'It looks like binary search’s $T(n/2) + 1$, and $n/2 + 5 \\approx n/2$ for large $n$. Guess $\\Theta(\\lg n)$.' },
   };

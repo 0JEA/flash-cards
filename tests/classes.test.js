@@ -41,3 +41,11 @@ test('Software Testing cards: fields per type, plausible MC, no slide-position p
     assert.ok(!/slide \d|the (first|second|third) (point|bullet)/i.test(c.prompt), `${c.id}: positional prompt`);
   }
 });
+
+test('answer modes: mode is quick|write on recall cards; noRecall only on mc', () => {
+  for (const d of Object.values(decks)) for (const c of d.cards) {
+    if (c.mode != null) assert.ok(c.type === 'recall' && ['quick', 'write'].includes(c.mode), `${d.id}/${c.id}: mode`);
+    if (c.noRecall != null) assert.ok(c.type === 'mc' && c.noRecall === true, `${d.id}/${c.id}: noRecall`);
+    if (c.type === 'recall' && c.mode === 'quick') assert.ok(!c.points || c.points.length <= 2, `${d.id}/${c.id}: a quick card has one idea`);
+  }
+});

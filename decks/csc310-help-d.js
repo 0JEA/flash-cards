@@ -31,7 +31,7 @@
   };
 
   H['c310-5-rt-def'] = {
-    asks: 'Say what one node of a recursion tree stands for, and how the nodes are added up to get the total running time $T(n)$.',
+    asks: "Say what each node of a recursion tree represents.",
     idea: 'Draw every recursive call as a box, with the calls it makes hanging below it. In each box write only the work that call does itself (splitting, combining), not its children’s work. $T(n)$ is all the boxes added up, and the easy way to add them is one row at a time.',
     steps: [
       'Example: $T(n) = 2T(n/2) + n^2$, $T(1) = 1$, $n = 16$. The root is the call on size 16; its own work is $16^2 = 256$. It makes two calls on size 8.',
@@ -56,13 +56,13 @@
       x: [-0.5, 4.5], y: [0, 280], xLabel: 'depth i', yLabel: 'level total',
       bars: { label: 'level total at depth $i$', tone: 'b', values: [[0, 256], [1, 128], [2, 64], [3, 32], [4, 16]] },
     },
-    answer: 'Each node is the cost of one subproblem: the non-recursive work of that single call (a leaf is a base case $T(1)$). Add the nodes in each level to get the per-level costs, then add the per-level costs to get $T(n)$.',
+    answer: "The cost of one subproblem (its non-recursive work); sum within levels, then sum the levels, for the total.",
     mistake: 'Writing $T(n/2)$ inside a node. A node holds only that call’s own work, $f$ of its size; the $T(\\cdot)$ parts become its children.',
     tryIt: { q: 'Draw the tree for $T(n) = 2T(n/2) + n$, $T(1) = 1$, at $n = 8$. Give the level totals and $T(8)$.', a: 'Nodes: $8$; $4, 4$; $2, 2, 2, 2$; eight leaves of 1. Level totals $8, 8, 8, 8$, so $T(8) = 32$. Check: $T(2) = 4$, $T(4) = 12$, $T(8) = 2 \\cdot 12 + 8 = 32$.' },
   };
 
   H['c310-5-rt-uses'] = {
-    asks: 'Name the two jobs a recursion tree can do for you.',
+    asks: "Say what a carefully summed recursion tree gives you.",
     idea: 'A tree drawn quickly, with rough edges (pretend $n$ is a power of 2, round freely, add a few extra terms) gives you a believable answer: a guess. You then prove the guess with the substitution method. A tree summed exactly, with nothing rounded, is already a proof.',
     steps: [
       'Use 1, direct proof: add up the tree exactly. Merge sort with $n$ a power of 2 is like this: $\\lg n + 1$ levels of $cn$ each, total exactly $cn(\\lg n + 1)$.',
@@ -82,13 +82,13 @@
       ],
       caption: 'The quick tree for $T(n) = 2T(n/2) + n$: every level costs $n$ and there are about $\\lg n$ levels, so guess $n \\lg n$. Substitution then proves it.',
     },
-    answer: 'Either as a direct proof of the solution (if the tree is summed carefully), or to produce a good guess that you then verify with the substitution method.',
+    answer: "A direct proof of the recurrence’s solution (a sloppy one gives a guess for the substitution method).",
     mistake: 'Treating a sloppy tree (infinite series, ignored floors) as a finished proof. It is a guess until substitution, or an exact sum, backs it up.',
     tryIt: { q: 'Use a quick tree to guess a bound for $T(n) = 2T(n/2) + n^2$, then check the guess by substitution.', a: 'Level $i$: $2^i (n/2^i)^2 = n^2/2^i$, ratio $\\tfrac12 < 1$, so the sum is under $n^2 \\cdot \\frac{1}{1 - 1/2} = 2n^2$: guess $O(n^2)$. Assume $T(n/2) \\le c(n/2)^2$: $T(n) \\le \\tfrac{c}{2}n^2 + n^2 \\le cn^2$ when $c \\ge 2$.' },
   };
 
   H['c310-5-findmax-tree'] = {
-    asks: 'For FindMax, $T(n) = 2T(n/2) + 1$, describe its recursion tree: what level $i$ costs, how many levels there are, and what everything adds up to.',
+    asks: "Find the total cost of the recursion tree of $T(n) = 2T(n/2) + 1$.",
     idea: 'Every call does one comparison, so every node costs 1. The tree doubles its width at each level, so the level totals double too: $1, 2, 4, \\dots$ The bottom row (the $n$ leaves) is as big as all the rows above it put together.',
     steps: [
       'Nodes at depth $i$: each node has 2 children, so the count doubles each level: $1, 2, 4, \\dots, 2^i$. Each costs 1, so level $i$ costs $2^i \\cdot 1 = 2^i$.',
@@ -114,7 +114,7 @@
       bars: { label: 'level total $2^i$ ($n = 16$)', tone: 'b', values: [[0, 1], [1, 2], [2, 4], [3, 8], [4, 16]] },
       curves: [{ label: '$2^i$', f: i => 2 ** i, tone: 'a' }],
     },
-    answer: 'Level $i$: $2^i$ nodes $\\times$ 1 $= 2^i$. Depth $k = \\lg n$ ($n$ leaves), so $\\lg n + 1$ levels. Total $\\sum_{i=0}^{\\lg n} 2^i = 2^{\\lg n + 1} - 1 = 2n - 1 = \\Theta(n)$.',
+    answer: "Level $i$ costs $2^i$; $\\sum_{i=0}^{\\lg n} 2^i = 2n - 1 = \\Theta(n)$.",
     mistake: 'Stopping the sum at $\\lg n - 1$ and forgetting the leaf row. Here the leaves are the biggest level: dropping them gives $n - 1$ and hides where half the work is.',
     tryIt: { q: 'Same questions for $T(n) = 4T(n/2) + 1$, $T(1) = 1$.', a: 'Level $i$: $4^i$ nodes of cost 1, depth $\\lg n$. Total $\\sum_{i=0}^{\\lg n} 4^i = \\frac{4^{\\lg n + 1} - 1}{3} = \\frac{4n^2 - 1}{3}$, using $4^{\\lg n} = (2^{\\lg n})^2 = n^2$. So $\\Theta(n^2)$; at $n = 4$ that is $21$.' },
   };
@@ -184,7 +184,7 @@
   };
 
   H['c310-5-ms-levelcost'] = {
-    asks: 'In merge sort’s tree, $T(n) = 2T(n/2) + cn$, what does a whole row (level $i$) cost, and why?',
+    asks: "Give the total cost of level $i$ in merge sort’s recursion tree, $T(n) = 2T(n/2) + cn$.",
     idea: 'Going down one row, the number of nodes doubles and each node’s piece halves. Doubling times halving cancels, so every row costs the same: one full pass over all $n$ elements.',
     steps: [
       'Nodes at depth $i$: $2^i$. Size of each: $n/2^i$.',
@@ -203,7 +203,7 @@
         { label: 'row total $2^i \\cdot 16/2^i = 16$', f: () => 16, tone: 'b' },
       ],
     },
-    answer: '$cn$. Level $i$ has $2^i$ nodes, each a subproblem of size $n/2^i$ costing $c\\,n/2^i$; $2^i \\cdot c\\,n/2^i = cn$.',
+    answer: "$cn$: $2^i$ nodes, each costing $c\\,n/2^i$.",
     mistake: 'Answering $c\\,n/2^i$, which is one node’s cost. The level cost multiplies it by the $2^i$ nodes in that row.',
     tryIt: { q: 'What does row $i$ cost for $T(n) = 4T(n/2) + cn$?', a: '$4^i$ nodes of size $n/2^i$, each costing $cn/2^i$: $4^i \\cdot \\frac{cn}{2^i} = (\\tfrac{4}{2})^i cn = 2^i cn$. Rows double going down, so this time the leaves dominate.' },
   };
@@ -234,7 +234,7 @@
   };
 
   H['c310-5-3T4-depth'] = {
-    asks: 'For $T(n) = 3T(n/4) + cn^2$, $T(1) = 1$: what size is a subproblem at depth $i$, at what depth are the leaves, and how many levels does the tree have?',
+    asks: "Give the depth of the leaves in the recursion tree of $T(n) = 3T(n/4) + cn^2$.",
     idea: 'Only the divisor 4 decides how fast pieces shrink; the 3 only decides how many pieces there are. Each step down divides the size by 4, so count how many divisions by 4 take $n$ to 1.',
     steps: [
       'Root: size $n$. Depth 1: $n/4$. Depth 2: $n/4/4 = n/16 = n/4^2$. So depth $i$ has size $n/4^i$.',
@@ -249,13 +249,13 @@
       bars: { label: 'size $256/4^i$', tone: 'b', values: [[0, 256], [1, 64], [2, 16], [3, 4], [4, 1]] },
       marks: [{ x: 4, label: '$i = \\log_4 256 = 4$' }],
     },
-    answer: 'Size $n/4^i$ at depth $i$. It reaches 1 when $4^i = n$, i.e. $i = \\log_4 n$: height $\\log_4 n$, and $\\log_4 n + 1$ levels (depths $0$ to $\\log_4 n$).',
+    answer: "$\\log_4 n$: the size $n/4^i$ reaches 1 when $4^i = n$.",
     mistake: 'Using 3 (the number of children) as the log base. The branching factor changes how many nodes a row has, never how fast the size shrinks.',
     tryIt: { q: 'For $T(n) = 7T(n/2) + n^2$: size at depth $i$, leaf depth, number of levels?', a: 'Size $n/2^i$; $n/2^i = 1 \\Rightarrow i = \\lg n$; so $\\lg n + 1$ levels. The 7 does not matter here, only the divisor 2.' },
   };
 
   H['c310-5-3T4-levelcost'] = {
-    asks: 'For $T(n) = 3T(n/4) + cn^2$: how many nodes sit at depth $i$, what does each one cost, and what does that whole row cost (above the leaf row)?',
+    asks: "Give the total cost of depth $i$ (above the leaves) in the recursion tree of $T(n) = 3T(n/4) + cn^2$.",
     idea: 'Going down a row, the node count triples, but each piece is a quarter the size and its cost is the size squared, so each node costs $1/16$ as much. Three times as many nodes at $1/16$ the price: each row costs $3/16$ of the row above.',
     steps: [
       'Nodes: each node has 3 children, so depth $i$ has $3^i$ nodes ($1, 3, 9, 27, \\dots$).',
@@ -270,13 +270,13 @@
       x: [-0.5, 4.5], y: [0, 1.05], xLabel: 'depth i', yLabel: 'row total (× cn²)',
       bars: { label: 'row total $(3/16)^i$', tone: 'b', values: [[0, 1], [1, 3 / 16], [2, 9 / 256], [3, 27 / 4096], [4, 81 / 65536]] },
     },
-    answer: '$3^i$ nodes, each costing $c(n/4^i)^2 = cn^2/16^i$. Row total $3^i \\cdot c(n/4^i)^2 = (3/16)^i\\,cn^2$.',
+    answer: "$3^i \\cdot c(n/4^i)^2 = (3/16)^i\\, cn^2$.",
     mistake: 'Forgetting to square the 4: writing $c(n/4^i)^2 = cn^2/4^i$, which gives $(3/4)^i$. Squaring $n/4^i$ squares both the top and the bottom.',
     tryIt: { q: 'Row $i$ cost for $T(n) = 2T(n/4) + cn^2$?', a: '$2^i$ nodes, each $c(n/4^i)^2 = cn^2/16^i$. Row total $\\frac{2^i}{16^i}cn^2 = (\\tfrac{1}{8})^i cn^2$.' },
   };
 
   H['c310-5-3T4-leaves'] = {
-    asks: 'For $T(n) = 3T(n/4) + cn^2$, $T(1) = 1$: how many leaves are there, and what do they cost all together?',
+    asks: "Count the leaves of the recursion tree of $T(n) = 3T(n/4) + cn^2$.",
     idea: 'The leaves are the bottom row. Tripling once per row for $\\log_4 n$ rows gives $3^{\\log_4 n}$ leaves. Rewritten as a power of $n$, that is about $n^{0.79}$: fewer than $n$, since the tree branches 3 ways but shrinks 4 ways.',
     steps: [
       'Depth $i$ has $3^i$ nodes, and the leaves are at depth $\\log_4 n$. So there are $3^{\\log_4 n}$ leaves.',
@@ -295,7 +295,7 @@
       ],
       bars: { label: '$3^{\\log_4 n}$ at $n = 4, 16, 64, 256$', tone: 'b', values: [[4, 3], [16, 9], [64, 27], [256, 81]] },
     },
-    answer: '$3^{\\log_4 n} = n^{\\log_4 3} \\approx n^{0.79}$ leaves, each costing $T(1) = 1$: total $\\Theta(n^{\\log_4 3})$.',
+    answer: "$3^{\\log_4 n} = n^{\\log_4 3} \\approx n^{0.79}$.",
     mistake: 'Saying "$n$ leaves" as in merge sort. That only happens when the branching equals the divisor ($a = b$); here $a = 3 < 4 = b$, so there are fewer.',
     tryIt: { q: 'How many leaves does $T(n) = 2T(n/4) + n^2$ have?', a: 'Leaves at depth $\\log_4 n$, so $2^{\\log_4 n} = n^{\\log_4 2} = n^{1/2} = \\sqrt{n}$ (since $4^{1/2} = 2$). At $n = 16$: $2^2 = 4 = \\sqrt{16}$.' },
   };

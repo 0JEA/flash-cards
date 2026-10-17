@@ -136,7 +136,7 @@
   // ---------------------------------------------------------------- Plankalkül and Fortran
 
   H['l2-plankalkul'] = {
-    asks: 'Name the person behind Plankalkül and say what kind of thing it was.',
+    asks: 'Name the person who designed Plankalkül.',
     idea: 'A language far ahead of its time that nobody saw. Konrad Zuse designed it alone in Germany in 1945, for his Z4 relay computer. It was not published until 1972, so the world had to reinvent its ideas.',
     steps: [
       'Plankalkül means "Program Calculus". It was a high-level language design: Zuse wrote real algorithms in it, from sorting to graph connectivity to 49 pages of chess (Sebesta).',
@@ -144,7 +144,7 @@
       { text: 'Java’s `A[5] = A[4] + 1` in Plankalkül. Row V holds the subscripts, row S the data types (`1.n` = an n-bit integer):', code: '  | A + 1 => A\nV | 4        5\nS | 1.n      1.n' },
       'Chain: not published → nobody knew it → never implemented at the time → the credit went to Fortran, Lisp, Algol and COBOL. Some of its features did not appear elsewhere until about 15 years later.',
     ],
-    answer: 'Konrad Zuse’s "Program Calculus" (1945, published 1972): an early high-level language design, never implemented at the time, that already had floating point, arrays and records.',
+    answer: 'Konrad Zuse. Plankalkül (“Program Calculus”, 1945, published 1972) was an early high-level language design, never implemented at the time.',
     mistake: 'Calling it the first widely used language. It was the earliest high-level design, but nobody used it; FORTRAN is the oldest language still widely used.',
     tryIt: { q: 'Records were already in Zuse’s 1945 design. Which language was the first to actually implement them, and what did that lead to?', a: 'COBOL (1959). Its records prompted structs in C, and eventually object-oriented programming.' },
   };
@@ -192,14 +192,14 @@
   };
 
   H['l2-fortran-1954'] = {
-    asks: 'In 1954, before any Fortran compiler existed, a report described the language. What two promises did that report make?',
+    asks: 'The first Fortran report (1954) made one over-optimistic claim about errors. State it.',
     idea: 'The report had to win over skeptics who coded by hand. One promise was bold but nearly kept (speed); the other was pure optimism (no more bugs).',
     steps: [
       'November 1954: John Backus’s group at IBM wrote the report on "Fortran 0". It existed only on paper; Fortran 0 even limited variable names to two characters.',
       { text: 'The two claims and what became of them:', table: { head: ['claim', 'what happened'], rows: [['as efficient as hand-coded machine code', 'Fortran I (1957) came close: this was the real design goal'], ['would eliminate coding errors and debugging', 'wildly wrong; and because of it, the first compiler did little syntax error checking']] } },
       'Chain: the speed claim → a heavily optimizing compiler → programmers gave up hand coding → Fortran became the oldest language still widely used.',
     ],
-    answer: 'That compiled Fortran would be as efficient as hand-coded machine code, and that it would eliminate coding errors and debugging.',
+    answer: 'That Fortran would eliminate coding errors and debugging. (Its other claim, code as efficient as hand-coded machine code, was roughly met.)',
     mistake: 'Remembering only the speed claim. The second one (no more errors or debugging) is the famous over-promise, and you need both.',
     tryIt: { q: 'Which of the two 1954 claims turned out roughly true, and which false?', a: 'Speed was roughly true: Fortran I came close to hand-coded efficiency. "No errors or debugging" was false: programs still had bugs, and the first compiler barely checked syntax.' },
   };
@@ -247,7 +247,7 @@
   // ---------------------------------------------------------------- Lisp
 
   H['l2-lisp-origin'] = {
-    asks: 'Expand the name LISP and name the person who designed it.',
+    asks: 'Name the person who designed LISP.',
     idea: 'Artificial-intelligence researchers wanted computers to work with symbols (words, expressions), not only numbers. Symbols fit naturally into lists, so the language was built around LISt Processing.',
     steps: [
       '1958: John McCarthy (MIT) studied symbolic computation, using differentiation of algebraic expressions as his example problem.',
@@ -256,7 +256,7 @@
       { text: 'In Scheme, `car` takes the first element of a list:', code: '(car \'(lynx (grizzly black) moose))   ; => lynx' },
       'Her timeline: 1958 on paper (McCarthy, MIT), 1959 first implemented by Steve Russell on the IBM 704.',
     ],
-    answer: 'LISt Processing; designed by John McCarthy (MIT, 1958).',
+    answer: 'John McCarthy, at MIT, 1958. (LISP = LISt Processing.)',
     mistake: 'Expanding it as "LISt Programming". It is LISt Processing: the language exists to process lists.',
     tryIt: { q: 'How many top-level elements does the Lisp list `(elk (whitetail mule))` have?', a: 'Two: the atom `elk` and the sublist `(whitetail mule)`. `(length \'(elk (whitetail mule)))` returns 2.' },
   };
@@ -275,14 +275,14 @@
   };
 
   H['l2-lisp-status'] = {
-    asks: 'Give the three facts her slides state about where Lisp stands today.',
+    asks: 'Say for roughly how many years Lisp was the main language of artificial intelligence.',
     idea: 'Rise, fall, survival: Lisp ran AI for a quarter century, even got its own hardware, the hardware died, and the language lives on inside a text editor.',
     steps: [
       { text: 'The three facts:', table: { head: ['fact', 'detail'], rows: [['dominated AI for about 25 years', 'Sebesta: it "completely dominated AI applications for a quarter century"'], ['Lisp machines died out', 'computers built to run Lisp, first in 1973 (Greenblatt and Knight); about 8000 were made'], ['lives on in Emacs', 'Emacs = Editor MACroS; you customize it in its own dialect, Emacs Lisp']] } },
       { text: 'A line from an Emacs settings file, which is Lisp:', code: '(setq fill-column 80)' },
       'Her slide also calls Lisp "still leader" for AI. That is a dated claim: in 2026 most AI work is done in Python. For her test, give the slide’s answer.',
     ],
-    answer: 'It dominated AI for about 25 years; Lisp machines have died out; it lives on inside Emacs (Editor MACroS).',
+    answer: 'About 25 years. Lisp machines have since died out, and Lisp lives on inside Emacs.',
     mistake: 'Saying "Lisp is dead". The Lisp machines died; the language did not (Emacs, Common Lisp, Scheme).',
     tryIt: { q: 'What does Emacs stand for, and how is Lisp involved?', a: 'Editor MACroS. The editor is customized and extended in its own Lisp dialect, Emacs Lisp.' },
   };
@@ -290,7 +290,7 @@
   // ---------------------------------------------------------------- Algol
 
   H['l2-algol-origin'] = {
-    asks: 'Expand the name ALGOL and say what it was trying to be.',
+    asks: 'Say what Algol was meant to be.',
     idea: 'By 1957 every language grew up around one family of machines (some UNIVAC, some IBM), so programs could not be shared. Algol was the fix: one universal language for algorithms that would work on any architecture.',
     steps: [
       'The name is the goal: ALGOrithmic Language, a language for expressing algorithms.',
@@ -298,13 +298,13 @@
       'Same era as Lisp and Fortran (late 1950s): the first report was Algol 58, and the influential version was Algol 60.',
       'Machine independence had a price: I/O depends on the machine, so Algol left it out. That is one reason it died quickly in the U.S.',
     ],
-    answer: 'ALGOrithmic Language: a universal, machine-independent language for expressing algorithms, one that would work on more than one architecture.',
+    answer: 'A universal language for algorithms that works on more than one architecture (ALGOrithmic Language).',
     mistake: 'Expanding it as "ALGebraic Language". It is ALGOrithmic Language, a language for algorithms.',
     tryIt: { q: 'Why couldn’t Fortran simply become the universal language in 1958?', a: 'It was owned solely by IBM, and was built around IBM’s machines, so other makers and users could not adopt it as a common standard.' },
   };
 
   H['l2-algol-subgoals'] = {
-    asks: 'Algol’s designers started with three subgoals. Name all three.',
+    asks: 'One of Algol’s three subgoals explains why algorithms are still written in Algol style. Name it.',
     idea: 'Picture three readers of an Algol program: a mathematician (it should look like math), a journal reader (it should be publishable), and the computer (it must translate into machine code).',
     steps: [
       { text: 'One subgoal per reader:', table: { head: ['reader', 'subgoal'], rows: [['mathematician', 'syntax close to mathematical notation'], ['journal reader', 'good for describing algorithms in publications'], ['computer', 'mechanically translatable into machine code']] } },
@@ -312,13 +312,13 @@
       { text: 'Algol 60 reads almost like the math it computes:', code: 'average := sum / listlen;\nif intlist[counter] > average then result := result + 1' },
       'Long-term effect: subgoal 2 won. Pseudocode in textbooks still looks like Algol.',
     ],
-    answer: 'Syntax close to mathematical notation; good for describing algorithms in publications; mechanically translatable into machine code.',
+    answer: 'Good for describing algorithms in publications. (The others: syntax close to mathematical notation; mechanically translatable into machine code.)',
     mistake: 'Listing "machine independent" as a subgoal. That was the overall goal (a universal language); the three subgoals are math notation, publication, and translatable.',
     tryIt: { q: 'Which subgoal does `x := (a + b) / 2` show off, and which subgoal is true of every programming language?', a: '`x := (a + b) / 2` shows "syntax close to mathematical notation". "Mechanically translatable into machine code" is needed by any programming language.' },
   };
 
   H['l2-algol-death'] = {
-    asks: 'Algol never caught on in the U.S. Give four reasons.',
+    asks: 'Algol left out one kind of statement because it depends on the machine. Name it.',
     idea: 'Two reasons were its own design (no I/O, a scary syntax description) and two were politics (IBM backed Fortran, and the U.S. wanted a language of its own).',
     steps: [
       { text: 'The four reasons and what is behind each:', table: { head: ['reason', 'why'], rows: [['no I/O statements', 'I/O depends on the machine, and Algol was meant to be machine independent, so each implementation did its own I/O'], ['BNF was hard to understand', 'Backus-Naur Form looked strange and complicated in 1960'], ['IBM owned Fortran', 'the biggest maker gave Algol no support'], ['the U.S. wanted its own language', 'it built its own group-driven language, COBOL']] } },
@@ -326,7 +326,7 @@
       'Then Algol 68 was a complete redesign rather than a fix, which did not help.',
       'It died commercially but not as an idea: block structure, `:=`, recursion in an imperative language, and most languages today descend from it.',
     ],
-    answer: 'No I/O (left out because I/O is machine dependent); its BNF description was hard to understand; IBM owned Fortran, so IBM would not support Algol; the U.S. wanted its own language. (Algol 68 then made a complete redesign.)',
+    answer: 'I/O: input/output depends on the machine, so the machine-independent Algol had none. (Other reasons it died in the U.S.: hard BNF, IBM owned Fortran, the U.S. wanted its own language.)',
     mistake: 'Concluding Algol was a bad language. It failed commercially in the U.S. for these four reasons, but its ideas won.',
     tryIt: { q: 'Which of the four reasons was a direct side effect of Algol’s main goal?', a: 'No I/O. The goal was machine independence, and I/O depends on the machine, so it was left out.' },
   };
@@ -334,7 +334,7 @@
   // ---------------------------------------------------------------- COBOL
 
   H['l2-cobol-hopper'] = {
-    asks: 'Which person is COBOL most associated with, and in which direction did she push programming notation?',
+    asks: 'Name the person COBOL is most associated with.',
     idea: 'Grace Hopper’s 1953 proposal: "mathematical programs should be written in mathematical notation, data processing programs should be written in English statements" (Sebesta). Business people are not mathematicians, so business code should read like English.',
     steps: [
       'In 1953 almost nobody believed a computer could understand English words. Her proposal became FLOW-MATIC at UNIVAC (1957), the main ancestor of COBOL; it was sold with a demo compiling English, then French, then German keywords.',
@@ -342,26 +342,26 @@
       { text: 'The same addition, both ways:', table: { head: ['style', 'code'], rows: [['math (Fortran)', '`TPAY = TPAY + BONUS`'], ['English (COBOL)', '`add bonus to total-pay`']] } },
       'Hook from her slides: Hopper is also tied to the 1947 "first computer bug", a moth found in a relay.',
     ],
-    answer: 'Grace Hopper: towards English, away from mathematical notation.',
+    answer: 'Grace Hopper, who pushed notation towards English and away from mathematics.',
     mistake: 'Reversing it. Moving towards mathematical notation was Algol’s subgoal; Hopper and COBOL went the other way, towards English.',
     tryIt: { q: 'Algol (1958–60) and COBOL (1959) went opposite ways. Which pushed towards mathematical notation, and which towards English?', a: 'Algol towards mathematical notation (subgoal: syntax close to math); COBOL towards English (Hopper’s direction).' },
   };
 
   H['l2-cobol-goals'] = {
-    asks: 'COBOL had five design goals. Name them.',
+    asks: 'One COBOL design goal named a group of non-programmers who should be able to read it. Name the group.',
     idea: 'Every goal puts the human ahead of the compiler. Ask three questions: who reads it (managers, so plain English), who writes it (more people, so easy even if less powerful), and who pays for it (the compiler writer, whose problems were ignored).',
     steps: [
       { text: 'The five goals, grouped by who they serve:', table: { head: ['goal', 'who it serves'], rows: [['look like simple English', 'readers'], ['managers should be able to read it', 'readers'], ['easy to use, even if that means less powerful', 'writers'], ['broaden the base of computer programmers', 'writers'], ['no preconceptions about what is hard to implement in the compiler (English over math)', 'nobody: the compiler writer pays']] } },
       'Source: the first meeting, at the Pentagon in May 1959, sponsored by the Department of Defense. Most agreed to use English as much as possible (Sebesta).',
       'Consequence of the last goal: early COBOL compilers performed poorly, and Sebesta judges COBOL probably survived only because the DoD mandated it.',
     ],
-    answer: 'Look like simple English; managers should be able to read it; be easy to use, even if that means less powerful; broaden the base of computer programmers; have no preconceptions about what would be hard to implement in the compiler (English over math).',
+    answer: 'Managers. (The other goals: look like simple English; easy to use even if less powerful; broaden the base of programmers; ignore what is hard for the compiler.)',
     mistake: 'Adding "powerful" or "efficient". COBOL deliberately traded power for ease of use.',
     tryIt: { q: 'Which COBOL goal would a compiler writer complain about most, and why?', a: '"No preconceptions about what is hard to implement." English-like features were chosen without asking whether they were easy to compile, and early compilers were slow.' },
   };
 
   H['l2-cobol-records'] = {
-    asks: 'What data-structure idea did COBOL pioneer, and what did that idea later lead to?',
+    asks: 'Name the data-structure idea COBOL was first to implement in a high-level language.',
     idea: 'Business data is nested: an employee record holds a name, which holds a first and a last name. COBOL let you describe that hierarchy directly with level numbers: a record.',
     steps: [
       { text: 'A COBOL record. Level numbers show nesting: 01 contains the 05s, and `emp-name` contains the 10s.', code: '01 employee.\n   05 emp-name.\n      10 first-name  pic x(10).\n      10 last-name   pic x(15).\n   05 salary         pic 9(6)v99.' },
@@ -369,7 +369,7 @@
       'Chain: COBOL records → structs in C → objects in object-oriented programming, which bundle the data with the functions that use it.',
       'Precisely: records first appeared in Zuse’s Plankalkül design (1945), but COBOL was the first to implement them in a high-level language.',
     ],
-    answer: 'Hierarchical data structures (records), first implemented in a high-level language by COBOL. They prompted structs in C, and eventually OOP.',
+    answer: 'Hierarchical data structures (records). They prompted structs in C, and eventually OOP.',
     mistake: 'Saying COBOL invented objects. It gave records; OOP came much later and built on them (COBOL itself only added OOP in the 2000s).',
     tryIt: { q: 'In COBOL, `01 order.` contains `05 ship-to.`, which contains `10 city pic x(20).` What is the C equivalent?', a: 'Nested structs: `struct ship_to { char city[20]; };` and `struct order { struct ship_to ship_to; };`.' },
   };
@@ -377,7 +377,7 @@
   // ---------------------------------------------------------------- Prolog
 
   H['l2-prolog-origin'] = {
-    asks: 'Expand the name Prolog and say roughly when it was created.',
+    asks: 'Expand the name Prolog.',
     idea: 'The name tells the method: PROgramming in LOGic. And the date puts it a decade and more after the big four, as a deliberately different way to program.',
     steps: [
       'PROgramming LOGic: a program is a set of statements in formal logic (facts and rules), not a list of steps.',
@@ -385,13 +385,13 @@
       { text: 'Where it sits in time:', table: { head: ['years', 'languages'], rows: [['1957–59', 'FORTRAN, LISP, Algol, COBOL'], ['1972', 'Prolog'], ['1991', 'Python']] } },
       'Later, Japan’s 1982 national project bet on logic programming; her slide calls it "either a failure or ahead of its time".',
     ],
-    answer: 'PROgramming LOGic; 1972 (early 1970s).',
+    answer: 'PROgramming LOGic (created 1972).',
     mistake: 'Grouping Prolog with the 1950s languages. It came about 15 years after Fortran.',
     tryIt: { q: 'Lisp and Prolog were both used for AI. Which is older, and by roughly how much?', a: 'Lisp (1958) is about 14 years older than Prolog (1972).' },
   };
 
   H['l2-prolog-how'] = {
-    asks: 'How do you write a Prolog program, and how do you get an answer out of it?',
+    asks: 'Say what a Prolog program is made of.',
     idea: 'Two phases: tell, then ask. First you state what is true (facts and rules); then you ask a question (a query, or goal), and Prolog tries to prove it from what you told it.',
     steps: [
       { text: 'Tell: facts state what is true, and rules (`:-` means "if") state what can be deduced. Example in Sebesta’s style:', code: 'mother(joanne, jake).\nfather(vern, joanne).\nparent(X, Y) :- mother(X, Y).\nparent(X, Y) :- father(X, Y).\ngrandparent(X, Z) :- parent(X, Y), parent(Y, Z).' },
@@ -400,7 +400,7 @@
       'If it cannot prove a goal, it answers false. Her palindrome: `?- palindrome(abba).` gives true, `?- palindrome(hi).` gives false.',
       'The word "queries" is the best reading of her blank; "goals" means the same thing here.',
     ],
-    answer: 'State facts and rules (what is true); then pose queries (goals), which the system tries to prove.',
+    answer: 'Facts and rules stating what is true. You then pose queries (goals), which the system tries to prove.',
     mistake: 'Trying to write steps ("first check this, then loop over that"). In Prolog you never say how; you state what is true and the system searches for a proof.',
     tryIt: { q: 'With the same facts, what does `?- grandparent(joanne, vern).` answer?', a: 'false. joanne’s only child is jake, and nothing says jake is a parent of vern, so the rule cannot be proved.' },
   };

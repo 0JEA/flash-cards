@@ -13,6 +13,8 @@ test('card ids are unique and every card has the fields its type needs', () => {
     assert.ok(lectures.has(c.lecture), `${c.id}: unknown lecture ${c.lecture}`);
     assert.ok(c.prompt && c.source, `${c.id}: prompt and source are required`);
     assert.ok(typeof c.why === 'string', `${c.id}: why must be a string (may be empty)`);
+    if (c.mode != null) assert.ok(c.type === 'recall' && ['quick', 'write'].includes(c.mode), `${c.id}: mode is 'quick' or 'write', on recall cards only`);
+    if (c.noRecall != null) assert.ok(c.type === 'mc' && c.noRecall === true, `${c.id}: noRecall: true is for mc cards`);
     if (c.type === 'recall') assert.ok(c.answer && c.points && c.points.length, `${c.id}: recall needs answer + points`);
     else if (c.type === 'typed') assert.ok(typeof c.answer === 'string' && c.answer, `${c.id}: typed needs answer`);
     else if (c.type === 'mc') assert.ok(c.options && c.options.length >= 1 && c.options.length <= 3, `${c.id}: mc needs 1-3 wrong options (2-4 total)`);

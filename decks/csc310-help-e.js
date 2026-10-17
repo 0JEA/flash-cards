@@ -66,7 +66,7 @@
   // ---------------------------------------------------------------- 3T(n/4) + cn^2, geometric series
 
   H['c310-5-3T4-tight'] = {
-    asks: 'The tree for $T(n) = 3T(n/4) + cn^2$ already gave a ceiling, $T(n) = O(n^2)$. Explain why the answer is the sharper $\\Theta(n^2)$: you need a matching floor.',
+    asks: "The tree for $T(n) = 3T(n/4) + cn^2$ gives $O(n^2)$; say what gives the matching $\\Omega(n^2)$.",
     idea: 'Every node costs something positive, so the whole tree costs at least as much as any single node. The root alone costs $cn^2$. A floor of $cn^2$ and a ceiling of about $\\tfrac{16}{13}cn^2$ trap $T(n)$ between two multiples of $n^2$.',
     tree: {
       sumsLabel: 'level total',
@@ -92,13 +92,13 @@
       curves: [{ label: 'running total', f: i => (1 - (3 / 16) ** (i + 1)) / (13 / 16), tone: 'a' }, { label: 'ceiling $16/13$', f: () => 16 / 13, tone: 'c' }],
       bars: { label: 'level cost $(3/16)^i$', tone: 'b', values: [[0, 1], [1, 3 / 16], [2, 9 / 256], [3, 27 / 4096], [4, 81 / 65536], [5, 243 / 1048576]] },
     },
-    answer: 'The root alone costs $cn^2$, so $T(n) \\ge cn^2$, i.e. $\\Omega(n^2)$. With the tree’s $O(n^2)$ ceiling, $T(n) = \\Theta(n^2)$.',
+    answer: "The root alone costs $cn^2$, so $T(n) = \\Omega(n^2)$; with $O(n^2)$, $T(n) = \\Theta(n^2)$.",
     mistake: 'Stopping at $O(n^2)$ and calling it tight. $O$ is only a ceiling; $\\Theta$ also needs a floor, and here the floor is one line: the root.',
     tryIt: { q: 'The tree for $T(n) = 2T(n/4) + cn^2$ has level costs $(1/8)^i cn^2$. Give a ceiling, a floor, and $\\Theta$.', a: 'Ceiling: $cn^2 \\cdot \\frac{1}{1 - 1/8} = \\tfrac{8}{7}cn^2$, plus $2^{\\log_4 n} = n^{1/2}$ leaves: $O(n^2)$. Floor: the root, $cn^2$: $\\Omega(n^2)$. So $\\Theta(n^2)$.' },
   };
 
   H['c310-5-geom-formulas'] = {
-    asks: 'Give the shortcut formulas for $1 + r + r^2 + \\dots + r^k$ (stopping at $r^k$), and for the same sum continued forever when $|r| < 1$.',
+    asks: "Give the closed form of the finite geometric series $\\sum_{i=0}^{k} r^i$.",
     idea: 'Recursion-tree level costs are usually geometric: each level is the one above times the same ratio $r$. Multiply the sum by $r$ and every term slides one place right; subtract, and all the middle terms cancel, leaving only the two ends.',
     steps: [
       'Name the sum: $S = 1 + r + r^2 + \\dots + r^k$. Multiply both sides by $r$: $rS = r + r^2 + \\dots + r^k + r^{k+1}$.',
@@ -117,7 +117,7 @@
         { label: '$r = 2$: $2^{k+1} - 1$', f: k => 2 ** (k + 1) - 1, tone: 'c' },
       ],
     },
-    answer: 'Finite ($r \\ne 1$): $\\sum_{i=0}^{k} r^i = \\frac{r^{k+1} - 1}{r - 1}$. Infinite ($|r| < 1$): $\\sum_{i=0}^{\\infty} r^i = \\frac{1}{1 - r}$.',
+    answer: "$\\frac{r^{k+1} - 1}{r - 1}$ (and the infinite series, for $|r| < 1$, is $\\frac{1}{1 - r}$).",
     mistake: 'Writing $r^k$ instead of $r^{k+1}$: the sum has $k + 1$ terms, $r^0$ to $r^k$. Test with $k = 0$: the sum is $1$, and $\\frac{r^1 - 1}{r - 1} = 1$.',
     tryIt: { q: 'Evaluate $\\sum_{i=0}^{5} 3^i$ and $\\sum_{i=0}^{\\infty} (1/5)^i$.', a: '$\\frac{3^6 - 1}{3 - 1} = \\frac{728}{2} = 364$ (by hand: $1 + 3 + 9 + 27 + 81 + 243 = 364$). And $\\frac{1}{1 - 1/5} = \\frac{5}{4}$.' },
   };
@@ -243,7 +243,7 @@
   };
 
   H['c310-5-uneven-levelsum'] = {
-    asks: 'Explain why each level of the tree for $T(n) = T(n/4) + T(3n/4) + cn$ costs exactly $cn$ down to depth $\\log_4 n$, and what changes below that depth.',
+    asks: "Explain why every full level of the tree of $T(n) = T(n/4) + T(3n/4) + cn$ costs exactly $cn$.",
     idea: 'Think of cutting a rope of length $n$: the two pieces still add up to $n$. Each level re-cuts every piece of the level above, so the total length stays $n$ until some pieces are too short to cut.',
     tree: { ...UNEVEN_TREE, caption: 'Every complete level’s sizes add to $n$, so it costs $c \\cdot n = cn$. Once the left edge ends (depth $\\log_4 n$), pieces start dropping out and the totals fall below $n$.' },
     steps: [
@@ -260,7 +260,7 @@
       bars: { label: 'level total, $n = 256$', tone: 'b', values: [[0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [5, 0.9961], [6, 0.9844], [7, 0.9624], [8, 0.9294], [9, 0.6785], [10, 0.6007], [11, 0.5256], [12, 0.4552], [13, 0.1584], [14, 0.1267], [15, 0.101], [16, 0.0802], [17, 0.01], [18, 0.0075], [19, 0.0056], [20, 0.0042]] },
       marks: [{ x: 4, label: '$\\log_4 n$' }, { x: Math.log(256) / Math.log(4 / 3), label: '$\\log_{4/3} n$' }],
     },
-    answer: 'Children’s sizes add up to the parent’s ($\\tfrac{m}{4} + \\tfrac{3m}{4} = m$), so every complete level adds to $n$ and costs $cn$. Below depth $\\log_4 n$ branches start ending, so levels are partial and cost at most $cn$, dwindling to nothing by depth $\\log_{4/3} n$.',
+    answer: "Children’s sizes $m/4 + 3m/4 = m$ add up to the parent’s, so each full level’s sizes add up to $n$.",
     mistake: 'Claiming every level down to $\\log_{4/3} n$ costs exactly $cn$. Only the complete levels do; deeper ones cost at most $cn$, which is why counting them gives a ceiling, not the exact total.',
     tryIt: { q: 'For $T(n) = T(n/5) + T(4n/5) + n$, list the sizes on level 2 and add them. Down to which depth are all levels complete?', a: '$\\tfrac{n}{25}, \\tfrac{4n}{25}, \\tfrac{4n}{25}, \\tfrac{16n}{25}$, which add to $\\tfrac{25n}{25} = n$. Levels are complete down to the shallowest leaf, depth $\\log_5 n$.' },
   };
@@ -291,7 +291,7 @@
   };
 
   H['c310-5-uneven-decreasing'] = {
-    asks: 'Solve $T(n) = T(n/2) + T(n/4) + cn$ with a recursion tree. The two pieces add up to less than the whole, so the levels are no longer equal.',
+    asks: "Solve $T(n) = T(n/2) + T(n/4) + cn$ with a recursion tree.",
     idea: 'Each split loses a quarter of the size: $\\tfrac12 + \\tfrac14 = \\tfrac34$. So every level holds at most $\\tfrac34$ of the level above, level costs shrink geometrically, and the root dominates.',
     tree: {
       sumsLabel: 'sizes add to',
@@ -317,7 +317,7 @@
       curves: [{ label: 'running total of $(\\tfrac34)^i$', f: i => 4 * (1 - 0.75 ** (i + 1)), tone: 'a' }, { label: 'ceiling $4$', f: () => 4, tone: 'c' }],
       bars: { label: 'level cost, $n = 256$', tone: 'b', values: [[0, 1], [1, 0.75], [2, 0.5625], [3, 0.4219], [4, 0.3164], [5, 0.2344], [6, 0.1406], [7, 0.0469], [8, 0.0059]] },
     },
-    answer: 'Level $i$ costs at most $(\\tfrac34)^i cn$, so $T(n) \\le \\frac{cn}{1 - 3/4} = 4cn = O(n)$; the root gives $T(n) \\ge cn = \\Omega(n)$. So $T(n) = \\Theta(n)$.',
+    answer: "Level $i$ costs $\\le (3/4)^i cn$, total $\\le 4cn$; the root gives $\\Omega(n)$. So $\\Theta(n)$.",
     mistake: 'Copying $\\Theta(n \\lg n)$ from the $\\tfrac14$, $\\tfrac34$ tree because the picture looks alike. Add the fractions first: with $cn$ work, a sum of exactly 1 gives $n \\lg n$, a sum below 1 gives $\\Theta(n)$.',
     tryIt: { q: 'Solve $T(n) = T(n/5) + T(n/2) + cn$.', a: 'The fractions add to $\\tfrac15 + \\tfrac12 = \\tfrac{7}{10}$, so level $i$ costs at most $(\\tfrac{7}{10})^i cn$. Total $\\le \\frac{cn}{1 - 7/10} = \\tfrac{10}{3}cn$; the root gives $\\ge cn$. So $\\Theta(n)$.' },
   };
@@ -325,7 +325,7 @@
   // ---------------------------------------------------------------- practice trees
 
   H['c310-5-tree-4T2'] = {
-    asks: 'Use a recursion tree for $T(n) = 4T(n/2) + cn$: find what level $i$ costs, how many leaves there are, and the $\\Theta$ bound.',
+    asks: "Give the $\\Theta$ bound of $T(n) = 4T(n/2) + cn$ from its recursion tree.",
     idea: 'Each call makes 4 subproblems of half the size. The work per node halves, but the number of nodes quadruples, so every level costs twice the one above. Costs grow downward, and the bottom of the tree wins.',
     tree: {
       sumsLabel: 'level total',
@@ -350,13 +350,13 @@
       x: [-0.5, 6.5], y: [0, 4300], xLabel: 'depth i', yLabel: 'level cost',
       bars: { label: 'level cost, $n = 64$', tone: 'b', values: [[0, 64], [1, 128], [2, 256], [3, 512], [4, 1024], [5, 2048], [6, 4096]] },
     },
-    answer: 'Level $i$ costs $2^i cn$ (growing); there are $4^{\\lg n} = n^2$ leaves; the leaves dominate, so $T(n) = \\Theta(n^2)$.',
+    answer: "$\\Theta(n^2)$: level costs $2^i cn$ increase, so the $n^2$ leaves dominate.",
     mistake: 'Writing the level cost as $4^i cn$, forgetting that each node is smaller. Multiply the node count $4^i$ by the cost of ONE node, $cn/2^i$.',
     tryIt: { q: 'Use a tree for $T(n) = 8T(n/2) + cn^2$: level cost, number of leaves, $\\Theta$.', a: 'Level $i$: $8^i \\cdot c(n/2^i)^2 = 8^i \\cdot \\frac{cn^2}{4^i} = 2^i cn^2$, growing. Leaves: $8^{\\lg n} = n^{\\lg 8} = n^3$. The leaves dominate: $\\Theta(n^3)$.' },
   };
 
   H['c310-5-tree-2Tn2'] = {
-    asks: 'Solve $T(n) = 2T(n/2) + cn^2$ with a recursion tree.',
+    asks: "Give the $\\Theta$ bound of $T(n) = 2T(n/2) + cn^2$ from its recursion tree.",
     idea: 'Halving the size doubles the nodes, but because the work is squared, each half costs only a quarter: $(\\tfrac12)^2 = \\tfrac14$. Two quarters make a half, so each level costs half the one above and the root dominates.',
     tree: {
       sumsLabel: 'level total',
@@ -382,7 +382,7 @@
       curves: [{ label: 'running total', f: i => 2 - 0.5 ** i, tone: 'a' }, { label: 'ceiling $2$', f: () => 2, tone: 'c' }],
       bars: { label: 'level cost $(1/2)^i$', tone: 'b', values: [[0, 1], [1, 0.5], [2, 0.25], [3, 0.125], [4, 0.0625], [5, 0.03125], [6, 0.015625]] },
     },
-    answer: 'Level $i$ costs $cn^2/2^i$, a shrinking geometric series, so $T(n) < 2cn^2 + \\Theta(n)$; the root alone is $cn^2$. So $T(n) = \\Theta(n^2)$.',
+    answer: "$\\Theta(n^2)$: level costs $cn^2/2^i$ decrease, total $\\le 2cn^2$, and the root alone is $cn^2$.",
     mistake: 'Treating it like merge sort and answering $\\Theta(n^2 \\lg n)$. Levels tie only when the ratio is 1; here it is $\\tfrac12$, so there is no $\\lg n$ factor.',
     tryIt: { q: 'Solve $T(n) = 3T(n/2) + cn^2$ with a tree.', a: 'Level $i$: $3^i \\cdot \\frac{cn^2}{4^i} = (\\tfrac34)^i cn^2$, shrinking, so total $< 4cn^2$ plus $3^{\\lg n} = n^{\\lg 3} \\approx n^{1.58}$ leaves. The root $cn^2$ dominates: $\\Theta(n^2)$.' },
   };

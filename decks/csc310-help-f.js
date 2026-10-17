@@ -102,7 +102,7 @@
   };
 
   H['c310-7-dc-steps'] = {
-    asks: 'Say what quicksort does in each of the three divide-and-conquer steps on A[p..r].',
+    asks: "Say what quicksort’s divide step does to A[p..r].",
     idea: 'Picture sorting a pile of exam papers: pick the last one’s mark as a dividing line, toss lower-or-equal marks to the left and higher marks to the right, and put the dividing paper in the middle. Sort each pile the same way. When both piles are sorted, the stack is sorted; there is nothing to merge.',
     steps: [
       'Divide: pivot = A[r] (the last element). PARTITION rearranges A[p..r] so that A[p..q−1] $\\le$ A[q] $<$ A[q+1..r], and returns q.',
@@ -120,7 +120,7 @@
       ],
       caption: 'Each call places its pivot for good and passes the two sides down. Nothing is ever merged on the way back up.',
     },
-    answer: 'Divide: pick the last element as pivot and partition A[p..r] into A[p..q−1] ($\\le$ A[q]) and A[q+1..r] ($>$ A[q]), computing q. Conquer: recursively quicksort both parts. Combine: nothing; the sorted parts already form a sorted array.',
+    answer: "Pick the last element as pivot and partition A[p..r] into A[p..q−1] ($\\le$ A[q]) and A[q+1..r] ($>$ A[q]), computing q. (Conquer then sorts both parts; combine does nothing.)",
     mistake: 'Copying merge sort’s steps ("divide in half, combine by merging"). Quicksort’s split is wherever the pivot lands, not the middle, and its combine step is empty.',
     tryIt: { q: 'For A = {4, 8, 2, 6, 1, 5}: what does the divide step produce, and which two calls does the conquer step make?', a: 'Pivot 5. PARTITION gives {4, 2, 1, 5, 8, 6}, q = 4. Conquer calls QUICKSORT(A, 1, 3) on 4, 2, 1 and QUICKSORT(A, 5, 6) on 8, 6. Combine: nothing.' },
   };
@@ -128,7 +128,7 @@
   // ═══════════════════════ PARTITION ═══════════════════════
 
   H['c310-7-partition-post'] = {
-    asks: 'After PARTITION(A, p, r) returns q, state what is guaranteed about the three regions A[p..q−1], A[q] and A[q+1..r].',
+    asks: "After PARTITION(A, p, r) returns q, say how the elements of A[p..q−1] compare with A[q].",
     idea: 'PARTITION is a bouncer at a door marked with the pivot’s value: everyone $\\le$ pivot goes left, everyone $>$ pivot goes right, and the pivot stands in the doorway. Nobody inside either room is sorted yet; they are only on the correct side.',
     steps: [
       { text: 'Run it on A = {6, 3, 9, 2, 7, 5} (pivot 5):', table: { head: PHEAD, rows: [['1', '6', 'no', '0', '6, 3, 9, 2, 7, 5'], ['2', '3', 'yes', '1', '3, 6, 9, 2, 7, 5'], ['3', '9', 'no', '1', '3, 6, 9, 2, 7, 5'], ['4', '2', 'yes', '2', '3, 2, 9, 6, 7, 5'], ['5', '7', 'no', '2', '3, 2, 9, 6, 7, 5']] } },
@@ -137,7 +137,7 @@
       'A[q] is in its final sorted place: exactly $q - p$ elements are smaller-or-equal and sit before it, and the rest sit after it, so sorting either side never moves it.',
       'Either part may be empty: if the pivot is the largest element, A[q+1..r] has nothing in it.',
     ],
-    answer: 'A[q] is the pivot, in its final sorted position; every element of A[p..q−1] is $\\le$ A[q]; every element of A[q+1..r] is $>$ A[q]. Either part may be empty.',
+    answer: "Every element of A[p..q−1] is $\\le$ A[q] (and every element of A[q+1..r] is $>$ A[q]; A[q] is the pivot in its final place). The left part may be empty.",
     mistake: 'Saying the left and right parts come out sorted. Here the left part is {3, 2}: on the correct side, but still out of order; the recursive calls sort it.',
     tryIt: { q: 'PARTITION on A = {5, 2, 8, 1, 9, 3, 7}: give A afterwards and q, then check the three claims.', a: 'A = {5, 2, 1, 3, 7, 8, 9}, q = 5. A[1..4] = {5, 2, 1, 3} all $\\le 7$; A[5] = 7; A[6..7] = {8, 9} all $> 7$.' },
   };
@@ -232,7 +232,7 @@
   // ═══════════════════════ Quicksort analysis ═══════════════════════
 
   H['c310-7-example-sorted-part'] = {
-    asks: 'In the slide-8 example, the left part {10, 35, 40, 55} keeps splitting into "everything" and "nothing". Explain why.',
+    asks: "In the slide-8 example, the left part {10, 35, 40, 55} keeps splitting into \"everything\" and \"nothing\". Explain why.",
     idea: 'The pivot is always the last element. In a sorted piece the last element is the largest, so every other element is $\\le$ it and they all land on the left. The right side is empty every time.',
     steps: [
       'The first PARTITION of {10, 80, 35, 85, 40, 55, 70} leaves {10, 35, 40, 55} on the left, and this piece happens to be in sorted order.',
@@ -250,13 +250,13 @@
       ],
       caption: 'Slide 8’s left branch: each call’s right part is empty (not drawn), so the tree is a straight path. That is the worst-case shape.',
     },
-    answer: 'The part is already sorted, so its last element (the pivot) is always its maximum. All other elements are $\\le$ it, giving parts of size $n-1$ and $0$: {10, 35, 40} and {}, then {10, 35} and {}, then {10} and {}.',
+    answer: "The part is already sorted, so its last element (the pivot) is always its maximum: every split is $n-1$ and $0$.",
     mistake: 'Blaming the values (they are "spread out") or the size. Only the order matters: sorted order makes the last element the maximum.',
     tryIt: { q: 'Quicksort on {30, 90, 50, 70, 60}: what are the two parts after the first PARTITION, and how does each of them split next?', a: 'Pivot 60 gives {30, 50, 60, 70, 90}: parts {30, 50} and {70, 90}. Both are sorted, so their pivots 50 and 90 are maxima and each splits 1 / 0.' },
   };
 
   H['c310-7-worst-when'] = {
-    asks: 'For the last-element-pivot quicksort, name the input that causes the worst case and the split PARTITION makes on it.',
+    asks: "For the last-element-pivot quicksort, name the input the course gives as the worst case.",
     idea: 'The worst split is the most lopsided one: all the other elements on one side. That happens when the pivot is the largest (or smallest) value. With pivot = A[end], an already-sorted array puts the largest value at the end of every piece.',
     steps: [
       { text: 'PARTITION on the sorted piece {10, 20, 30, 40} (pivot 40):', table: { head: PHEAD, rows: [['1', '10', 'yes', '1', '10, 20, 30, 40'], ['2', '20', 'yes', '2', '10, 20, 30, 40'], ['3', '30', 'yes', '3', '10, 20, 30, 40']] } },
@@ -265,7 +265,7 @@
       'Each level removes only the pivot, so there are $n - 1$ levels of work $cn, c(n-1), \\dots$: the recurrence $T(n) = T(n-1) + \\Theta(n)$ from p. 11.',
     ],
     tree: WORST_TREE,
-    answer: 'An already-sorted array. Each pivot is the maximum of its piece, so every PARTITION gives one part of $n - 1$ elements and one of $0$.',
+    answer: "An already-sorted array: each pivot is the maximum of its piece, so every PARTITION splits $n - 1$ and $0$.",
     mistake: 'Saying "a random array" or "an array with many swaps". Sorted input makes no swaps at all and is still the worst case, because the cost comes from the split, not from swapping.',
     tryIt: { q: 'Run the first PARTITION on the reverse-sorted piece {40, 30, 20, 10}. What split do you get?', a: 'Pivot 10 is the minimum: every test is "no", smallerCounter stays 0, and the final swap A[1] with A[4] gives {10, 30, 20, 40}, q = 1. Split 0 / 3: also worst-case.' },
   };
@@ -292,7 +292,7 @@
   };
 
   H['c310-7-best-case'] = {
-    asks: 'Describe quicksort’s best case: what split happens, what recurrence it gives, and what that solves to.',
+    asks: "Write the recurrence for quicksort’s best case.",
     idea: 'The best pivot is the median, which cuts the piece into two equal halves. Then quicksort has exactly merge sort’s shape: two half-size calls plus linear work per call.',
     steps: [
       'Best split: sizes about $n/2$ and $n/2$ (exactly $\\frac{n-1}{2}$ each, since the pivot leaves).',
@@ -311,7 +311,7 @@
       ],
       bars: { label: 'best case, counted', tone: 'b', values: [[7, 10], [15, 34], [31, 98], [63, 258]] },
     },
-    answer: 'Perfectly balanced partitions of about $n/2$ each. $T(n) = 2T(n/2) + \\Theta(n)$, which solves to $\\Theta(n \\lg n)$ (same recurrence as merge sort).',
+    answer: "$T(n) = 2T(n/2) + \\Theta(n)$ (balanced halves, same recurrence as merge sort); it solves to $\\Theta(n \\lg n)$.",
     mistake: 'Thinking the best case is sorted input because "nothing needs to move". For this quicksort sorted input is the worst case; the best case is about where the pivots land.',
     tryIt: { q: 'Every pivot is the median and $n = 31$. Count the comparisons level by level.', a: 'Pieces: one of 31, two of 15, four of 7, eight of 3. Comparisons $30 + 2 \\cdot 14 + 4 \\cdot 6 + 8 \\cdot 2 = 30 + 28 + 24 + 16 = 98$.' },
   };
@@ -343,7 +343,7 @@
   };
 
   H['c310-heap-mergesort-tradeoff'] = {
-    asks: 'State merge sort’s main advantage and main disadvantage, as the heap lecture lists them.',
+    asks: "State merge sort’s main disadvantage, as the heap lecture lists it.",
     idea: 'Merge sort is reliably fast: its recursion tree is always balanced, whatever the input. The price is memory: merging two sorted halves needs somewhere to put them while you interleave them, a second array as big as the piece.',
     steps: [
       'Advantage, time: $T(n) = 2T(n/2) + \\Theta(n)$ on every input, which is $\\Theta(n \\log n)$ (Lecture 4).',
@@ -359,7 +359,7 @@
         { label: 'in place (insertion sort): $1$', f: () => 1, tone: 'c' },
       ],
     },
-    answer: 'Advantage: $\\Theta(n \\log n)$ running time. Disadvantage: $O(n)$ extra space; it does not sort in place.',
+    answer: "$O(n)$ extra space; it does not sort in place. (Its advantage: $\\Theta(n \\log n)$ time.)",
     mistake: 'Giving a time disadvantage ("slow on sorted input" or "$O(n^2)$ worst case"). Merge sort’s time is $\\Theta(n \\log n)$ on every input; its weakness is memory.',
     tryIt: { q: 'Merge sort runs on 500,000 four-byte integers. About how much extra memory does the top-level merge need?', a: 'It copies all $n$ elements out: $500{,}000 \\times 4$ bytes $= 2{,}000{,}000$ bytes, about 2 MB, on top of the array itself.' },
   };
@@ -367,7 +367,7 @@
   // ═══════════════════════ Hashing ═══════════════════════
 
   H['c310-hash-table-idea'] = {
-    asks: 'Say how a hash table decides which array slot a key goes in, and which operation costs it is designed to achieve.',
+    asks: "Say how a hash table decides which array slot a key goes in.",
     idea: 'A direct-address table uses the key itself as the index, which needs one slot for every possible key: far too many. A hash table runs the key through a function $h$ that squeezes it into a small range, and uses $h(\\text{key})$ as the index.',
     steps: [
       'Direct addressing with 7-digit student IDs would need $10^7$ slots, even to store 30 students.',
@@ -381,7 +381,7 @@
   };
 
   H['c310-hash-collision'] = {
-    asks: 'Define a collision in a hash table.',
+    asks: "Define a collision in a hash table.",
     idea: 'The hash function crams a huge set of possible keys into a few slots, so some different keys must end up wanting the same slot. Like 11 people and 10 chairs: someone has to share.',
     steps: [
       'Take $m = 10$, $h(k) = k \\bmod 10$.',
@@ -396,7 +396,7 @@
   };
 
   H['c310-hash-parts'] = {
-    asks: 'Name the two pieces that make up a hash table for some key type, and the index where the item $(k, o)$ is stored.',
+    asks: "Give the index where a hash table stores the item $(k, o)$.",
     idea: 'A hash table is just an ordinary array plus a rule for picking the index. The rule is the hash function $h$; the item $(k, o)$ (key $k$, value $o$) goes in the slot the rule picks for its key.',
     steps: [
       'Piece 1: a hash function $h$ that maps keys to integers in $[0, N - 1]$. For integer keys the slides use $h(x) = x \\bmod N$; $h(x)$ is called the hash value of $x$.',
@@ -404,13 +404,13 @@
       { text: 'Example with $N = 13$, $h(x) = x \\bmod 13$:', table: { head: ['item $(k, o)$', '$h(k)$', 'stored at'], rows: [['(40, Lee)', '$40 - 39 = 1$', 'index 1'], ['(58, Diaz)', '$58 - 52 = 6$', 'index 6'], ['(91, Kim)', '$91 - 91 = 0$', 'index 0']] } },
       'Only the key goes into $h$. The value $o$ just travels with it into the slot.',
     ],
-    answer: 'A hash function $h$ and an array (table) of size $N$. Item $(k, o)$ is stored at index $i = h(k)$.',
+    answer: "At index $i = h(k)$. (A hash table is a hash function $h$ plus an array of size $N$.)",
     mistake: 'Hashing the value $o$ (or the whole pair). The slot depends only on the key, so a search with just the key can find it.',
     tryIt: { q: '$N = 11$, $h(x) = x \\bmod 11$. Where is the item (100, Ito) stored?', a: '$100 = 9 \\cdot 11 + 1$, so $h(100) = 1$: index 1.' },
   };
 
   H['c310-hash-two-techniques'] = {
-    asks: 'Name the two main ways to handle collisions and say how each one works.',
+    asks: "Name the collision-resolution technique that keeps a linked list at each slot (and the other main technique).",
     idea: 'When a slot is taken there are two choices: let the slot hold more than one key (hang a list off it), or put the new key somewhere else in the same array. The first is chaining, the second is open addressing.',
     steps: [
       'Chaining: each slot holds a linked list of all keys that hash there. A collision just makes that list longer.',
@@ -428,13 +428,13 @@
       ],
       marks: [{ x: 0.5, label: '$\\alpha = 0.5$' }],
     },
-    answer: 'Chaining: keep a linked list at each slot holding every key that hashes there. Open addressing: if the slot is full, probe for another open slot in the table itself.',
+    answer: "Chaining keeps a linked list at each slot holding every key that hashes there. (Open addressing instead probes for another open slot in the table itself.)",
     mistake: 'Calling open addressing "making a new table" or "a second hash table". Everything stays in the one array; only the slot changes.',
     tryIt: { q: 'Insert 12, 5, 19 into $m = 7$, $h(k) = k \\bmod 7$. Where does each key end up with chaining, and with linear probing?', a: 'All three hash to 5. Chaining: slot 5 holds 19 → 5 → 12. Linear probing: 12 in slot 5, 5 in slot 6, 19 wraps to slot 0.' },
   };
 
   H['c310-hash-chain-worst'] = {
-    asks: 'With chaining, describe the worst case and what search, insert and delete cost in it.',
+    asks: "With chaining, describe the worst case and what a search costs in it.",
     idea: 'The worst hash function sends every key to the same slot. Then the hash table is really one long linked list, and the operations cost what linked-list operations cost.',
     steps: [
       { text: 'Example: $m = 4$, $h(k) = k \\bmod 4$, keys 4, 8, 12, 16, 20. Every key is a multiple of 4:', table: { head: ['slot', '0', '1', '2', '3'], rows: [['chain', '20 → 16 → 12 → 8 → 4', '(empty)', '(empty)', '(empty)']] } },
@@ -450,7 +450,7 @@
         { label: 'average: $1 + n/8$', f: n => 1 + n / 8, tone: 'b' },
       ],
     },
-    answer: 'All $n$ keys hash to the same slot, forming one chain of length $n$. Search takes $O(n)$; insert and delete still take $O(1)$.',
+    answer: "All $n$ keys hash to the same slot, forming one chain of length $n$, so search takes $O(n)$. (Insert and delete still take $O(1)$.)",
     mistake: 'Saying everything becomes $O(n)$. Only search has to walk the chain; insert at the head and delete of a given element do not.',
     tryIt: { q: '$m = 6$, $h(k) = k \\bmod 6$, keys 6, 12, 18, 24, 30, 36. How many key comparisons does a search for 42 make? For 3?', a: 'All six keys are in slot 0. $h(42) = 0$: walk all 6, not found. $h(3) = 3$: empty slot, 0 comparisons, not found.' },
   };

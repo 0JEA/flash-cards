@@ -540,7 +540,7 @@
     { id: 'c310-3-crossover', lecture: '3', cat: 'Asymptotics', sub: 'Growth-rate ordering', type: 'typed',
       prompt: M`What is the smallest positive integer $n$ for which $0.3n^2 > 10n + 20$?`,
       answer: '36', accept: ['n = 36', 'n=36'],
-      why: M`$0.3n^2 - 10n - 20 = 0$ at $n \approx 35.3$. Check: $n = 35$ gives $367.5$ vs $370$ (no); $n = 36$ gives $388.8$ vs $380$ (yes).`,
+      why: M`$0.3n^2 - 10n - 20 = 0$ at $n \approx 35.2$. Check: $n = 35$ gives $367.5$ vs $370$ (no); $n = 36$ gives $388.8$ vs $380$ (yes).`,
       source: `${L3}, slide 4 (verified by python3)` },
     { id: 'c310-3-analogy-all', lecture: '3', cat: 'Asymptotics', sub: 'Big-O, Ω, Θ', type: 'recall',
       prompt: M`Give the number analogy for each asymptotic notation: $f = \Theta(g)$, $f = O(g)$, $f = o(g)$, $f = \Omega(g)$, $f = \omega(g)$ are “like” which relation between numbers $a$ and $b$?`,

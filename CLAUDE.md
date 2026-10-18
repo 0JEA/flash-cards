@@ -27,7 +27,7 @@ The design, and the paper behind each learning rule, are in `docs/superpowers/sp
 | File | Role |
 |---|---|
 | `PRODUCT.md` | Design brief (impeccable): users, personality, anti-references, principles. The look is iOS 13 dark (2019) with every element borrowed from a named pre-AI source and reworked (owner, 2026-10-16: "AI look" means layout, element choice, type and motion, not just colour). The source of each element is commented at its CSS block in `index.html` |
-| `index.html` | Markup + CSS for all screens: Classes (Wallet pass stack, each class a boarding pass), Class (settings + iTunes-style column browser for the three filters), Mix, Study (the card is a ticket: question above a perforation, answers on the stub; film-counter for cards left; pen-mark verdicts), Help (margin notes sliding in beside the card), Done (when to come back + missed cards with Help), Settings; and the script order |
+| `index.html` | Markup + CSS for all screens: Classes (one boarding pass per class, ALL in view with its own Study button: a row of 4 on wide windows, 2×2 medium, 1 column on phones; owner 2026-10-18 rejected the Wallet stack's wasted space), Class (wide: lecture list left, assignment/session/Study in a sticky column right; narrow: one column, Study pinned at the bottom), Mix, Study (the card is a ticket: question above a perforation, answers on the stub; film-counter for cards left; pen-mark verdicts), Help (margin notes sliding in beside the card; widened for code cards), Done (when to come back + missed cards with Help), Settings; and the script order. On windows ≥700px the page title sits in the nav bar (one row); the sync status is hidden when no sync key is set |
 | `js/log.js` | Append-only event log in `localStorage['fc.events']`; merge = union by event id |
 | `js/scheduler.js` | Pure functions: learning criterion, review ladder, exam cap, queue (shuffled), delayed-recall metric, `Session` (misses go to the END of the queue) |
 | `js/grade.js` | Answer matching: typed, cloze, order, set (any order) |
@@ -46,7 +46,9 @@ The design, and the paper behind each learning rule, are in `docs/superpowers/sp
 | `js/tree.js` | Trees: auto-oriented drawing, node diff, and the tree answer types `tree` (build), `swaps` (heap repair, checked per swap), `fill` (type blank nodes), `path` (tap in order). Formats in its header. `heap`/`tree` on any other card is drawn under the question |
 | `vendor/pretext-0.0.9.min.js`, `vendor/katex/` | Text fitting; math rendering |
 | `tools/fit-sweep.js` | Headless fit check of every card at a given viewport |
-| `tools/screens.js` | Screenshots of every screen and card type, asking and answered (`<outDir> <w> <h>`), for design review |
+| `tools/screens.js` | Screenshots of every screen and card type, asking and answered (`<outDir> <w> <h>`), for design review. Shots are WINDOW-sized (plus `-full` for scrolling screens): review at the owner's real window, `hyprctl clients -j` (Chromium 1276×682 → 1276×595 viewport, 2026-10-18). Full-page shots at 632 wide hid a squished home screen from two design passes |
+| `tools/record-traces.js` | Records the Help step-through trace of every CSC 370 code card with steptrace (`~/steptrace`, the owner's separate LOCAL-ONLY project; `STEPTRACE_DIR` to override) into `decks/csc370-traces.js` (GENERATED). C: the card's snippet made a whole program (statements into `main`, `/* in main: */` splits, missing declarations from the question's values), run under gdb. Python: real Python. Scope cards (STATIC/DYNAMIC in the question, Python-like or JS code): steptrace's interpreter under that rule. Lisp/Scheme: the hand traces. Hand notes (`decks/csc370-trace*.js`) are attached by line text. Re-run after editing any code card |
+| `vendor/steptrace/` | The steptrace viewer (debugger view: code, ✓ ran / ➜ next, output, stack of activation records with dynamic + static links, heap, pointer arrows, by-name parameters) and its pseudocode interpreter bundle (rule switches re-run scope cards under static/dynamic scoping and each parameter mode). Copied from ~/steptrace; how to update: `vendor/steptrace/VENDORED.md` |
 | `tools/help-check.js` | Headless render of every Help page in a class (`<deck> <w> <h> [shotDir id...]`): math errors, raw `$`, stray backticks, sideways scroll, page errors; exit 0 = clean |
 
 Rebuild Pretext (only to change the version):
@@ -58,7 +60,8 @@ Then update the `<script>` tag in `index.html`.
 
 ## Commands
 
-- Tests (1510 as of 2026-10-17, about 60 s; needs python3, gcc, node, bash, guile, ecl, javac/java; python3 with mpmath for the CSC 310 growth checks): `node --test tests/`
+- Tests (1578 as of 2026-10-18, about 60 s; needs python3, gcc, node, bash, guile, ecl, javac/java; python3 with mpmath for the CSC 310 growth checks): `node --test tests/`. `tests/traces.test.js` checks every recorded trace against its card (printed output = answer, or the answer is a value the run actually held)
+- Re-record Help traces (needs ~/steptrace, gcc, gdb 14+): `node tools/record-traces.js [card ids]`
 - Run locally: `python3 -m http.server 8765 --bind 127.0.0.1`, then open http://127.0.0.1:8765/. Opening `index.html` directly from disk also works.
 
 ## Deployed vs repo-only

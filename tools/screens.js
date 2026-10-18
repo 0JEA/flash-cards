@@ -15,15 +15,19 @@ const fs = require('fs');
   const errs = []; p.on('pageerror', e => errs.push(e.message));
   await p.goto(process.env.FIT_URL || 'http://localhost:8765/index.html');
   await p.evaluate(() => document.fonts.ready);
-  const shot = async (name, full) => { await p.waitForTimeout(650); await p.screenshot({ path: `${out}/${name}-${w}.png`, fullPage: !!full }); };
+  // Window-sized shots: what fits on screen is the point (full-page shots hid a squished
+  // bottom on 2026-10-18). Screens that scroll also get a -full shot.
+  const shot = async (name, full) => {
+    await p.waitForTimeout(650);
+    await p.screenshot({ path: `${out}/${name}-${w}.png` });
+    if (full) await p.screenshot({ path: `${out}/${name}-${w}-full.png`, fullPage: true });
+  };
   const click = async sel => { await p.locator(sel).first().click(); };
 
   await shot('01-classes', true);
-  await p.locator('.pass').nth(1).locator('.pass-head').click(); await shot('02-classes-310', true);
-  await p.locator('.pass.open .pass-actions button').first().click(); await shot('03-class-310', true);
-  await p.evaluate(() => document.querySelector('#viewSwitch [data-view="assignment"]')?.click()); await shot('04-class-310-assign', true);
+  await p.locator('.pass').nth(1).locator('.pass-actions button', { hasText: 'Choose cards' }).click(); await shot('03-class-310', true);
   await p.goto(process.env.FIT_URL || 'http://localhost:8765/index.html'); await p.evaluate(() => document.fonts.ready);
-  await p.locator('.pass').nth(4).locator('.pass-head').click(); await p.locator('.pass.open .go').click(); await shot('05-mix', true);
+  await p.locator('#mixRow .btn').click(); await shot('05-mix', true);
   await click('#navSettings'); await shot('06-settings', true);
 
   // One card of each type: [deck, predicate, name]. The predicates are fixed strings in this

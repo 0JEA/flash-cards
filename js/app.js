@@ -207,6 +207,9 @@
     if (name === 'class') { paintClass(openDeck); renderClass(); }
     if (name === 'mix') renderMix();
     if (name === 'settings') renderSettings();
+    // Wide windows show the page title in the navigation bar (one row, not two).
+    const h1 = $('screen-' + name).querySelector('h1');
+    $('navTitle').textContent = h1 ? h1.textContent : '';
     window.scrollTo(0, 0);
   }
   document.querySelectorAll('[data-nav]').forEach(b => b.addEventListener('click', () => show(b.dataset.nav)));
@@ -225,27 +228,10 @@
     return Array.from({ length: 14 }, (_, i) => days.has(today() - 13 + i));
   }
 
-  // ── Classes (launch screen): Apple Wallet's pass stack, each class a boarding pass ──
-  // The open pass shows the route (course → exam date), what is due, the share remembered
-  // later, and one bar per recent day; the others wait below it as strips, tap one to open it.
-  let openPass = 0;
-  const PASS_H = 272, STRIP = 58;
-  // Move the passes in place (so the stack animates): the open one on top, the rest as strips.
-  function openPassAt(i) { if (i !== openPass) { openPass = i; layoutPasses(); } }
-  function layoutPasses() {
-    const els = [...$('classList').children];
-    const order = [openPass, ...els.map((_, i) => i).filter(i => i !== openPass)];
-    els.forEach((el, i) => {
-      const pos = order.indexOf(i), open = pos === 0;
-      el.classList.toggle('open', open);
-      el.style.transform = `translateY(${open ? 0 : PASS_H + 12 + (pos - 1) * STRIP}px)`;
-      el.style.zIndex = open ? 50 : pos;
-      el.style.height = (open ? PASS_H : 64) + 'px';
-      el.querySelector('.pass-head').setAttribute('aria-expanded', String(open));
-      el.querySelector('.route').setAttribute('aria-hidden', String(!open));
-      el.querySelectorAll('.pass-actions button').forEach(b => { if (open) b.removeAttribute('tabindex'); else b.tabIndex = -1; });
-    });
-  }
+  // ── Classes (launch screen): every class is a boarding pass, all in view at once ──
+  // Owner, 2026-10-18: the screen is for picking a class and starting, so every class shows
+  // what is due and a Study button without opening anything first. Passes sit in a row on
+  // wide windows, two by two on medium ones, and stack on phones.
   function renderClasses() {
     const list = $('classList');
     const pct = r => r.total ? Math.round(100 * r.right / r.total) + '%' : 'Not yet';
@@ -264,34 +250,28 @@
     passes.push({ d: null, color: '#3a3a3c', name: 'All classes, mixed', code: 'Mix', due: mixDue, fresh: mixNew,
       recall: pct(sched.delayedRecall(events, today(), 14)), exam: null, days: daysStudied(new Set(all.map(c => c.id))),
       go: () => show('mix'), goLabel: 'Set up a mix' });
-    if (openPass >= passes.length) openPass = 0;
-    const order = [openPass, ...passes.map((_, i) => i).filter(i => i !== openPass)];
-    list.style.height = (PASS_H + 12 + (passes.length - 1) * STRIP) + 'px';
-    list.replaceChildren(...passes.map((p, i) => {
-      const pos = order.indexOf(i), open = pos === 0;
-      const goBtn = h('button', { class: 'go', type: 'button', tabindex: open ? null : '-1', onclick: e => { e.stopPropagation(); p.go(goBtn); } }, p.goLabel || 'Study');
-      const el = h('div', { class: 'pass' + (open ? ' open' : ''), style: `--pc:${p.color}; transform:translateY(${open ? 0 : PASS_H + 12 + (pos - 1) * STRIP}px); z-index:${open ? 50 : pos}; height:${open ? PASS_H : 64}px`,
-        onclick: () => openPassAt(i) },
-        h('button', { class: 'pass-head', type: 'button', 'aria-expanded': String(open),
-          onclick: e => { e.stopPropagation(); openPassAt(i); } },
-          h('span', { class: 'pass-name' }, p.name), h('span', { class: 'pass-due' }, `${p.due} to review`)),
-        h('div', { class: 'route', 'aria-hidden': String(!open) },
-          h('div', { class: 'code3' }, h('small', null, p.d ? 'Course' : 'Every class'), p.code),
+    const mix = passes.pop();
+    list.replaceChildren(...passes.map(p => {
+      const goBtn = h('button', { class: 'go', type: 'button', onclick: () => p.go(goBtn) }, 'Study');
+      return h('div', { class: 'pass', style: `--pc:${p.color}` },
+        h('h2', { class: 'pass-name' }, p.name),
+        h('div', { class: 'route' },
+          h('div', { class: 'code3' }, h('small', null, 'Course'), p.code),
           h('div', { class: 'flight' }),
-          p.d ? h('div', { class: 'code3 r' + (p.exam ? '' : ' unset') }, h('small', null, 'Exam'),
-            p.exam || h('button', { class: 'set-exam', type: 'button', onclick: e => { e.stopPropagation(); p.setExam(); } }, 'Set date'))
-            : h('div', { class: 'code3 r unset' }, h('small', null, 'You choose'), 'the share')),
+          h('div', { class: 'code3 r' + (p.exam ? '' : ' unset') }, h('small', null, 'Exam'),
+            p.exam || h('button', { class: 'set-exam', type: 'button', onclick: p.setExam }, 'Set date'))),
         h('div', { class: 'pass-fields' },
           h('div', null, h('small', null, 'To review'), h('b', null, String(p.due))),
           h('div', null, h('small', null, 'New'), h('b', null, String(p.fresh))),
-          h('div', null, h('small', null, 'Remembered later'), h('b', null, p.recall)),
-          h('div', { class: 'days-f' }, h('small', null, 'Last 14 days'),
-            h('div', { class: 'days', role: 'img', 'aria-label': `Studied on ${p.days.filter(Boolean).length} of the last 14 days` }, p.days.map(on => h('i', { class: on ? 'on' : null }))))),
-        h('div', { class: 'pass-actions' },
-          p.more ? h('button', { type: 'button', tabindex: open ? null : '-1', onclick: e => { e.stopPropagation(); p.more(); } }, p.moreLabel) : null, goBtn));
-      return el;
+          h('div', null, h('small', null, 'Remembered'), h('b', null, p.recall))),
+        h('div', { class: 'days-f' }, h('small', null, 'Studied, last 14 days'),
+          h('div', { class: 'days', role: 'img', 'aria-label': `Studied on ${p.days.filter(Boolean).length} of the last 14 days` }, p.days.map(on => h('i', { class: on ? 'on' : null })))),
+        h('div', { class: 'pass-actions' }, h('button', { type: 'button', onclick: p.more }, 'Choose cards'), goBtn));
     }));
-    layoutPasses();
+    $('mixRow').replaceChildren(
+      h('span', { class: 'mix-name' }, 'All classes, mixed'),
+      h('span', { class: 'muted' }, `${mix.due} to review · ${mix.fresh} new`),
+      h('button', { class: 'btn', type: 'button', onclick: mix.go }, 'Set up a mix'));
     // Calibration (research/04 rule 17): of the answers marked Sure on cards seen on an
     // earlier day, how many were right? Overconfidence means stopping practice too early.
     const firstOfDay = new Map(), lastSeen = new Map(); let sureRight = 0, sureTotal = 0;
@@ -304,7 +284,7 @@
       ? `When you said Sure on a card from an earlier day, you were right ${Math.round(100 * sureRight / sureTotal)}% of the time (${sureRight}/${sureTotal}).`
       : 'How often “Sure” was right shows here once you have reviewed cards on a second day.';
     const r = sched.delayedRecall(events, today(), 14);
-    $('recallPct').textContent = r.total ? Math.round(100 * r.right / r.total) + '%' : '—';
+    $('recallPct').textContent = r.total ? Math.round(100 * r.right / r.total) + '%' : '';
     $('recallNote').textContent = r.total
       ? `${r.right} of ${r.total} right when a card came back hours or days later (last 14 days)`
       : 'Starts tomorrow: how many cards you still know when they come back.';
@@ -590,7 +570,7 @@
 
   // Opens over the screen it was called from: the study card (counts as not known if it was
   // still unanswered) or the session summary (a card you missed).
-  let helpCard = null, helpHide = 0, helpFrom = null;
+  let helpCard = null, helpHide = 0, helpFrom = null, helpTrace = null;
   // A card split off another (`<id>-qN`) shares its original's walkthrough: the idea, the
   // picture and the steps explain the whole topic; the answer shown is the card's own.
   const helpOf = card => {
@@ -609,7 +589,14 @@
     helpFrom = document.activeElement;
     const sec = (title, ...kids) => h('section', { class: 'help-sec' }, h('h2', null, title), ...kids);
     const body = [h('p', { class: 'help-q' }, helpMath(card.prompt))];
-    if (card.code) body.push(h('pre', { class: 'code' }, card.code));
+    // Code cards with a recorded trace get the step-through debugger (vendor/steptrace); it
+    // shows the program itself, so the plain code block is left out.
+    if (helpTrace) helpTrace.destroy();
+    const trace = card.code && FC.traces && typeof StepTrace !== 'undefined' ? FC.traces[card.id] : null;
+    const traceHost = trace ? h('div', { class: 'trace-host' }) : null;
+    helpTrace = trace ? StepTrace.mount(traceHost, trace, {}) : null;
+    if (card.code && !trace) body.push(h('pre', { class: 'code' }, card.code));
+    if (traceHost) body.push(sec('Step through it', traceHost));
     if (!shared) body.push(sec('What it’s asking', h('p', null, helpMath(help.asks))));
     if (help.idea) body.push(sec('The idea', h('p', null, helpMath(help.idea))));
     // Heaps: one drawn heap, or a short sequence of states (each with its caption).
@@ -628,7 +615,7 @@
       ...steps.map((st, i) => h('div', { class: 'heap-step' }, h('p', null, helpMath(st.text || '')), heapFig(st.heap, i ? steps[i - 1].heap : null))),
       help.graph ? plot(help.graph) : null].filter(Boolean);
     if (pics.length) body.push(sec('Picture it', ...pics.flatMap((p, i) => i ? [h('div', { style: 'height:0.75rem' }), p] : [p])));
-    if (help.steps) body.push(sec('Step by step', h('ol', { class: 'help-steps' }, help.steps.map(helpStep))));
+    if (help.steps && !helpTrace) body.push(sec('Step by step', h('ol', { class: 'help-steps' }, help.steps.map(helpStep))));
     if (shared) body.push(sec('Answer', h('div', { class: 'help-answer' }, helpMath(Array.isArray(card.answer) ? card.answer.join(', ') : card.answer))));
     else if (help.answer) body.push(sec('Answer', h('div', { class: 'help-answer' }, helpMath(help.answer))));
     if (help.mistake) body.push(sec('Watch out', h('div', { class: 'help-mistake' }, helpMath(help.mistake))));
@@ -638,6 +625,7 @@
       body.push(sec('Try one', h('p', null, helpMath(help.tryIt.q)), help.tryIt.code ? h('pre', { class: 'code help-code' }, help.tryIt.code) : null, btn, a));
     }
     $('helpBody').replaceChildren(...body);
+    $('helpMargin').classList.toggle('wide', !!helpTrace);
     clearTimeout(helpHide);
     const sheet = $('screen-help');
     sheet.hidden = false;
@@ -675,6 +663,11 @@
     else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
   });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('screen-help').hidden) { e.preventDefault(); closeHelp(); } });
+  // ← / → step the tracer while Help is open.
+  document.addEventListener('keydown', e => {
+    if (!helpTrace || $('screen-help').hidden || e.ctrlKey || e.metaKey || e.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName)) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); helpTrace.go(e.key === 'ArrowRight' ? 1 : -1); }
+  });
 
   // Report a wrong or unclear card: logged, listed in Settings, fixed next session.
   // (Not a "suspend" button: dropping cards early hurts retention, Karpicke 2009.)
@@ -758,6 +751,7 @@
     for (const name of screens) $('screen-' + name).hidden = name !== 'done';
     $('navBack').hidden = true;
     $('navSettings').hidden = false;
+    $('navTitle').textContent = $('done-title').textContent;
     window.scrollTo(0, 0);
   }
   $('doneBack').addEventListener('click', () => show(returnTo));
@@ -1287,6 +1281,7 @@
 
   // Sync status, in words beside the dot (a dot alone means nothing to a new user).
   function setSync(state, message) {
+    $('syncBtn').hidden = !state;   // no sync key: nothing to report (Settings explains sync)
     $('syncDot').className = 'sync-dot' + (state ? ' ' + state : '');
     $('syncDot').setAttribute('aria-hidden', 'true');
     $('syncLabel').textContent = state === 'ok' ? 'Synced' : state === 'busy' ? 'Syncing…' : state === 'err' ? 'Sync failed' : 'Not synced';

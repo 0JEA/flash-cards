@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Study</title>
   <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="vendor/steptrace/steptrace.css">
   <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" integrity="sha384-d+vyQ0dYcymoP8ndq2hW7FGC50nqGdXUEgoOUGxbbkAJwZqL7h+jKN0GGgn9hFDS" crossorigin="anonymous"></script>
   <!-- @chenglou/pretext 0.0.9, bundled to an IIFE (global `Pretext`) so it works offline and over file:// -->
@@ -72,6 +73,15 @@
     .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-3); flex: none; }
     .sync-dot.ok { background: var(--correct); } .sync-dot.busy { background: var(--warn); } .sync-dot.err { background: var(--wrong); }
     body.studying .topbar { display: none; }
+    /* Wide windows: the page title moves up into the bar (one 52px row instead of a bar plus a
+       55px title), left-aligned like a desktop window's title; phones keep iOS's large title. */
+    @media (min-width: 700px) {
+      .topbar { grid-template-columns: auto minmax(0, 1fr) auto; gap: 0.25rem; margin-bottom: 0.5rem; }
+      .topbar .nav-title { text-align: left; font-size: 22px; max-width: none; padding-left: 0.5rem; }
+      .container > section > h1.large-title, .container > section > h1.page-title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    }
+    @media (max-width: 699px) { .topbar .nav-title { visibility: hidden; } }
+    .container:has(#screen-classes:not([hidden])) { max-width: 1200px; }
 
     /* ── Shared ── */
     h1, h2 { text-wrap: balance; }
@@ -124,40 +134,49 @@
     .grow .gv { color: var(--text-2); font-variant-numeric: tabular-nums; }
     .grow select, .grow input[type="date"], .grow input[type="number"] { background: var(--surface-2); }
 
-    /* ── Classes: Apple Wallet's pass stack (Passbook, 2012), each class a boarding pass ── */
-    .wallet { position: relative; }
-    .pass { position: absolute; left: 0; right: 0; height: 272px; border-radius: 14px; padding: 0.85rem 1rem; color: #fff; text-align: left; border: 0; width: 100%;
-      background: var(--pc, #3a3a3c); cursor: pointer; top: 0; transition: transform 0.5s var(--spring);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 -8px 20px rgba(0, 0, 0, 0.55); }
-    .pass:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
-    .pass-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; width: 100%; background: none; border: 0; color: inherit; padding: 0; text-align: left; cursor: pointer; }
-    .pass-head:focus-visible { outline: 2px solid #fff; outline-offset: 4px; border-radius: 4px; }
-    .pass-name { font-weight: 700; font-size: 18px; line-height: 1.25; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .pass-due { font-size: 15px; white-space: nowrap; }
+    /* ── Classes: boarding passes (Apple Wallet, 2012), all in view: a row of four on wide
+       windows, two by two on medium ones, one column on phones. The screen is for picking a
+       class and starting, so every pass carries its own Study button. ── */
+    .passes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    @media (max-width: 1099px) {
+      .passes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      /* Two passes per row (or one): the 14-day bars move up beside the name to save a row. */
+      .pass { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'name days' 'route route' 'fields fields' 'actions actions'; gap: 0.6rem 0.75rem; }
+      .pass-name { grid-area: name; } .days-f { grid-area: days; align-self: center; } .route { grid-area: route; }
+      .pass-fields { grid-area: fields; } .pass-actions { grid-area: actions; }
+      .days-f small { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+      .days { padding-top: 0; } .days i { width: 6px; flex: none; height: 14px; }
+    }
+    @media (max-width: 559px) { .passes { grid-template-columns: minmax(0, 1fr); } .code3 { font-size: 34px; } }
+    .pass { display: flex; flex-direction: column; gap: 0.75rem; border-radius: 14px; padding: 0.85rem 1rem 1rem; color: #fff; min-width: 0;
+      background: var(--pc, #3a3a3c); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16); }
+    .pass-name { font-weight: 700; font-size: 18px; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     /* The boarding pass's route: "now" (the course code) to "exam" (the date), like airport codes. */
-    .route { display: flex; align-items: flex-end; gap: 0.9rem; margin-top: 0.8rem; }
-    .code3 { font-size: 44px; font-weight: 700; line-height: 0.95; font-variant-numeric: tabular-nums; }
+    .route { display: flex; align-items: flex-end; gap: 0.7rem; }
+    .code3 { font-size: 40px; font-weight: 700; line-height: 0.95; font-variant-numeric: tabular-nums; white-space: nowrap; }
     .code3 small { display: block; font-size: 13px; font-weight: 400; margin-bottom: 4px; }
-    .code3.r { text-align: right; } .code3.r.unset { font-size: 22px; line-height: 1.2; }
-    .flight { flex: 1; height: 2px; margin-bottom: 17px; position: relative; background: repeating-linear-gradient(90deg, #fff 0 6px, transparent 6px 12px); }
+    .code3.r { text-align: right; font-size: 24px; } .code3.r.unset { line-height: 1.2; }
+    .flight { flex: 1; min-width: 1rem; height: 2px; margin-bottom: 10px; position: relative; background: repeating-linear-gradient(90deg, #fff 0 6px, transparent 6px 12px); }
     .flight::after { content: ''; position: absolute; right: -2px; top: -5px; border: 6px solid transparent; border-left: 9px solid #fff; border-right: 0; }
-    .pass-fields { display: flex; align-items: flex-end; gap: 1.4rem; margin-top: 0.85rem; }
-    .pass-fields small { display: block; font-size: 13px; white-space: nowrap; }
-    .pass-fields b { font-size: 22px; font-variant-numeric: tabular-nums; }
+    .pass-fields { display: flex; gap: 1.2rem; }
+    .pass-fields small, .days-f small { display: block; font-size: 13px; white-space: nowrap; }
+    .pass-fields b { font-size: 20px; font-variant-numeric: tabular-nums; white-space: nowrap; }
     /* The pass's barcode, reworked: one bar per day of the last 14, filled if you studied. */
-    .days-f { margin-left: auto; }
-    .days { display: flex; gap: 3px; padding: 4px 0 5px; }
-    .days i { width: 7px; height: 20px; border-radius: 2px; background: rgba(255, 255, 255, 0.3); }
+    .days { display: flex; gap: 3px; padding-top: 4px; }
+    .days i { flex: 1; max-width: 9px; height: 16px; border-radius: 2px; background: rgba(255, 255, 255, 0.3); }
     .days i.on { background: #fff; }
-    .pass-actions { position: absolute; left: 1rem; right: 1rem; bottom: 0.85rem; display: flex; gap: 0.6rem; }
-    .pass-actions button { flex: 1; height: 46px; border: 0; border-radius: 10px; background: rgba(0, 0, 0, 0.32); color: #fff; font-size: 17px; cursor: pointer; }
-    .pass-actions button.go { flex: 2; background: #fff; color: var(--pc); font-weight: 700; }
+    .pass-actions { display: flex; gap: 0.5rem; margin-top: auto; }
+    .pass-actions button { flex: 1; min-height: 44px; border: 0; border-radius: 10px; background: rgba(0, 0, 0, 0.32); color: #fff; font-size: 16px; cursor: pointer; white-space: nowrap; padding: 0 0.6rem; }
+    .pass-actions button.go { flex: 1.3; background: #fff; color: var(--pc); font-weight: 700; }
     .pass-actions button:hover { filter: brightness(1.08); }
-    .pass:not(.open) .pass-actions, .pass:not(.open) .route, .pass:not(.open) .pass-fields { visibility: hidden; }
-    .pass.open .pass-due { visibility: hidden; }   /* the open pass shows it as a field */
-    .set-exam { background: rgba(0, 0, 0, 0.28); border: 0; color: #fff; font: 700 17px var(--font); padding: 0.45rem 0.8rem; border-radius: 8px; cursor: pointer; }
+    .pass button:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+    .set-exam { background: rgba(0, 0, 0, 0.28); border: 0; color: #fff; font: 700 16px var(--font); padding: 0.4rem 0.7rem; border-radius: 8px; cursor: pointer; min-height: 36px; }
     .set-exam:hover { background: rgba(0, 0, 0, 0.4); }
-    .overall { margin-top: 1.25rem; }
+    .mix-row { display: flex; align-items: center; gap: 1rem; margin-top: 12px; background: var(--surface); border-radius: var(--radius); padding: 0.5rem 0.5rem 0.5rem 1rem; }
+    .mix-row .mix-name { font-weight: 700; }
+    .mix-row .muted { flex: 1; min-width: 0; }
+    .mix-row .btn { min-height: 44px; padding: 0.4rem 1rem; }
+    .overall { margin-top: 12px; }
     .overall .n { font-size: 22px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
 
     /* ── One class ── */
@@ -218,6 +237,23 @@
     .study-bar { position: sticky; bottom: 0; z-index: var(--z-sticky); margin: 1.2rem -1rem -2.5rem; padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom)); background: var(--bg); border-top: 0.5px solid var(--sep); text-align: center; }
     .study-bar .muted { margin-top: 0.35rem; font-size: 0.85rem; }
     #screen-class .exam-banner { margin: 0 0 0.8rem; }
+    /* Choose cards: the lecture list is the job, so on wide windows it gets the full height on
+       the left and everything else (assignment, session, Study) waits in a column beside it.
+       Narrow windows: one column, assignment first, Study pinned to the bottom. */
+    .class-layout { display: flex; flex-direction: column; }
+    .class-main, .class-side { display: contents; }
+    .class-side #examBanner { order: -3; } .class-side #assignRow { order: -2; }
+    .class-main .group-head.first { margin-top: 1.4rem; }
+    @media (min-width: 860px) {
+      .container:has(#screen-class:not([hidden])) { max-width: 1100px; }
+      .class-layout { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 1.5rem; align-items: start; }
+      .class-main, .class-side { display: block; }
+      .class-main .group-head.first { margin-top: 0.2rem; }
+      .class-side { position: sticky; top: 60px; }
+      .class-side .group-head { margin-top: 1rem; }
+      .class-side .study-bar { position: static; margin: 1rem 0 0; padding: 0; border: 0; background: none; }
+      #screen-class .exam-banner { margin: 0 0 0.8rem; }
+    }
     /* ── Mix ── */
     .mix-input { display: flex; align-items: center; gap: 0.4rem; }
     .mix-input input { width: 5.5rem; text-align: right; }
@@ -388,6 +424,12 @@
     /* No programming ligatures: != must not show as a math sign that looks like syntax. */
     pre, code, .ftree, .ftree .ftree-node, .ftree input, .mono, [class*="code"], .film, .kbd, .tile { font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0; }
     pre.help-code { margin-top: 0.5rem; font-size: 0.8rem; }
+    /* ── Tracer (vendor/steptrace): the app's colours and type. Help widens for it so the
+       code and the memory view sit side by side. ── */
+    #screen-help .margin.wide { width: min(1180px, calc(100% - 44px)); }
+    #helpBody .steptrace { --st-bg: var(--surface); --st-raised: var(--surface-2); --st-code-bg: var(--bg); --st-fg: var(--text); --st-muted: var(--text-2);
+      --st-faint: var(--text-3); --st-line: var(--sep); --st-accent: var(--accent); --st-found: var(--correct); --st-fresh: var(--warn);
+      --st-font: var(--font); --st-mono: var(--mono); --st-radius: var(--radius-sm); --st-code-max: max(14rem, calc(100vh - 21rem)); margin-top: 0.3rem; }
     code.ic { font-family: var(--mono); font-size: 0.86em; background: var(--bg); border-radius: 4px; padding: 0.05em 0.3em; }
     .tree-fig { position: relative; width: 100%; }
     .graph svg.tree-edges { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
@@ -481,7 +523,6 @@
       .ticket .answer-area { grid-column: 3; }
       #screen-study.fit-measure .ticket { align-items: start; }
       #screen-study.fit-overflow .qcard { max-height: 100%; }
-      .container:has(#screen-class:not([hidden])) { max-width: 960px; }
     }
     @media (max-height: 760px) {
       .qcard { padding: 0.6rem 1rem 0.7rem; }
@@ -496,6 +537,7 @@
     @media (max-width: 480px) {
       #app { padding: 0 0.75rem 2rem; }
       .topbar { margin: 0 -0.75rem; }
+      .study-bar { margin: 1.2rem -0.75rem -2rem; padding-left: 0.75rem; padding-right: 0.75rem; }
       .qcard { padding: 0.7rem 0.9rem; }
       .answer-area { padding: 0.7rem 0.9rem 0.8rem; }
       .perf { margin: 0 0.9rem; } .perf::before { left: calc(-0.9rem - 11px); } .perf::after { right: calc(-0.9rem - 11px); }
@@ -529,10 +571,10 @@
       <!-- Classes: the launch screen (Wallet pass stack) -->
       <section id="screen-classes" aria-labelledby="classes-title">
         <h1 class="large-title" id="classes-title">Classes</h1>
-        <div id="classList" class="wallet"></div>
-        <h2 class="group-head">All classes</h2>
+        <div id="classList" class="passes"></div>
+        <div class="mix-row" id="mixRow"></div>
         <div class="glist overall">
-          <div class="grow"><span class="gl">Remembered later<br><span class="muted" id="recallNote"></span></span><span class="n" id="recallPct">—</span></div>
+          <div class="grow"><span class="gl">Remembered when cards came back<br><span class="muted" id="recallNote"></span></span><span class="n" id="recallPct">—</span></div>
           <div class="grow"><span class="gl muted" id="honesty"></span></div>
         </div>
       </section>
@@ -540,25 +582,31 @@
       <!-- One class: settings and the card picker -->
       <section id="screen-class" hidden aria-labelledby="classTitle">
         <h1 class="page-title" id="classTitle"></h1>
-        <p class="exam-banner" id="examBanner" hidden></p>
-        <div class="glist" id="assignRow" hidden>
-          <div class="grow stack"><label for="assignPick">For an assignment</label><select id="assignPick"></select></div>
-        </div>
-        <h2 class="group-head">Lectures to study</h2>
-        <div id="topicTree" class="glist pick-list" role="group" aria-label="Lectures to study"></div>
-        <p class="group-foot" id="studyNote"></p>
-        <h2 class="group-head">Session</h2>
-        <div class="glist">
-          <div class="grow"><label for="newLimit">New cards per session</label>
-            <select id="newLimit"><option value="all">All</option><option value="10">10</option><option value="20">20</option><option value="50">50</option></select></div>
-          <div class="grow"><label for="sessionMinutes">Session length</label>
-            <select id="sessionMinutes"><option value="10">10 min</option><option value="20">20 min</option><option value="30">30 min</option><option value="45">45 min</option><option value="60">60 min</option><option value="none">No limit</option></select></div>
-          <div class="grow"><label for="examDate">Final exam date</label><input type="date" id="examDate"></div>
-        </div>
-        <p class="group-foot">New cards need 3 right answers on their first day, then come back on later days.</p>
-        <div class="study-bar">
-          <button class="btn primary big" id="studyBtn" type="button">Study</button>
-          <p class="muted" id="studyCounts"></p>
+        <div class="class-layout">
+          <div class="class-main">
+            <h2 class="group-head first">Lectures to study</h2>
+            <div id="topicTree" class="glist pick-list" role="group" aria-label="Lectures to study"></div>
+            <p class="group-foot" id="studyNote"></p>
+          </div>
+          <div class="class-side">
+            <p class="exam-banner" id="examBanner" hidden></p>
+            <div class="glist" id="assignRow" hidden>
+              <div class="grow stack"><label for="assignPick">For an assignment</label><select id="assignPick"></select></div>
+            </div>
+            <h2 class="group-head">Session</h2>
+            <div class="glist">
+              <div class="grow"><label for="newLimit">New cards per session</label>
+                <select id="newLimit"><option value="all">All</option><option value="10">10</option><option value="20">20</option><option value="50">50</option></select></div>
+              <div class="grow"><label for="sessionMinutes">Session length</label>
+                <select id="sessionMinutes"><option value="10">10 min</option><option value="20">20 min</option><option value="30">30 min</option><option value="45">45 min</option><option value="60">60 min</option><option value="none">No limit</option></select></div>
+              <div class="grow"><label for="examDate">Final exam date</label><input type="date" id="examDate"></div>
+            </div>
+            <p class="group-foot">New cards need 3 right answers on their first day, then come back on later days.</p>
+            <div class="study-bar">
+              <button class="btn primary big" id="studyBtn" type="button">Study</button>
+              <p class="muted" id="studyCounts"></p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -700,6 +748,9 @@
   <script src="decks/csc310-help-o.js"></script>
   <script src="decks/csc310-help-p.js"></script>
   <script src="decks/csc370-cpointer-bank.js"></script>
+  <script src="vendor/steptrace/steptrace.js"></script>
+  <script src="vendor/steptrace/steptrace-interp.js"></script>
+  <script src="decks/csc370-traces.js"></script>
   <script src="decks/csc370-help.js"></script>
   <script src="decks/csc370-help-a.js"></script>
   <script src="decks/csc370-help-b.js"></script>

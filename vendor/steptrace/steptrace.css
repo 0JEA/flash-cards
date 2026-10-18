@@ -1,0 +1,129 @@
+/* steptrace viewer. Theme with the --st-* variables on .steptrace or any ancestor. */
+.steptrace {
+  --st-bg: #1c1c1e; --st-raised: #2c2c2e; --st-code-bg: #0b0b0c; --st-fg: #f2f2f7; --st-muted: #a1a1a8; --st-faint: #6c6c72;
+  --st-line: #3a3a3c; --st-accent: #409cff; --st-ran: rgba(255, 255, 255, 0.06); --st-next: rgba(64, 156, 255, 0.18);
+  --st-changed: rgba(255, 159, 10, 0.3); --st-found: #30d158; --st-heap: #bf5af2; --st-freed: #ff6961; --st-fresh: #ff9f0a;
+  --st-font: system-ui, sans-serif; --st-mono: ui-monospace, 'JetBrains Mono', monospace; --st-radius: 10px;
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 1.25rem; align-items: start;
+  font-family: var(--st-font); color: var(--st-fg); outline: none; line-height: 1.45;
+}
+.steptrace *, .steptrace *::before, .steptrace *::after { box-sizing: border-box; }
+.steptrace:focus-visible { outline: 2px solid var(--st-accent); outline-offset: 4px; border-radius: var(--st-radius); }
+/* Layout follows the space the viewer is given (mount() makes its host a size container). */
+@container steptrace (max-width: 860px) { .steptrace { grid-template-columns: minmax(0, 1fr); } }
+.steptrace .st-left, .steptrace .st-right { display: flex; flex-direction: column; gap: 0.65rem; min-width: 0; }
+.steptrace pre, .steptrace .st-code, .steptrace .st-vars, .steptrace .st-fn, .steptrace .st-val { font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0; }
+.steptrace h3 { display: flex; align-items: baseline; gap: 0.6rem; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.02em; color: var(--st-muted); margin: 0 0 0.4rem; }
+.steptrace h3 small { font-weight: 400; color: var(--st-faint); letter-spacing: 0; }
+.steptrace .st-empty { color: var(--st-faint); font-size: 0.85rem; margin: 0.15rem 0 0; }
+
+/* ── Source ── */
+.steptrace .st-code { font-family: var(--st-mono); font-size: 0.84rem; line-height: 1.6; background: var(--st-code-bg); border: 1px solid var(--st-line); border-radius: var(--st-radius); padding: 0.45rem 0; max-height: var(--st-code-max, 55vh); overflow: auto; }
+.steptrace .st-line { display: flex; padding-right: 0.75rem; border-left: 3px solid transparent; }
+.steptrace .st-mark { flex: none; width: 1.4rem; text-align: center; }
+.steptrace .st-n { flex: none; width: 2.1rem; padding-right: 0.75rem; text-align: right; color: var(--st-faint); user-select: none; }
+.steptrace .st-src { white-space: pre-wrap; overflow-wrap: anywhere; }
+.steptrace .st-line.st-ran { background: var(--st-ran); }
+.steptrace .st-line.st-ran .st-mark::before { content: '✓'; color: var(--st-muted); font-size: 0.8em; }
+.steptrace .st-line.st-next { background: var(--st-next); border-left-color: var(--st-accent); }
+.steptrace .st-line.st-next .st-mark::before { content: '➜'; color: var(--st-accent); }
+.steptrace .st-line.st-next .st-n { color: var(--st-accent); font-weight: 700; }
+
+/* ── Controls ── */
+.steptrace .st-ctl { display: grid; grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr) auto; align-items: center; gap: 0.5rem; }
+.steptrace .st-btn { font: inherit; font-size: 15px; color: var(--st-accent); background: var(--st-raised); border: 0; border-radius: var(--st-radius); min-height: 44px; padding: 0.4rem 0.85rem; cursor: pointer; }
+.steptrace .st-btn:hover:not(:disabled) { filter: brightness(1.2); }
+.steptrace .st-btn:disabled { color: var(--st-faint); cursor: default; }
+.steptrace .st-btn.st-primary:not(:disabled) { background: var(--st-accent); color: #fff; font-weight: 700; }
+.steptrace .st-count { color: var(--st-muted); font-size: 0.85rem; font-variant-numeric: tabular-nums; text-align: center; white-space: nowrap; }
+.steptrace .st-scrub { width: 100%; margin: 0; accent-color: var(--st-accent); }
+.steptrace .st-what { margin: 0; padding: 0.55rem 0.8rem; background: var(--st-raised); border-radius: var(--st-radius); border-left: 3px solid var(--st-accent); min-height: 2.6rem; }
+.steptrace .st-note { margin: 0; padding: 0 0.2rem; color: var(--st-muted); }
+
+/* ── Console ── */
+.steptrace .st-out { font-family: var(--st-mono); font-size: 0.85rem; background: var(--st-code-bg); border: 1px solid var(--st-line); border-radius: 8px; padding: 0.5rem 0.65rem; min-height: 2.4rem; max-height: 9rem; overflow: auto; margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.steptrace .st-out.st-none { color: var(--st-faint); font-family: var(--st-font); }
+.steptrace .st-out.st-fresh { border-color: var(--st-fresh); }
+.steptrace .st-status { margin: 0.4rem 0 0; color: var(--st-muted); font-size: 0.9rem; }
+
+/* ── Memory: stack (activation records) beside the heap; arrows drawn over both ── */
+.steptrace .st-mem { position: relative; display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 0 3.2rem; align-items: start;
+  background: var(--st-bg); border: 1px solid var(--st-line); border-radius: var(--st-radius); padding: 0.75rem 0.85rem 0.85rem; }
+@container steptrace (max-width: 520px) { .steptrace .st-mem { grid-template-columns: minmax(0, 1fr); gap: 1rem; } .steptrace .st-heap-col { padding-right: 0; } }
+.steptrace .st-col { min-width: 0; display: flex; flex-direction: column; }
+.steptrace .st-stack, .steptrace .st-heapcol { display: flex; flex-direction: column; gap: 0.5rem; }
+.steptrace .st-arrows { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+.steptrace .st-arrow { fill: none; stroke: var(--st-accent); stroke-width: 1.6; opacity: 0.85; }
+.steptrace .st-arrow.st-to-heap { stroke: var(--st-heap); }
+.steptrace .st-arrowhead { fill: var(--st-accent); }
+.steptrace .st-arrow.st-dangle { stroke: var(--st-freed); stroke-dasharray: 5 4; }
+.steptrace .st-arrowhead.st-x { fill: var(--st-freed); }
+.steptrace .st-ptr.st-dangling { color: var(--st-freed); }
+.steptrace .st-heap-col { padding-right: 1.6rem; }
+
+.steptrace .st-rec, .steptrace .st-block { position: relative; background: var(--st-raised); border: 1px solid var(--st-line); border-radius: 9px; padding: 0.45rem 0.65rem 0.55rem; }
+.steptrace .st-rec.st-top { border-color: var(--st-accent); box-shadow: 0 0 0 1px var(--st-accent) inset; }
+.steptrace .st-rec.st-global { background: transparent; border-style: solid; border-color: var(--st-line); }
+.steptrace .st-rec.st-returning { border-color: var(--st-fresh); box-shadow: none; }
+.steptrace .st-rec.st-looked { border-style: dashed; border-color: var(--st-faint); box-shadow: none; }
+.steptrace .st-rec.st-found { border: 1.5px solid var(--st-found); box-shadow: none; }
+.steptrace .st-rec.st-popped { background: transparent; border: 1.5px dashed var(--st-faint); opacity: 0.6; padding-block: 0.3rem; }
+.steptrace .st-pushed { animation: st-push 0.35s cubic-bezier(0.22, 1, 0.36, 1); }
+@keyframes st-push { from { transform: translateY(-10px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .steptrace .st-pushed { animation: none; } }
+.steptrace .st-rec-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.6rem; }
+.steptrace .st-fn { font-family: var(--st-mono); font-size: 0.84rem; font-weight: 700; min-width: 0; overflow-wrap: anywhere; }
+.steptrace .st-top .st-fn { color: var(--st-accent); }
+.steptrace .st-global .st-fn { color: var(--st-muted); font-family: var(--st-font); font-weight: 600; }
+.steptrace .st-badge { flex: none; font-size: 0.75rem; color: var(--st-muted); white-space: nowrap; }
+.steptrace .st-pushed > .st-rec-head .st-badge, .steptrace .st-top > .st-rec-head .st-badge { color: var(--st-accent); }
+.steptrace .st-returning > .st-rec-head .st-badge { color: var(--st-fresh); }
+.steptrace .st-found > .st-rec-head .st-badge { color: var(--st-found); }
+.steptrace .st-group { margin-top: 0.3rem; }
+.steptrace .st-sub { font-size: 0.7rem; color: var(--st-faint); margin-bottom: 0.05rem; }
+.steptrace .st-vars { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 0.12rem 0.85rem; font-family: var(--st-mono); font-size: 0.85rem; align-items: center; }
+.steptrace .st-var { display: contents; }
+.steptrace .st-name { color: var(--st-muted); }
+.steptrace .st-val { border-radius: 4px; padding: 0 0.3rem; margin-left: -0.3rem; width: fit-content; max-width: 100%; overflow-wrap: anywhere; transition: background 0.3s; }
+.steptrace .st-val.st-changed { background: var(--st-changed); }
+.steptrace .st-hit .st-name, .steptrace .st-hit .st-val { color: var(--st-found); font-weight: 700; }
+.steptrace .st-retrow { margin-top: 0.3rem; padding-top: 0.3rem; border-top: 1px solid var(--st-line); }
+.steptrace .st-links { margin-top: 0.4rem; padding-top: 0.35rem; border-top: 1px solid var(--st-line); display: flex; flex-direction: column; gap: 0.1rem; font-size: 0.78rem; color: var(--st-muted); }
+.steptrace .st-link { display: grid; grid-template-columns: 6.3rem minmax(0, 1fr); gap: 0.4rem; cursor: default; border-radius: 4px; }
+.steptrace .st-link > span:first-child { color: var(--st-faint); }
+.steptrace .st-link:hover { color: var(--st-fg); }
+.steptrace .st-lit { outline: 2px solid var(--st-accent); outline-offset: 2px; }
+
+.steptrace .st-block { border-color: color-mix(in srgb, var(--st-heap) 55%, transparent); }
+.steptrace .st-block .st-fn { color: var(--st-heap); }
+.steptrace .st-block .st-val { font-family: var(--st-mono); font-size: 0.85rem; margin-top: 0.15rem; }
+.steptrace .st-block.st-freed { background: transparent; border: 1.5px dashed var(--st-freed); opacity: 0.75; }
+.steptrace .st-block.st-freed .st-fn { color: var(--st-freed); text-decoration: line-through; }
+.steptrace .st-block.st-freed .st-badge { color: var(--st-freed); }
+
+/* ── Values ── */
+.steptrace .st-ptr { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--st-accent); }
+.steptrace .st-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: none; }
+.steptrace .st-ptr.st-unknown { color: var(--st-muted); }
+.steptrace .st-null, .steptrace .st-unset { color: var(--st-faint); }
+.steptrace .st-fnval { color: var(--st-muted); }
+.steptrace .st-arr { display: inline-flex; flex-wrap: wrap; gap: 2px; }
+.steptrace .st-cell { display: inline-flex; flex-direction: column; align-items: center; min-width: 1.8rem; background: var(--st-bg); border: 1px solid var(--st-line); border-radius: 4px; padding: 0 0.3rem 0.05rem; }
+.steptrace .st-cell small { font-size: 0.62rem; color: var(--st-faint); line-height: 1.2; }
+.steptrace .st-obj { display: inline-flex; flex-wrap: wrap; gap: 0.2rem 0.7rem; }
+.steptrace .st-key { color: var(--st-muted); margin-right: 0.3rem; }
+.steptrace .st-key::after { content: ':'; }
+
+/* ── Rules (pseudocode traces): segmented switches that re-run the program ── */
+.steptrace .st-rules { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; }
+.steptrace .st-seg { display: inline-flex; align-items: center; gap: 2px; background: var(--st-raised); border-radius: 9px; padding: 2px; font-size: 0.8rem; }
+.steptrace .st-seg > span { color: var(--st-muted); padding: 0 0.5rem 0 0.4rem; }
+.steptrace .st-seg button { font: inherit; color: var(--st-fg); background: none; border: 0; border-radius: 7px; padding: 0.3rem 0.6rem; min-height: 32px; cursor: pointer; }
+.steptrace .st-seg button[aria-pressed="true"] { background: var(--st-accent); color: #fff; font-weight: 700; }
+.steptrace .st-seg button:disabled { cursor: default; }
+.steptrace .st-seg button:disabled:not([aria-pressed="true"]) { color: var(--st-faint); }
+.steptrace .st-thunk { display: inline-flex; align-items: baseline; gap: 0.35rem; flex-wrap: wrap; }
+.steptrace .st-thunk-tag { font-family: var(--st-font); font-size: 0.68rem; color: var(--st-fresh); border: 1px solid currentColor; border-radius: 4px; padding: 0 0.25rem; }
+.steptrace .st-thunk-expr { color: var(--st-fg); }
+.steptrace .st-thunk-now { color: var(--st-muted); }
+.steptrace .st-rec.st-blockrec { border-style: dotted; }

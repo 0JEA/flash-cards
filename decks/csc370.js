@@ -2254,7 +2254,7 @@ run` } },
       why: '',
       source: 'Slides 10, slide 7 (split from l10-two-way-issues)' },
     { id: 'l10-assign-trace', lecture: '10', type: 'typed',
-      prompt: 'The user types 3. What does this C code print?',
+      prompt: 'The user types 3. After the “Enter your number” prompt, what does this C code print?',
       code: `int userNum;
 int favNum;
 favNum = 5;

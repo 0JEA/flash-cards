@@ -577,7 +577,11 @@
     if (!card || !FC.help) return null;
     if (FC.help[card.id]) return { help: FC.help[card.id], shared: false };
     const parent = String(card.id).replace(/-q\d+$/, '');
-    return parent !== card.id && FC.help[parent] ? { help: FC.help[parent], shared: true } : null;
+    if (parent !== card.id && FC.help[parent]) return { help: FC.help[parent], shared: true };
+    // A generated practice problem: its worked solution (why) and its own graph or recursion
+    // tree, for THIS problem's numbers.
+    if (card.generated && card.why) return { help: { steps: [card.why], graph: card.graph, tree: card.rtree }, shared: true };
+    return null;
   };
   function openHelp(arg) {
     const card = arg && arg.prompt ? arg : current && current.card;

@@ -293,7 +293,9 @@
     .film .roll { display: flex; flex-direction: column; }
     .film .roll span { height: 26px; }
     .film .roll.rolling { transition: transform 0.55s var(--spring); transform: translateY(-26px); }
-    .timeleft { font-variant-numeric: tabular-nums; }
+    .timeleft { font: inherit; font-variant-numeric: tabular-nums; color: inherit; background: none; border: 1px solid var(--border); border-radius: 999px; padding: 0.15rem 0.5rem; cursor: pointer; display: inline-flex; gap: 0.35rem; align-items: center; }
+    .timeleft:hover { color: var(--text-2); }
+    .timeleft .x { font-size: 13px; line-height: 1; }
     .katex { font-size: 1.12em; }
     .prompt { font-size: calc(1.1rem * var(--fit-q, 1)); line-height: 1.45; margin-top: 0.55rem; white-space: pre-wrap; font-weight: 700; }
     pre.code { font-family: var(--mono); font-size: calc(0.8rem * var(--fit-q, 1)); line-height: 1.5; color: #e5e5ea;
@@ -544,8 +546,9 @@
       pre.code { font-size: calc(0.74rem * var(--fit-q, 1)); padding: 0.6rem; }
       .code3 { font-size: 36px; }
       .pass-fields { gap: 1rem; }
-      .counter .timeleft { display: none; }
       .qfields, .qmeta { gap: 0.8rem; }
+      .qfields { flex-wrap: wrap; row-gap: 0.35rem; }
+      .counter .cardsleft, .study-title #studyTitle { display: none; }
       .days i { width: 5px; }
       .days { gap: 2px; }
       .large-title { font-size: 30px; }
@@ -642,6 +645,7 @@
           <span class="nav-l"><button class="navbtn" id="endBtn" type="button">End session</button></span>
           <span class="study-title"><span class="dot" aria-hidden="true"></span><span id="studyTitle"></span></span>
           <span class="nav-r">
+            <button class="linkbtn" id="skipBtn" type="button" title="Skip this card for now (S)">Skip</button>
             <button class="linkbtn" id="reportBtn" type="button">Report</button>
             <button class="navbtn help-btn" id="helpBtn" type="button" title="Help (H)" hidden>Help</button>
           </span>

@@ -696,6 +696,22 @@
     session.started = Date.now();
     session.limitMs = minutesLimit() * 60000;
     session.firstTry = new Map(); // card id -> right on first attempt this session
+    session.skipped = 0;
+    paused = null;
+    enterStudy();
+  }
+  // A session that ended with cards still in it (time up, or End session) can be picked up
+  // again where it stopped: same cards, same order, nothing reset. The clock starts over.
+  let paused = null;
+  function resumeSession() {
+    if (!paused) return;
+    session = paused;
+    paused = null;
+    session.started = Date.now();
+    session.timeUp = false;
+    enterStudy();
+  }
+  function enterStudy() {
     current = null;
     shownLeft = null;
     closeHelp(true);
@@ -715,6 +731,7 @@
     current = null;
     pushSoon();
     if (!showSummary) return;
+    paused = s.remaining ? s : null;
     const first = [...s.firstTry.entries()];
     const right = first.filter(([, ok]) => ok).length;
     const cards = [...s.byId.values()];
@@ -725,12 +742,16 @@
     const tomorrow = dueBy(today() + 1);
     const later = pool.map(c => sts[c.id]).filter(st => st.phase !== 'new' && st.due != null && st.due > today()).map(st => st.due).sort((x, y) => x - y)[0];
     const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+    // Cards still in the session are either not seen yet, or seen but short of the 3 right
+    // answers a new card needs today; counting both as "waiting" read as if nothing was done.
+    const unseen = s.queue.filter(id => !s.firstTry.has(id)).length, started = s.remaining - unseen;
     $('doneNext').textContent = s.remaining
-      ? (s.timeUp ? 'Time’s up. ' : '') + `${plural(s.remaining, 'card')} still waiting for today.`
+      ? (s.timeUp ? 'Time’s up. ' : '') + [unseen ? `${plural(unseen, 'card')} not seen yet` : '',
+          started ? `${plural(started, 'card')} you started still need${started === 1 ? 's' : ''} more right answers today` : ''].filter(Boolean).join(', and ') + '.'
       : tomorrow ? `Come back tomorrow: ${plural(tomorrow, 'card')} will be due.`
       : later != null ? `Next review: ${fmtDay(later)} (${plural(dueBy(later), 'card')}).` : 'Nothing is due yet. New cards are waiting when you want them.';
     $('doneSub').textContent = first.length
-      ? `${plural(first.length, 'card')} studied, ${right} right the first time.` + (right < first.length * 0.7 ? ' A lot of misses means the cards are at the right difficulty: hard recall now is what makes it stick.' : '')
+      ? `${plural(first.length, 'card')} studied, ${right} right the first time` + (s.skipped ? `, ${s.skipped} skipped.` : '.') + (right < first.length * 0.7 ? ' A lot of misses means the cards are at the right difficulty: hard recall now is what makes it stick.' : '')
       : '';
     // Missed: right on the first try = no; most recent first.
     const missed = first.filter(([, ok]) => !ok).map(([id]) => s.byId.get(id)).filter(Boolean);
@@ -743,9 +764,9 @@
     }));
     mathOn = lastMath;
     for (const id of ['missedHead', 'missedList', 'missedFoot']) $(id).hidden = !missed.length;
-    const more = lastStart && !lastStart.opts.queue ? queueFor(lastStart.cards, statesFor(lastStart.cards)).length : 0;
-    $('doneMore').hidden = !more;
-    $('doneMore').textContent = more ? `Keep going (${more})` : 'Keep going';
+    const more = paused ? 0 : lastStart && !lastStart.opts.queue ? queueFor(lastStart.cards, statesFor(lastStart.cards)).length : 0;
+    $('doneMore').hidden = !paused && !more;
+    $('doneMore').textContent = paused ? `Keep going where you stopped (${plural(paused.remaining, 'card')})` : `Keep going (${more})`;
     document.body.classList.remove('studying');
     closeHelp(true);
     for (const name of screens) $('screen-' + name).hidden = name !== 'done';
@@ -755,7 +776,7 @@
     window.scrollTo(0, 0);
   }
   $('doneBack').addEventListener('click', () => show(returnTo));
-  $('doneMore').addEventListener('click', () => { if (lastStart) startSession(lastStart.opts.from === 'classes' ? activeCards(openDeck) : lastStart.cards, lastStart.opts); });
+  $('doneMore').addEventListener('click', () => { if (paused) resumeSession(); else if (lastStart) startSession(lastStart.opts.from === 'classes' ? activeCards(openDeck) : lastStart.cards, lastStart.opts); });
 
   // How a card is answered (owner + research, 2026-10-17): thinking the answer retains as well
   // as typing it (Smith, Roediger & Karpicke 2013), but multi-point answers are only graded
@@ -935,14 +956,31 @@
       .to([ticket, actions], { y: 0, scale: 1, opacity: 1, duration: 0.34, ease: 'expo.out', clearProps: 'transform', onComplete: () => { animating = false; focusFirst(); } });
   }
 
-  // Cards left: a disposable camera's exposure counter. The number rolls to the next one.
+  // Right answers still needed to finish the session: a card being learned leaves only after
+  // its third right + Sure answer today, so counting cards would sit still while you work.
+  function answersLeft() {
+    const ids = session.queue;
+    const sts = sched.states(events, ids.map(id => session.byId.get(id)).filter(Boolean), {});
+    return ids.reduce((n, id) => {
+      const st = sts[id];
+      if (!st || st.phase === 'review') return n + 1;
+      return n + Math.max(1, sched.LEARN_CRITERION - (st.phase === 'new' ? 0 : st.successesToday(today())));
+    }, 0);
+  }
+
+  // Answers left: a disposable camera's exposure counter. The number rolls to the next one.
   let shownLeft = null;
   function paintCounter(first) {
-    const n = session.remaining, mins = Math.floor((Date.now() - session.started) / 60000);
-    const time = isFinite(session.limitMs) ? h('span', { class: 'timeleft' }, `· ${mins} of ${Math.round(session.limitMs / 60000)} min`) : null;
+    const n = answersLeft(), cards = session.remaining, mins = Math.floor((Date.now() - session.started) / 60000);
+    const time = isFinite(session.limitMs)
+      ? h('button', { class: 'timeleft', type: 'button', title: 'Turn the timer off', 'aria-label': `${mins} of ${Math.round(session.limitMs / 60000)} minutes. Turn the timer off`,
+          onclick: () => { session.limitMs = Infinity; settings.minutes = 'none'; saveSettings(); paintCounter(true); } },
+        `${mins}/${Math.round(session.limitMs / 60000)} min`, h('span', { class: 'x', 'aria-hidden': 'true' }, '×'))
+      : null;
     const rolls = !first && shownLeft != null && shownLeft !== n && !matchMedia('(prefers-reduced-motion: reduce)').matches;
     const roll = h('span', { class: 'roll' }, ...(rolls ? [h('span', null, String(shownLeft)), h('span', null, String(n))] : [h('span', null, String(n))]));
-    $('leftCount').replaceChildren(h('span', { class: 'film', role: 'img', 'aria-label': `${n} card${n === 1 ? '' : 's'} left` }, roll), h('span', null, 'left'), time);
+    $('leftCount').replaceChildren(h('span', { class: 'film', role: 'img', 'aria-label': `${n} right answer${n === 1 ? '' : 's'} left, ${cards} card${cards === 1 ? '' : 's'}` }, roll),
+      h('span', { title: 'Right answers still needed. A new card leaves after 3 right answers marked Sure.' }, 'left', h('span', { class: 'cardsleft' }, ` · ${cards} card${cards === 1 ? '' : 's'}`)), ...(time ? [time] : []));
     if (rolls) requestAnimationFrame(() => requestAnimationFrame(() => roll.classList.add('rolling')));
     shownLeft = n;
   }
@@ -1212,6 +1250,17 @@
     if (btn && matchMedia('(hover: hover)').matches) btn.focus({ preventScroll: true });
   }
 
+  // Skip: the card leaves this session without an answer and without changing its schedule,
+  // so it is still due next time.
+  function skipCard() {
+    if (!session || !current || current.pending || animating) return;
+    session.queue.shift();
+    session.skipped++;
+    if (session.remaining === 0) { endSession(true); return; }
+    showCard(session.next(), false);
+  }
+  $('skipBtn').addEventListener('click', skipCard);
+
   function commit() {
     if (!current || !current.pending || current.pending.ok === null) return;
     const { card, pending: p } = current;
@@ -1251,6 +1300,7 @@
       return;
     }
     if (typing) return;
+    if ((e.key === 's' || e.key === 'S') && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); skipCard(); return; }
     const ui = current.ui;
     if (isQuick(current.card) && (e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); submit(true); return; }
     if (current.card.type === 'mc' && /^[1-9]$/.test(e.key) && +e.key <= ui.optCount) ui.pick(+e.key - 1);

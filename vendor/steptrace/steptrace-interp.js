@@ -13,6 +13,12 @@
 //           extension specs `ref a;` and `result a;` give by-reference and value-result.
 //   python  Python-like (indentation): def, =, print, if/elif/else, while, for … in range(),
 //           return, global, nonlocal. Assigning a name inside a def makes it local.
+//   textbook  textbook / lecture-slide pseudocode (CLRS style): indentation blocks,
+//           `Name(a, b)` or `Algorithm Name(a)` headers, = or <- (←) assignment, = or == in
+//           conditions, if … [then] (inline or block), else if, while … [do],
+//           for i = a to b / downto b [do], optional `end if`-style lines, numbered lines
+//           ("4. while …"), `//` comments, several statements per line with `;`.
+//           Arrays start at 1 unless run with { base: 0 }; integer / integer floors.
 //   braces  C / JavaScript-like (Sebesta's examples): var/let/int … declarations, function
 //           f(a) { … } or int f(int a) { … }, {} blocks with their own declarations, if,
 //           while, for(;;), return, ++/--, printf / console.log / document.write.
@@ -34,7 +40,7 @@ class ParseError extends Error {
 function lex(src, syntax) {
   const out = [];
   let i = 0, line = 1, col = 0;
-  const ops = ['**', '//', ':=', '==', '===', '!=', '!==', '<=', '>=', '<>', '&&', '||', '++', '--', '+=', '-=', '*=', '/=', '->', '...',
+  const ops = [...(syntax === 'textbook' ? ['<-'] : []), '**', '//', ':=', '==', '===', '!=', '!==', '<=', '>=', '<>', '&&', '||', '++', '--', '+=', '-=', '*=', '/=', '->', '...',
     '≤', '≥', '≠', '×', '÷', '↑', '¬', '∧', '∨', '⊃', '≡', '+', '-', '*', '/', '%', '^', '<', '>', '=', '!', '&', '|', '(', ')', '[', ']', '{', '}', ',', ';', ':', '.', '?'];
   ops.sort((a, b) => b.length - a.length);
   const push = (t, v, start) => out.push({ t, v, line, start, end: i });
@@ -59,7 +65,8 @@ function lex(src, syntax) {
       continue;
     }
     if (/[A-Za-z_$]/.test(c)) {
-      while (/[A-Za-z0-9_$]/.test(src[i] || '')) i++;
+      // Textbook names like Max-Heapify: a hyphen between a letter and a capital letter.
+      while (/[A-Za-z0-9_$]/.test(src[i] || '') || (syntax === 'textbook' && src[i] === '-' && /[A-Za-z]/.test(src[i - 1]) && /[A-Z]/.test(src[i + 1] || ''))) i++;
       push('id', src.slice(start, i), start);
       continue;
     }
@@ -98,7 +105,7 @@ function exprParser(p, syntax) {
     if (tok.t === 'op') {
       const m = { '&&': 'and', '||': 'or', '∧': 'and', '∨': 'or', '≤': '<=', '≥': '>=', '≠': '!=', '<>': '!=', '===': '==', '!==': '!=', '×': '*', '÷': '//', '↑': '**', '^': syntax === 'algol' ? '**' : null };
       if (v in m) return m[v];
-      if (v === '=' && syntax === 'algol') return '==';
+      if (v === '=' && (syntax === 'algol' || (syntax === 'textbook' && p.cond))) return '==';
       if (v === '==' || v === '!=' || v === '<' || v === '<=' || v === '>' || v === '>=' || v === '+' || v === '-' || v === '*' || v === '/' || v === '%' || v === '**' || v === '//') return v;
       return null;
     }
@@ -318,6 +325,136 @@ function parsePython(src) {
   return { syntax: 'python', body };
 }
 
+// ── Textbook pseudocode ─────────────────────────────────────────────────────
+function parseTextbook(src) {
+  // Line numbers ("4.  while") become spaces, so indentation still shows nesting; a `//`
+  // comment starts a line or follows two spaces (`(low + high) // 2` stays floor division).
+  const clean = src.replace(/←/g, '<-').split('\n').map(l => l
+    .replace(/^(\s*)(\d+\.)(?=\s)/, (m, sp, n) => sp + ' '.repeat(n.length))
+    .replace(/(^\s*|\s{2,})\/\/.*$/, '')).join('\n');
+  const lines = clean.split('\n');
+  const all = lex(clean, 'textbook');
+  const logical = [];
+  let cur = [], depth = 0;
+  const flush = () => {
+    if (!cur.length) return;
+    const ln = cur[0].line;
+    const indent = /^[ \t]*/.exec(lines[ln - 1])[0].replace(/\t/g, '    ').length;
+    const L = { toks: cur.concat([{ t: 'eof', v: '', line: ln, start: cur[cur.length - 1].end, end: cur[cur.length - 1].end }]), indent, line: ln };
+    // `end if`, `endwhile`, … only close what indentation already closed.
+    const w = cur.map(t => String(t.v).toLowerCase());
+    if (!(/^(endif|endwhile|endfor)$/.test(w[0]) && w.length === 1) && !(w[0] === 'end' && w.length === 2 && /^(if|for|while)$/.test(w[1]))) {
+      // A second statement on the same line keeps the first one's indentation.
+      if (logical.length && logical[logical.length - 1].line === ln && logical[logical.length - 1].semi) L.indent = logical[logical.length - 1].indent;
+      logical.push(L);
+    }
+    cur = [];
+  };
+  for (const t of all) {
+    if (t.t === 'nl' || t.t === 'eof') { if (depth > 0 && t.t === 'nl') continue; flush(); continue; }
+    if (t.t === 'op' && t.v === ';' && depth === 0) { flush(); if (logical.length) logical[logical.length - 1].semi = true; continue; }
+    if (t.t === 'op' && '([{'.includes(t.v)) depth++;
+    if (t.t === 'op' && ')]}'.includes(t.v)) depth--;
+    cur.push(t);
+  }
+  let li = 0;
+  const word = p => (p.peek().t === 'id' ? p.peek().v.toLowerCase() : null);
+  function block(indent) {
+    const body = [];
+    while (li < logical.length && logical[li].indent >= indent) {
+      if (logical[li].indent > indent) throw new ParseError('unexpected indent', logical[li].line);
+      body.push(statement());
+    }
+    return body;
+  }
+  // The body of if/while/for/else: a statement on the same line, then (or instead) the
+  // more-indented lines below.
+  function suite(L, p) {
+    const body = [];
+    if (p.peek().t !== 'eof') body.push(simple(p, L.line));
+    if (li + 1 < logical.length && logical[li + 1].indent > L.indent) {
+      li++;
+      body.push(...block(logical[li].indent));
+      li--;
+    } else if (!body.length) throw new ParseError('expected a statement or an indented block', L.line);
+    return body;
+  }
+  function cond(p) { p.cond = true; const e = exprParser(p, 'textbook')(); p.cond = false; return e; }
+  function isHeader(L) {
+    const t = L.toks; let k = 0;
+    if (t[k].t === 'id' && /^(algorithm|procedure|function)$/i.test(t[k].v)) k++;
+    if (t[k].t !== 'id' || /^(if|while|for|return|else)$/i.test(t[k].v) || !(t[k + 1].t === 'op' && t[k + 1].v === '(')) return false;
+    let d = 0, j = k + 1;
+    for (; j < t.length; j++) { if (t[j].v === '(') d++; if (t[j].v === ')' && --d === 0) break; }
+    return t[j + 1] && t[j + 1].t === 'eof' && li + 1 < logical.length && logical[li + 1].indent > L.indent;
+  }
+  function statement() {
+    const L = logical[li];
+    const p = cursor(clean, L.toks, false);
+    const w = word(p);
+    let s;
+    if (isHeader(L)) {
+      if (/^(algorithm|procedure|function)$/.test(w)) p.next();
+      const name = p.expectId(); p.expectOp('(');
+      const params = [];
+      if (!p.isOp(')')) do { params.push({ name: p.expectId(), mode: null }); } while (p.eatOp(','));
+      p.expectOp(')');
+      li++;
+      const body = block(logical[li].indent);
+      li--;
+      s = { k: 'def', name, params, body, line: L.line, end: lastLine(body, L.line), hoist: true };
+    } else if (w === 'if') {
+      p.next(); const c = cond(p); p.eatWord('then'); p.eatOp(':');
+      s = { k: 'if', cond: c, then: suite(L, p), els: null, line: L.line };
+      let tail = s;
+      while (li + 1 < logical.length && logical[li + 1].indent === L.indent && logical[li + 1].toks[0].t === 'id' && /^(else|elif|elseif)$/i.test(logical[li + 1].toks[0].v)) {
+        li++;
+        const L2 = logical[li], p2 = cursor(clean, L2.toks, false);
+        const kw = p2.next().v.toLowerCase();
+        if (kw !== 'else' || p2.isWord('if')) {
+          if (kw === 'else') p2.next();
+          const c2 = cond(p2); p2.eatWord('then'); p2.eatOp(':');
+          const nested = { k: 'if', cond: c2, then: suite(L2, p2), els: null, line: L2.line };
+          tail.els = [nested]; tail = nested;
+        } else { p2.eatOp(':'); tail.els = suite(L2, p2); break; }
+      }
+    } else if (w === 'while') {
+      p.next(); const c = cond(p); p.eatWord('do'); p.eatOp(':');
+      s = { k: 'while', cond: c, body: suite(L, p), line: L.line };
+    } else if (w === 'for') {
+      p.next(); const v = p.expectId();
+      if (!p.eatOp('=') && !p.eatOp('<-')) p.expectOp(':=');
+      const ex = exprParser(p, 'textbook');
+      const a = ex();
+      const down = p.eatWord('downto');
+      if (!down) p.expectWord('to');
+      const b = ex();
+      let st = { k: 'num', v: down ? -1 : 1, text: down ? '-1' : '1', line: L.line };
+      if (p.eatWord('by') || p.eatWord('step')) { st = ex(); if (down) st = { k: 'neg', e: st, line: L.line, text: '-' + st.text }; }
+      p.eatWord('do'); p.eatOp(':');
+      s = { k: 'afor', v, elems: [{ k: 'step', a, step: st, b }], body: suite(L, p), line: L.line };
+    } else s = simple(p, L.line);
+    li++;
+    return s;
+  }
+  function simple(p, line) {
+    const ex = exprParser(p, 'textbook');
+    const w = word(p);
+    if (w === 'return') { p.next(); return { k: 'return', e: p.peek().t === 'eof' ? null : ex(), line }; }
+    if (w === 'break') { p.next(); return { k: 'break', line }; }
+    const e = ex();
+    for (const op of ['=', '<-', ':=', '+=', '-=', '*=', '/=']) {
+      if (p.isOp(op)) {
+        p.next();
+        return { k: 'assign', target: e, op: op.length === 2 && op[1] === '=' && op !== ':=' ? op[0] : null, e: ex(), line };
+      }
+    }
+    if (p.peek().t !== 'eof') throw new ParseError(`unexpected ${JSON.stringify(p.peek().v)}`, line);
+    return { k: 'expr', e, line };
+  }
+  return { syntax: 'textbook', body: block(0) };
+}
+
 function lastLine(body, dflt) {
   let m = dflt;
   const walk = list => { for (const s of list || []) { m = Math.max(m, s.line, s.end || 0); walk(s.body); walk(s.then); walk(s.els); } };
@@ -326,7 +463,7 @@ function lastLine(body, dflt) {
 }
 
 // ── Braces (C / JavaScript-like) ────────────────────────────────────────────
-const C_TYPES = new Set(['int', 'float', 'double', 'char', 'bool', 'boolean', 'long', 'short', 'unsigned', 'signed', 'string', 'String', 'void', 'auto', 'static', 'const']);
+const C_TYPES = new Set(['public', 'private', 'protected', 'final', 'int', 'float', 'double', 'char', 'bool', 'boolean', 'long', 'short', 'unsigned', 'signed', 'string', 'String', 'void', 'auto', 'static', 'const']);
 function parseBraces(src) {
   const toks = lex(src, 'braces');
   const p = cursor(src, toks, true);
@@ -357,7 +494,7 @@ function parseBraces(src) {
       // A declaration, or a C function definition `int f(int a) { … }`.
       const kind = [];
       while (isType()) kind.push(p.next().v);
-      while (p.eatOp('*')) kind.push('*');
+      while (p.eatOp('*') || (p.isOp('[') && p.peek(1).t === 'op' && p.peek(1).v === ']' && p.next() && p.next())) kind.push('*');
       const name = p.expectId();
       if (p.isOp('(')) return funcRest(name, t.line, true);
       const decls = [declRest(name)];
@@ -551,6 +688,7 @@ function parse(src, syntax) {
   syntax = syntax || detect(src);
   if (syntax === 'python') return parsePython(src);
   if (syntax === 'algol') return parseAlgol(src);
+  if (syntax === 'textbook') return parseTextbook(src);
   return parseBraces(src);
 }
 
@@ -587,6 +725,10 @@ function run(src, opts = {}) {
   const scoping = opts.scoping === 'dynamic' ? 'dynamic' : 'static';
   const max = opts.max || 1000;
   const cTyped = syntax === 'braces' && /\b(int|float|double|char|void|long)\b/.test(src);
+  // Textbook pseudocode follows Python's rules for names (assigning makes a local) and
+  // C's for arrays and integer division; its arrays start at opts.base (default 1).
+  const pyLike = syntax === 'python' || syntax === 'textbook';
+  const base = syntax === 'textbook' ? (opts.base == null ? 1 : opts.base) : 0;
 
   let nextId = 1;
   const stack = [];
@@ -638,8 +780,8 @@ function run(src, opts = {}) {
       const hit = find(e.name, ar);
       if (!hit) {
         // Python creates a name by assigning it; sloppy JavaScript makes an undeclared one global.
-        if (syntax === 'python' || (syntax === 'braces' && !cTyped)) {
-          const home = syntax === 'python' ? fnRecord(ar) : globalAR;
+        if (pyLike || (syntax === 'braces' && !cTyped)) {
+          const home = pyLike ? fnRecord(ar) : globalAR;
           const c = cell(undefined, false); c.owner = { ar: home, name: e.name }; home.vars.set(e.name, { cell: c }); return c;
         }
         throw new Fail(`${e.name} is not declared`, e.line);
@@ -654,6 +796,13 @@ function run(src, opts = {}) {
       if (!c) throw new Fail(`index ${i} is outside ${e.a.text}[${arr.lo}..${arr.lo + arr.cells.length - 1}]`, e.line);
       return c;
     }
+    if (e.k === 'attr') {          // A.heap_size: a field kept on the array
+      const o = value(e.o, ar);
+      if (!isArr(o)) throw new Fail(`${e.o.text} has no field ${e.name}`, e.line);
+      o.fields = o.fields || new Map();
+      if (!o.fields.has(e.name)) o.fields.set(e.name, cell(undefined, false));
+      return o.fields.get(e.name);
+    }
     throw new Fail(`can't assign to ${e.text}`, e.line);
   }
   function cellOf(b, name, ar, line) {
@@ -667,7 +816,7 @@ function run(src, opts = {}) {
       case 'str': return e.v;
       case 'bool': return e.v;
       case 'none': return null;
-      case 'list': { const a = { kind: 'arr', lo: 0, cells: e.items.map(x => cell(value(x, ar))) }; a.cells.forEach((c, i) => { c.owner = { arr: a, i }; }); return a; }
+      case 'list': { const a = { kind: 'arr', lo: base, cells: e.items.map(x => cell(value(x, ar))) }; a.cells.forEach((c, i) => { c.owner = { arr: a, i }; }); return a; }
       case 'var': {
         const hit = find(e.name, ar);
         if (!hit) {
@@ -702,10 +851,11 @@ function run(src, opts = {}) {
           case '/': {
             if (num(r, e) === 0) throw new Fail('division by zero', e.line);
             if (syntax === 'braces' && cTyped && Number.isInteger(l) && Number.isInteger(r)) return Math.trunc(l / r);
+            if (syntax === 'textbook' && Number.isInteger(l) && Number.isInteger(r)) return Math.floor(l / r);
             return l / r;
           }
-          case '//': if (num(r, e) === 0) throw new Fail('division by zero', e.line); return syntax === 'python' ? Math.floor(l / r) : Math.trunc(l / r);
-          case '%': if (num(r, e) === 0) throw new Fail('division by zero', e.line); return syntax === 'python' ? ((l % r) + r) % r : l % r;
+          case '//': if (num(r, e) === 0) throw new Fail('division by zero', e.line); return pyLike ? Math.floor(l / r) : Math.trunc(l / r);
+          case '%': if (num(r, e) === 0) throw new Fail('division by zero', e.line); return pyLike ? ((l % r) + r) % r : l % r;
           case '**': return num(l, e) ** num(r, e);
           case '==': return l === r;
           case '!=': return l !== r;
@@ -717,7 +867,13 @@ function run(src, opts = {}) {
         throw new Fail(`unknown operator ${e.op}`, e.line);
       }
       case 'call': return callExpr(e, ar);
-      case 'attr': throw new Fail(`${e.text} is not supported`, e.line);
+      case 'attr': {
+        const o = value(e.o, ar);
+        if (isArr(o) && e.name === 'length' && !(o.fields && o.fields.has('length'))) return o.cells.length;
+        if (typeof o === 'string' && e.name === 'length') return o.length;
+        if (isArr(o) && o.fields && o.fields.has(e.name)) { const c = o.fields.get(e.name); if (!c.set) throw new Fail(`${e.text} is used before it is given a value`, e.line); return c.v; }
+        throw new Fail(`${e.text} is not supported`, e.line);
+      }
     }
     throw new Fail(`can't evaluate ${e.text}`, e.line);
   }
@@ -729,6 +885,8 @@ function run(src, opts = {}) {
     print: true, printf: true, range: true, len: true, abs: true, min: true, max: true, str: true, int: true, float: true,
     outinteger: true, outreal: true, outstring: true, outchar: true, write: true, writeln: true, sqrt: true, entier: true, sign: true, round: true,
   };
+  // Textbook pseudocode's usual helpers (a procedure of the same name in the program wins).
+  if (syntax === 'textbook') Object.assign(BUILTINS, { length: true, floor: true, ceil: true, Left: true, Right: true, Parent: true, Swap: true, swap: true, Array: true, Range: true });
   function callExpr(e, ar) {
     const fname = e.f.k === 'attr' ? e.f.text : e.f.k === 'var' ? e.f.name : null;
     if (fname && /^(console\.log|document\.write|document\.writeln|System\.out\.println|System\.out\.print)$/.test(fname)) {
@@ -736,6 +894,23 @@ function run(src, opts = {}) {
       if (fname === 'console.log' || fname === 'System.out.println' || fname === 'document.writeln') emit(vals.join(fname === 'console.log' ? ' ' : '') + '\n');
       else emit(vals.join(''));
       return undefined;
+    }
+    if (e.f.k === 'attr') {         // Java: s.equals(t), s.hashCode(), Math.abs(x), …
+      const m = e.f.name, args = () => e.args.map(a => value(a, ar));
+      if (e.f.o.k === 'var' && e.f.o.name === 'Math' && !find('Math', ar, { quiet: true })) {
+        const fn = { abs: Math.abs, floor: Math.floor, ceil: Math.ceil, max: Math.max, min: Math.min, sqrt: Math.sqrt, pow: Math.pow }[m];
+        if (fn) return fn(...args());
+      }
+      const o = value(e.f.o, ar);
+      if (o === null || o === undefined) throw new Fail(`${e.f.o.text} is null (NullPointerException)`, e.line);
+      if (m === 'equals') return o === args()[0];
+      if (m === 'hashCode' && typeof o === 'string') {
+        if (opts.hashCodes && o in opts.hashCodes) return opts.hashCodes[o];
+        let hsh = 0; for (const ch of o) hsh = (Math.imul(31, hsh) + ch.charCodeAt(0)) | 0;   // Java's String.hashCode
+        return hsh;
+      }
+      if (m === 'length' && typeof o === 'string') return o.length;
+      throw new Fail(`${e.f.text}() is not supported`, e.line);
     }
     if (e.f.k === 'var') {
       const hit = find(e.f.name, ar, { quiet: true });
@@ -796,6 +971,36 @@ function run(src, opts = {}) {
       case 'str': return show(vals()[0]);
       case 'int': return Math.trunc(Number(vals()[0]));
       case 'float': return Number(vals()[0]);
+      case 'length': { const v = vals()[0]; return isArr(v) ? v.cells.length : String(v).length; }
+      case 'floor': return Math.floor(vals()[0]);
+      case 'ceil': return Math.ceil(vals()[0]);
+      case 'Left': return 2 * vals()[0];
+      case 'Right': return 2 * vals()[0] + 1;
+      case 'Parent': return Math.floor(vals()[0] / 2);
+      case 'Swap': case 'swap': {
+        // Swap(x, y) exchanges two places; Swap(A, i, j) exchanges A[i] and A[j].
+        let a, b;
+        if (e.args.length === 3) {
+          const arr = value(e.args[0], ar);
+          const at = k => { const i = Math.round(value(e.args[k], ar)); const c = isArr(arr) && arr.cells[i - arr.lo]; if (!c) throw new Fail(`index ${i} is outside ${e.args[0].text}`, e.line); return c; };
+          a = at(1); b = at(2);
+        } else if (e.args.length === 2) { a = lvalue(e.args[0], ar); b = lvalue(e.args[1], ar); }
+        else throw new Fail('Swap takes two places, or an array and two indices', e.line);
+        const t = a.v; a.v = b.v; b.v = t; const ts = a.set; a.set = b.set; b.set = ts;
+        return null;
+      }
+      case 'Array': {               // Array(lo, hi): a new array with indices lo..hi, not yet filled
+        const [lo, hi] = vals().map(x => Math.round(num(x, e)));
+        const a = { kind: 'arr', lo, cells: Array.from({ length: Math.max(0, hi - lo + 1) }, () => cell(undefined, false)) };
+        a.cells.forEach((c, i) => { c.owner = { arr: a, i }; });
+        return a;
+      }
+      case 'Range': {               // Range(a, b): the numbers a..b, indexed from the array base
+        const [a0, b0] = vals().map(x => Math.round(num(x, e)));
+        const a = { kind: 'arr', lo: base, cells: [] };
+        for (let x = a0; x <= b0; x++) a.cells.push(cell(x));
+        return a;
+      }
     }
     throw new Fail(`${name} is not supported`, e.line);
   }
@@ -831,8 +1036,8 @@ function run(src, opts = {}) {
     });
     rec.label = `${def.name}(${shown.join(', ')})`;
     if (def.resultType || syntax === 'algol') rec.resultName = def.name;
-    // Python: names assigned in the body are locals for the whole call.
-    if (syntax === 'python') {
+    // Python (and textbook pseudocode): names assigned in the body are locals for the whole call.
+    if (pyLike) {
       rec.globals = new Set(); rec.nonlocals = new Set();
       const assigned = new Set();
       const scan = list => { for (const s of list || []) {
@@ -840,7 +1045,7 @@ function run(src, opts = {}) {
         else if (s.k === 'nonlocal') s.names.forEach(n => rec.nonlocals.add(n));
         else if (s.k === 'assign' && s.target.k === 'var') assigned.add(s.target.name);
         else if (s.k === 'def') { assigned.add(s.name); continue; }
-        else if (s.k === 'forin') assigned.add(s.v);
+        else if (s.k === 'forin' || s.k === 'afor') assigned.add(s.v);
         scan(s.body); scan(s.then); scan(s.els);
       } };
       scan(def.body);
@@ -1083,6 +1288,8 @@ function run(src, opts = {}) {
       const vars = {};
       for (const [n, b] of ar.vars) {
         if (ar.kind === 'global' && b.cell && isProc(b.cell.v) && syntax !== 'python') continue;   // hoisted procedures: not data
+        // An array's fields (A.heap_size) are shown beside it.
+        if (b.cell && isArr(b.cell.v) && b.cell.v.fields) for (const [f, c] of b.cell.v.fields) vars[`${n}.${f}`] = enc(c.v, c.set);
         if (b.thunk) { vars[n] = { thunk: b.thunk.text, now: safe(() => enc(value(b.thunk.expr, b.thunk.ar))) }; continue; }
         if (b.alias) { vars[n] = pointerTo(b.cell, b.alias); continue; }
         // own / static variables live in the static area; the record shows where.
@@ -1110,7 +1317,7 @@ function run(src, opts = {}) {
   // ── Run ──
   let error = null, truncated = false;
   try {
-    if (syntax === 'braces') hoist(ast.body, globalAR, true);
+    if (syntax === 'braces' || syntax === 'textbook') hoist(ast.body, globalAR, syntax === 'braces');
     execList(ast.body, globalAR);
     // C-style programs start at main().
     const main = globalAR.vars.get('main');

@@ -1,10 +1,12 @@
 #!/usr/bin/env node
-// Records the step-through trace shown in Help for every CSC 370 code card, with steptrace
-// (~/steptrace, a separate local project; set STEPTRACE_DIR to use another checkout), and
-// writes decks/csc370-traces.js. Run it again after adding or editing a code card.
+// Records the step-through trace shown in Help for every CSC 370 and CSC 310 code card,
+// with steptrace (~/steptrace, a separate local project; set STEPTRACE_DIR to use another
+// checkout), into decks/csc370-traces.js and decks/csc310-traces.js. Run it again after
+// adding or editing a code card.
 //
-//   node tools/record-traces.js            # all cards
-//   node tools/record-traces.js l3-alias   # some cards (the others are kept from the file)
+//   node tools/record-traces.js                  # all CSC 370 cards
+//   node tools/record-traces.js l3-alias         # some cards (the others are kept from the file)
+//   node tools/record-traces.js --deck csc310    # all CSC 310 cards
 //
 // How each card is traced:
 //   C            the card's code made into a whole program (statements go in main(); a
@@ -16,6 +18,10 @@
 //                scoping runs in steptrace's interpreter under that rule, so Help can
 //                switch between the two.
 //   Lisp/Scheme  no recorder: the hand-written trace in decks/csc370-trace*.js is used.
+//   CSC 310      the card's textbook pseudocode (or Java) in steptrace's interpreter, with
+//                the question's input and call from tools/csc310-trace-runs.js; the run is
+//                checked against the card's answer as that file says (`check` is kept in
+//                the trace for tests/traces.test.js).
 // Notes written by hand in decks/csc370-trace*.js are attached to the recorded steps whose
 // line has the same text, in order.
 'use strict';
@@ -33,10 +39,12 @@ global.FC = {};
 require(path.join(ROOT, 'js/generators.js'));
 require(path.join(ROOT, 'js/grade.js'));
 require(path.join(ROOT, 'decks/csc370.js'));
+for (const f of fs.readdirSync(path.join(ROOT, 'decks')).filter(f => /^csc310(-\w)?\.js$/.test(f))) require(path.join(ROOT, 'decks', f));
 for (const f of fs.readdirSync(path.join(ROOT, 'decks')).filter(f => /^csc370-trace(-\w)?\.js$/.test(f))) require(path.join(ROOT, 'decks', f));
 const hand = FC.trace || {};
 const norm = s => FC.grade.normalize(Array.isArray(s) ? s.join(' ') : String(s));
-const OUT = path.join(ROOT, 'decks/csc370-traces.js');
+const DECK = process.argv.includes('--deck') ? process.argv[process.argv.indexOf('--deck') + 1] : 'csc370';
+const OUT = path.join(ROOT, `decks/${DECK}-traces.js`);
 
 // ── C: make the card's snippet a program ──
 function cProgram(card) {
@@ -134,7 +142,75 @@ function fromHand(card) {
   return { version: 1, language: 'manual', source: card.code, steps, exit: {}, truncated: false };
 }
 
+// ── CSC 310: textbook pseudocode, checked against the card ──
+const { nums, check310 } = require('./trace-checks.js');
+async function record310() {
+  const runs = require('./csc310-trace-runs.js');
+  const out = {}, report = [];
+  let bad = 0;
+  for (const card of FC.decks.csc310.cards.filter(c => c.code)) {
+    const r = runs[card.id];
+    if (!r) { report.push(`${card.id}: no run in tools/csc310-trace-runs.js`); bad++; continue; }
+    const src = (r.before || '') + card.code + '\n' + (r.after || '');
+    const t = run(src, { syntax: r.syntax || 'textbook', base: r.base, hashCodes: r.hashCodes, max: 3000 });
+    if (t.exit.error || t.truncated) { report.push(`${card.id}: ${t.exit.error || 'too many steps'}`); bad++; continue; }
+    const why = check310(t, card, r.check);
+    if (why) { report.push(`${card.id}: CHECK FAILED ${why}`); bad++; continue; }
+    delete t.rules;                 // no scoping/parameter switches: these cards aren't about them
+    t.check = r.check;
+    const printed = t.steps.map(s => s.out || '').join('');
+    if (r.check !== 'none' && r.check !== 'out' && nums(printed).join(' ') !== nums(card.answer).join(' ')) t.steps[t.steps.length - 1].result = String(card.answer);
+    out[card.id] = t;
+    report.push(`${card.id}: ${t.steps.length} steps, check ${typeof r.check === 'string' ? r.check : r.check.count ? 'count ' + r.check.count : 'held ' + r.check.held.length}`);
+  }
+  return { out, report, bad };
+}
+
+function write(out) {
+  // Steps repeat most of their activation records, so each distinct record is written once
+  // (F) and steps list indices into it; the file rebuilds the steps when it loads.
+  // Variable values (arrays especially) are pooled the same way (V).
+  const pool = new Map(), F = [], vpool = new Map(), V = [];
+  const vIdx = v => { const key = JSON.stringify(v); if (!vpool.has(key)) { vpool.set(key, V.length); V.push(v); } return vpool.get(key); };
+  const packed = {};
+  for (const id of Object.keys(out).sort()) {
+    const t = out[id];
+    packed[id] = Object.assign({}, t, { steps: t.steps.map(st => Object.assign({}, st, { frames: (st.frames || []).map(f => {
+      const vars = {};
+      for (const [k, v] of Object.entries(f.vars || {})) vars[k] = vIdx(v);
+      const key = JSON.stringify(Object.assign({}, f, { vars }));
+      if (!pool.has(key)) { pool.set(key, F.length); F.push(Object.assign({}, f, { vars })); }
+      return pool.get(key);
+    }) })) });
+  }
+  const seen = new Map();
+  const body = Object.keys(packed).map(id => {
+    const json = JSON.stringify(packed[id]);
+    if (seen.has(json)) return `T[${JSON.stringify(id)}] = T[${JSON.stringify(seen.get(json))}];`;
+    seen.set(json, id);
+    return `T[${JSON.stringify(id)}] = unpack(${json});`;
+  }).join('\n');
+  fs.writeFileSync(OUT, `// GENERATED by tools/record-traces.js (steptrace). Do not edit: change the card${DECK === 'csc310' ? ', or its run in\n// tools/csc310-trace-runs.js' : ', or the\n// hand notes in decks/csc370-trace*.js'}, and record again.
+(function (FC) {
+  'use strict';
+  const T = FC.traces = FC.traces || {};
+  const V = ${JSON.stringify(V)};
+  const F = ${JSON.stringify(F)}.map(f => { for (const k in f.vars) f.vars[k] = V[f.vars[k]]; return f; });
+  const unpack = t => { t.steps.forEach(s => { s.frames = s.frames.map(i => F[i]); }); return t; };
+${body}
+})(globalThis.FC = globalThis.FC || {});
+`);
+  console.log(`\n${Object.keys(out).length} traces -> ${path.relative(ROOT, OUT)} (${Math.round(fs.statSync(OUT).size / 1024)} KB)`);
+}
+
 (async () => {
+  if (DECK === 'csc310') {
+    const { out, report, bad } = await record310();
+    console.log(report.join('\n'));
+    if (bad) { console.error(`\n${bad} card(s) failed; nothing written`); process.exit(1); }
+    write(out);
+    return;
+  }
   const only = new Set(process.argv.slice(2));
   const cards = FC.decks.csc370.cards.filter(c => c.code && (!only.size || only.has(c.id)));
   const prev = {};
@@ -170,15 +246,6 @@ function fromHand(card) {
     out[card.id] = t;
     report.push(`${card.id}: ${p.kind}${p.scoping ? ' ' + p.scoping : ''}, ${t.steps.length} steps, ${notes} notes, ${how}`);
   }
-  const body = Object.keys(out).sort().map(id => `T[${JSON.stringify(id)}] = ${JSON.stringify(out[id])};`).join('\n');
-  fs.writeFileSync(OUT, `// GENERATED by tools/record-traces.js (steptrace). Do not edit: change the card, or the
-// hand notes in decks/csc370-trace*.js, and record again.
-(function (FC) {
-  'use strict';
-  const T = FC.traces = FC.traces || {};
-${body}
-})(globalThis.FC = globalThis.FC || {});
-`);
   console.log(report.join('\n'));
-  console.log(`\n${Object.keys(out).length} traces -> ${path.relative(ROOT, OUT)} (${Math.round(fs.statSync(OUT).size / 1024)} KB)`);
+  write(out);
 })().catch(e => { console.error(e); process.exit(1); });

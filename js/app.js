@@ -596,7 +596,10 @@
     const traceHost = trace ? h('div', { class: 'trace-host' }) : null;
     helpTrace = trace ? StepTrace.mount(traceHost, trace, {}) : null;
     if (card.code && !trace) body.push(h('pre', { class: 'code' }, card.code));
-    if (traceHost) body.push(sec('Step through it', traceHost));
+    // A question about a run starts with the run; a conceptual question (a CSC 310 trace
+    // checked against nothing: invariants, recurrences) shows it after the explanation.
+    const traceLater = trace && trace.check === 'none';
+    if (traceHost && !traceLater) body.push(sec('Step through it', traceHost));
     if (!shared) body.push(sec('What it’s asking', h('p', null, helpMath(help.asks))));
     if (help.idea) body.push(sec('The idea', h('p', null, helpMath(help.idea))));
     // Heaps: one drawn heap, or a short sequence of states (each with its caption).
@@ -615,7 +618,10 @@
       ...steps.map((st, i) => h('div', { class: 'heap-step' }, h('p', null, helpMath(st.text || '')), heapFig(st.heap, i ? steps[i - 1].heap : null))),
       help.graph ? plot(help.graph) : null].filter(Boolean);
     if (pics.length) body.push(sec('Picture it', ...pics.flatMap((p, i) => i ? [h('div', { style: 'height:0.75rem' }), p] : [p])));
-    if (help.steps && !helpTrace) body.push(sec('Step by step', h('ol', { class: 'help-steps' }, help.steps.map(helpStep))));
+    // CSC 370's written steps were a hand trace, which the recorded one replaces; CSC 310's
+    // explain the reasoning, so they stay.
+    if (help.steps && !(helpTrace && card.deck === 'csc370')) body.push(sec('Step by step', h('ol', { class: 'help-steps' }, help.steps.map(helpStep))));
+    if (traceHost && traceLater) body.push(sec('Watch it run', traceHost));
     if (shared) body.push(sec('Answer', h('div', { class: 'help-answer' }, helpMath(Array.isArray(card.answer) ? card.answer.join(', ') : card.answer))));
     else if (help.answer) body.push(sec('Answer', h('div', { class: 'help-answer' }, helpMath(help.answer))));
     if (help.mistake) body.push(sec('Watch out', h('div', { class: 'help-mistake' }, helpMath(help.mistake))));
@@ -1086,7 +1092,7 @@
       return wrap;
     }
     $('actions').replaceChildren(h('div', { class: 'commit' }, idkBtn, h('div', { class: 'pair' }, guessBtn, sureBtn)),
-      newcomer ? h('p', { class: 'commit-hint' }, 'Sure: you know it. Guess: you’re not certain (it comes back sooner).') : null);
+      newcomer ? h('p', { class: 'commit-hint' }, 'Sure: you know it. Guess: you’re not certain (it comes back sooner).') : '');
     function updateReady() { const r = read().ready; sureBtn.disabled = !r; guessBtn.disabled = !r; }
     wrap.addEventListener('input', updateReady);
     if (wrap.draw) wrap.draw(); else updateReady();

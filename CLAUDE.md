@@ -60,7 +60,7 @@ Then update the `<script>` tag in `index.html`.
 
 ## Commands
 
-- Tests (1650 as of 2026-10-18, about 60 s; needs python3, gcc, node, bash, guile, ecl, javac/java; python3 with mpmath for the CSC 310 growth checks): `node --test tests/`. `tests/traces.test.js` checks every recorded trace against its card (printed output = answer, or the answer is a value the run actually held)
+- Tests (1674 as of 2026-10-18, about 60 s; needs python3, gcc, node, bash, guile, ecl, javac/java; python3 with mpmath for the CSC 310 growth checks): `node --test tests/`. `tests/traces.test.js` checks every recorded trace against its card (printed output = answer, or the answer is a value the run actually held)
 - Re-record Help traces (needs ~/steptrace, gcc, gdb 14+): `node tools/record-traces.js [card ids]` (CSC 370) and `node tools/record-traces.js --deck csc310`
 - Run locally: `python3 -m http.server 8765 --bind 127.0.0.1`, then open http://127.0.0.1:8765/. Opening `index.html` directly from disk also works.
 
